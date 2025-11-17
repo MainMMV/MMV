@@ -45,7 +45,7 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
                 <div className="relative flex-shrink-0">
                   <button
                     onClick={() => setIsCalendarOpen(prev => !prev)}
-                    className="bg-zinc-200 dark:bg-zinc-700/80 rounded-xl text-zinc-800 dark:text-zinc-100 font-bold text-center w-16 h-16 flex flex-col items-center justify-center p-2 shadow-md hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-zinc-800 focus:ring-amber-500"
+                    className="bg-zinc-200 dark:bg-zinc-700/80 rounded-xl text-zinc-800 dark:text-zinc-100 font-bold text-center w-16 h-16 flex flex-col items-center justify-center p-2 shadow-md hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-zinc-800 focus:ring-slate-600"
                     aria-haspopup="true"
                     aria-expanded={isCalendarOpen}
                     aria-label="Change month date"
@@ -74,7 +74,7 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
                             type="text"
                             value={editingName}
                             onChange={(e) => setEditingName(e.target.value)}
-                            className="bg-zinc-100 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white text-xl font-bold rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-amber-500 w-full"
+                            className="bg-zinc-100 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white text-xl font-bold rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-600 w-full"
                           />
                           <button onClick={handleSave} className="px-3 py-1 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm font-semibold">Save</button>
                           <button onClick={handleCancel} className="px-3 py-1 bg-zinc-500 dark:bg-zinc-600 text-white rounded-md hover:bg-zinc-600 dark:hover:bg-zinc-700 text-sm">Cancel</button>

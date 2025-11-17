@@ -71,7 +71,7 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateChange, onClose
           key={day}
           onClick={() => handleDayClick(day)}
           className={`flex items-center justify-center h-9 w-9 rounded-full cursor-pointer transition-colors text-sm ${
-            isSelected ? 'bg-amber-500 text-white font-bold' : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+            isSelected ? 'bg-slate-600 text-white font-bold' : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
           }`}
         >
           {day}
@@ -85,8 +85,8 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateChange, onClose
             <ChevronLeftIcon />
           </button>
           <div className="flex items-center gap-1 font-semibold">
-            <button onClick={() => setCurrentView('months')} className="hover:text-amber-500 px-1 rounded-md">{monthNamesEn[viewDate.getMonth()]}</button>
-            <button onClick={() => setCurrentView('years')} className="hover:text-amber-500 px-1 rounded-md">{viewDate.getFullYear()}</button>
+            <button onClick={() => setCurrentView('months')} className="hover:text-slate-500 px-1 rounded-md">{monthNamesEn[viewDate.getMonth()]}</button>
+            <button onClick={() => setCurrentView('years')} className="hover:text-slate-500 px-1 rounded-md">{viewDate.getFullYear()}</button>
           </div>
           <button onClick={() => changeMonth(1)} className="p-2 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700">
             <ChevronRightIcon />
@@ -111,7 +111,7 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateChange, onClose
             key={month}
             onClick={() => handleMonthClick(index)}
             className={`p-4 rounded-md text-sm font-semibold transition-colors ${
-              viewDate.getMonth() === index ? 'bg-amber-500 text-white' : 'bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600'
+              viewDate.getMonth() === index ? 'bg-slate-600 text-white' : 'bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600'
             }`}
           >
             {month}
@@ -138,7 +138,7 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateChange, onClose
               key={year}
               onClick={() => handleYearClick(year)}
               className={`py-2 px-1 rounded-md text-sm font-semibold transition-colors ${
-                currentYear === year ? 'bg-amber-500 text-white' : 'bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600'
+                currentYear === year ? 'bg-slate-600 text-white' : 'bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600'
               }`}
             >
               {year}
@@ -179,7 +179,7 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateChange, onClose
         {renderContent()}
       </div>
       <div className="p-2 text-right border-t border-zinc-200 dark:border-zinc-700">
-        <button onClick={onClose} className="font-semibold text-amber-500 hover:bg-amber-500/10 px-3 py-2 rounded-md text-sm">
+        <button onClick={onClose} className="font-semibold text-slate-500 hover:bg-slate-500/10 px-3 py-2 rounded-md text-sm">
           Close
         </button>
       </div>

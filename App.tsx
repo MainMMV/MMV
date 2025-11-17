@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { MonthData, GoalStatus, Goal, StorePlan } from './types';
+import { MonthData, GoalStatus, Goal, StorePlan, FavouriteLink, FavouriteFolder } from './types';
 import MonthCard from './components/MonthCard';
 import TopNav from './components/TopNav';
 import Dashboard from './components/Dashboard';
 import StorePlanView from './components/StorePlanView';
 import { PlusIcon } from './components/Icons';
+import HomePage from './components/HomePage';
+import PowerfulWebSitesPage from './components/WelcomePage';
 
 // Initial sample data for the application, used only if no saved data is found.
 const initialData: MonthData[] = [
@@ -53,6 +55,13 @@ const initialStorePlans: StorePlan[] = [
   { id: 'sp4', name: '3rd Decade', plan100: 1033333333, actualSum: 0 },
 ];
 
+const initialLinks: FavouriteLink[] = [
+  { id: 'l1', title: 'MMV Clock', url: 'https://mmvclock.netlify.app/', description: 'A real-time clock application.', folderId: null },
+  { id: 'l2', title: 'MMV JSON', url: 'https://mmvjson.netlify.app/', description: 'A tool for JSON data management.', folderId: null },
+];
+
+const initialFolders: FavouriteFolder[] = [];
+
 
 /**
  * The main component of the application.
@@ -60,7 +69,7 @@ const initialStorePlans: StorePlan[] = [
  * Also handles saving and loading data to/from the browser's localStorage.
  */
 const App: React.FC = () => {
-  const [activeView, setActiveView] = useState<'mmv' | 'branch' | 'seller'>('mmv');
+  const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'branch' | 'seller' | 'powerful_sites'>('welcome');
 
   const [data, setData] = useState<MonthData[]>(() => {
     try {
@@ -79,6 +88,26 @@ const App: React.FC = () => {
     } catch (error) {
       console.error("Error reading store plans from localStorage", error);
       return initialStorePlans;
+    }
+  });
+
+  const [links, setLinks] = useState<FavouriteLink[]>(() => {
+    try {
+      const savedLinks = localStorage.getItem('favouriteLinks');
+      return savedLinks ? JSON.parse(savedLinks) : initialLinks;
+    } catch (error) {
+      console.error("Error reading links from localStorage", error);
+      return initialLinks;
+    }
+  });
+
+  const [folders, setFolders] = useState<FavouriteFolder[]>(() => {
+    try {
+      const savedFolders = localStorage.getItem('favouriteFolders');
+      return savedFolders ? JSON.parse(savedFolders) : initialFolders;
+    } catch (error) {
+      console.error("Error reading folders from localStorage", error);
+      return initialFolders;
     }
   });
 
@@ -102,6 +131,22 @@ const App: React.FC = () => {
       console.error("Error writing store plans to localStorage", error);
     }
   }, [storePlans]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('favouriteLinks', JSON.stringify(links));
+    } catch (error) {
+      console.error("Error writing links to localStorage", error);
+    }
+  }, [links]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('favouriteFolders', JSON.stringify(folders));
+    } catch (error) {
+      console.error("Error writing folders to localStorage", error);
+    }
+  }, [folders]);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -165,8 +210,54 @@ const App: React.FC = () => {
     });
   };
 
+  // --- Favourite Links and Folders Handlers ---
+
+  const handleAddOrUpdateLink = (link: Omit<FavouriteLink, 'id'> & { id?: string }) => {
+    setLinks(currentLinks => {
+      if (link.id) {
+        return currentLinks.map(l => l.id === link.id ? { ...l, ...link } : l);
+      } else {
+        return [...currentLinks, { ...link, id: `l-${Date.now()}` }];
+      }
+    });
+  };
+
+  const handleRemoveLink = (linkId: string) => {
+    setLinks(currentLinks => currentLinks.filter(l => l.id !== linkId));
+  };
+
+  const handleAddFolder = (name: string) => {
+    const newFolder: FavouriteFolder = { id: `f-${Date.now()}`, name };
+    setFolders(currentFolders => [...currentFolders, newFolder]);
+  };
+
+  const handleUpdateFolder = (folderId: string, updatedValues: Partial<FavouriteFolder>) => {
+    setFolders(currentFolders =>
+      currentFolders.map(f => (f.id === folderId ? { ...f, ...updatedValues } : f))
+    );
+  };
+
+  const handleRemoveFolder = (folderId: string) => {
+    setFolders(currentFolders => currentFolders.filter(f => f.id !== folderId));
+    // Also set links in this folder to be ungrouped
+    setLinks(currentLinks => currentLinks.map(l => l.folderId === folderId ? { ...l, folderId: null } : l));
+  };
+
+
   const renderContent = () => {
     switch (activeView) {
+      case 'welcome':
+        return <HomePage />;
+      case 'powerful_sites':
+        return <PowerfulWebSitesPage 
+          links={links}
+          folders={folders}
+          onAddOrUpdateLink={handleAddOrUpdateLink}
+          onRemoveLink={handleRemoveLink}
+          onAddFolder={handleAddFolder}
+          onUpdateFolder={handleUpdateFolder}
+          onRemoveFolder={handleRemoveFolder}
+        />;
       case 'branch':
         return <StorePlanView plans={storePlans} onPlanUpdate={handleStorePlanUpdate} />;
       case 'seller':
@@ -175,11 +266,11 @@ const App: React.FC = () => {
       default:
         return (
           <>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
               <h2 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Dashboard</h2>
               <button 
                 onClick={handleNewMonth}
-                className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg shadow-md hover:bg-amber-600 transition-colors text-sm font-semibold"
+                className="flex items-center gap-2 px-4 py-2 bg-slate-600 text-white rounded-lg shadow-md hover:bg-slate-700 transition-colors text-sm font-semibold"
                 aria-label="Create new month"
               >
                 <PlusIcon />
@@ -213,7 +304,7 @@ const App: React.FC = () => {
         activeView={activeView}
         onViewChange={setActiveView}
       />
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {renderContent()}
       </div>
     </div>

@@ -7,8 +7,8 @@ import { SunIcon, MoonIcon, MenuIcon } from './Icons';
 interface TopNavProps {
   theme: 'light' | 'dark';
   toggleTheme: () => void;
-  activeView: 'mmv' | 'branch' | 'seller';
-  onViewChange: (view: 'mmv' | 'branch' | 'seller') => void;
+  activeView: 'welcome' | 'mmv' | 'branch' | 'seller' | 'powerful_sites';
+  onViewChange: (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'powerful_sites') => void;
 }
 
 /**
@@ -17,17 +17,17 @@ interface TopNavProps {
 const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewChange }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleViewClick = (view: 'mmv' | 'branch' | 'seller') => {
+  const handleViewClick = (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'powerful_sites') => {
     onViewChange(view);
     setIsMenuOpen(false);
   };
 
-  const getButtonClass = (view: 'mmv' | 'branch' | 'seller') => {
-    const baseClass = "text-left p-2 rounded-md transition-colors w-full";
+  const getButtonClass = (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'powerful_sites') => {
+    const baseClass = "text-left p-2 rounded-md transition-colors w-full font-medium";
     if (activeView === view) {
-      return `${baseClass} bg-zinc-300 dark:bg-zinc-700 font-semibold`;
+      return `${baseClass} bg-zinc-300 dark:bg-zinc-700 font-semibold text-zinc-900 dark:text-white`;
     }
-    return `${baseClass} hover:bg-zinc-200 dark:hover:bg-zinc-700/50`;
+    return `${baseClass} hover:bg-zinc-200 dark:hover:bg-zinc-700/50 text-zinc-600 dark:text-zinc-300`;
   };
 
   return (
@@ -76,11 +76,13 @@ const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewC
           className={`relative h-full w-64 bg-zinc-100 dark:bg-[#28282B] shadow-xl transition-transform duration-300 ease-in-out ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
         >
           <div className="p-6">
-            <h2 className="text-xl font-bold mb-8">Menu</h2>
-            <nav className="flex flex-col gap-4">
-              <button className={getButtonClass('mmv')} onClick={() => handleViewClick('mmv')}>Temp for MMV</button>
-              <button className={getButtonClass('branch')} onClick={() => handleViewClick('branch')}>Temp Branch</button>
-              <button className={getButtonClass('seller')} onClick={() => handleViewClick('seller')}>Temp Seller</button>
+            <h2 className="text-xl font-bold mb-8 text-zinc-900 dark:text-white">Menu</h2>
+            <nav className="flex flex-col gap-2">
+              <button className={getButtonClass('welcome')} onClick={() => handleViewClick('welcome')}>Home</button>
+              <button className={getButtonClass('mmv')} onClick={() => handleViewClick('mmv')}>Dashboard</button>
+              <button className={getButtonClass('branch')} onClick={() => handleViewClick('branch')}>Branch Plan</button>
+              <button className={getButtonClass('seller')} onClick={() => handleViewClick('seller')}>Seller View</button>
+              <button className={getButtonClass('powerful_sites')} onClick={() => handleViewClick('powerful_sites')}>Powerful Web Sites</button>
             </nav>
           </div>
         </div>

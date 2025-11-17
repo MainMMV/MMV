@@ -101,7 +101,7 @@ const StorePlanCard: React.FC<StorePlanCardProps> = ({ planData, onUpdate, curre
                 value={formatNumber(Number(editingPlan))}
                 onChange={(e) => handleChange(setEditingPlan, e.target.value)}
                 onBlur={() => handleBlur('plan100')}
-                className="w-full bg-transparent text-right focus:outline-none focus:ring-1 focus:ring-amber-500 rounded-md p-1"
+                className="w-full bg-transparent text-right focus:outline-none focus:ring-1 focus:ring-slate-600 rounded-md p-1"
               />
           ) : formatNumber(planValue)}
         </td>
@@ -112,7 +112,7 @@ const StorePlanCard: React.FC<StorePlanCardProps> = ({ planData, onUpdate, curre
                 value={formatNumber(Number(editingActual))}
                 onChange={(e) => handleChange(setEditingActual, e.target.value)}
                 onBlur={() => handleBlur('actualSum')}
-                className="w-full bg-transparent text-right focus:outline-none focus:ring-1 focus:ring-amber-500 rounded-md p-1"
+                className="w-full bg-transparent text-right focus:outline-none focus:ring-1 focus:ring-slate-600 rounded-md p-1"
               />
           ) : formatNumber(planData.actualSum)}
         </td>
@@ -121,7 +121,7 @@ const StorePlanCard: React.FC<StorePlanCardProps> = ({ planData, onUpdate, curre
                 <PieChart percentage={actualPercent} />
             </div>
         </td>
-        <td className="px-2 py-2">
+        <td className="px-2 py-2 hidden sm:table-cell">
             <div className="flex justify-center">
                 <PieChart percentage={tempPercent} />
             </div>
@@ -145,7 +145,7 @@ const StorePlanCard: React.FC<StorePlanCardProps> = ({ planData, onUpdate, curre
                         <th scope="col" className="px-2 py-2 text-right w-44">Plan</th>
                         <th scope="col" className="px-2 py-2 text-right w-44">Total Sum</th>
                         <th scope="col" className="px-2 py-2 text-center w-28">Total %</th>
-                        <th scope="col" className="px-2 py-2 text-center w-28">Temp %</th>
+                        <th scope="col" className="px-2 py-2 text-center w-28 hidden sm:table-cell">Temp %</th>
                         <th scope="col" className="px-2 py-2 text-right w-44">Remainder</th>
                         <th scope="col" className="px-2 py-2 text-right w-44">Daily</th>
                     </tr>

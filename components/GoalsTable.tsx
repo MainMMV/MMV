@@ -98,8 +98,7 @@ const GoalsTable: React.FC<GoalsTableProps> = ({ goals, onGoalUpdate, isSalaryVi
             <th scope="col" className="px-2 py-3 text-center w-20">TOTAL</th>
             <th scope="col" className="px-2 py-3 text-center w-20">GOAL</th>
             <th scope="col" className="px-2 py-3 text-center">PROGRESS</th>
-            <th scope="col" className="px-2 py-3">STATUS</th>
-            <th scope="col" className="px-2 py-3 text-center">PROJECTED END</th>
+            <th scope="col" className="px-2 py-3 text-center hidden sm:table-cell">PROJECTED END</th>
             <th scope="col" className="px-2 py-3 text-right">SALARY</th>
           </tr>
         </thead>
@@ -124,7 +123,7 @@ const GoalsTable: React.FC<GoalsTableProps> = ({ goals, onGoalUpdate, isSalaryVi
                     type="number"
                     value={goal.progress}
                     onChange={(e) => handleInputChange(goal.id, 'progress', e.target.value)}
-                    className="w-full bg-zinc-100 dark:bg-zinc-900/10 text-center focus:outline-none focus:ring-1 focus:ring-amber-500 rounded-md p-1 transition-all"
+                    className="w-full bg-zinc-100 dark:bg-zinc-900/10 text-center focus:outline-none focus:ring-1 focus:ring-slate-600 rounded-md p-1 transition-all"
                     aria-label={`Current total for ${goal.name}`}
                   />
                 </td>
@@ -133,7 +132,7 @@ const GoalsTable: React.FC<GoalsTableProps> = ({ goals, onGoalUpdate, isSalaryVi
                     type="number"
                     value={goal.endValue}
                     onChange={(e) => handleInputChange(goal.id, 'endValue', e.target.value)}
-                    className="w-full bg-zinc-100 dark:bg-zinc-900/10 text-center focus:outline-none focus:ring-1 focus:ring-amber-500 rounded-md p-1 transition-all"
+                    className="w-full bg-zinc-100 dark:bg-zinc-900/10 text-center focus:outline-none focus:ring-1 focus:ring-slate-600 rounded-md p-1 transition-all"
                     aria-label={`Goal for ${goal.name}`}
                   />
                 </td>
@@ -142,12 +141,7 @@ const GoalsTable: React.FC<GoalsTableProps> = ({ goals, onGoalUpdate, isSalaryVi
                       <PieChart percentage={percentage} />
                     </div>
                 </td>
-                <td className="px-2 py-2">
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${statusStyles[goal.status]}`}>
-                    {goal.status}
-                  </span>
-                </td>
-                <td className="px-2 py-2 text-center text-xs">
+                <td className="px-2 py-2 text-center text-xs hidden sm:table-cell">
                   {projectionData.canProject && goal.progress > 0 ? (
                     <div>
                       <span className="font-semibold text-zinc-800 dark:text-zinc-100">{Math.round(projectedTotal)}</span>
@@ -167,15 +161,15 @@ const GoalsTable: React.FC<GoalsTableProps> = ({ goals, onGoalUpdate, isSalaryVi
         {isSalaryVisible && (
             <tfoot className="text-sm font-semibold">
                 <tr className="border-t-2 border-zinc-300 dark:border-zinc-600">
-                    <td colSpan={6} className="px-4 py-2 text-right text-zinc-500 dark:text-zinc-400">Total Salary</td>
-                    <td className="px-4 py-2 text-right font-bold text-lg text-amber-600 dark:text-amber-400">{formatCurrency(totalSalary)}</td>
+                    <td colSpan={4} className="sm:col-span-5 px-4 py-2 text-right text-zinc-500 dark:text-zinc-400">Total Salary</td>
+                    <td className="px-4 py-2 text-right font-bold text-lg text-slate-600 dark:text-slate-400">{formatCurrency(totalSalary)}</td>
                 </tr>
                 <tr>
-                    <td colSpan={6} className="px-4 py-1 text-right text-zinc-500 dark:text-zinc-400">Tax (-12%)</td>
+                    <td colSpan={4} className="sm:col-span-5 px-4 py-1 text-right text-zinc-500 dark:text-zinc-400">Tax (-12%)</td>
                     <td className="px-4 py-1 text-right text-rose-600 dark:text-rose-400">-{formatCurrency(taxDeduction)}</td>
                 </tr>
                 <tr className="border-t border-zinc-200 dark:border-zinc-700/50">
-                    <td colSpan={6} className="px-4 py-2 text-right text-base text-zinc-900 dark:text-white">Net Salary</td>
+                    <td colSpan={4} className="sm:col-span-5 px-4 py-2 text-right text-base text-zinc-900 dark:text-white">Net Salary</td>
                     <td className="px-4 py-2 text-right font-extrabold text-lg text-emerald-600 dark:text-emerald-400">{formatCurrency(netSalary)}</td>
                 </tr>
             </tfoot>

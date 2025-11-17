@@ -64,3 +64,24 @@ export interface StorePlan {
   plan100: number; // The 100% plan value
   actualSum: number; // The actual sum achieved
 }
+
+/**
+ * Interface representing a favorite web page link.
+ */
+export interface FavouriteLink {
+  id: string;
+  title: string;
+  url: string;
+  description: string;
+  folderId: string | null;
+  instagramUrl?: string;
+}
+
+/**
+ * Interface representing a folder for favorite links.
+ */
+export interface FavouriteFolder {
+  id: string;
+  name: string;
+  color?: string; // e.g., 'rose-500', 'amber-500'
+}

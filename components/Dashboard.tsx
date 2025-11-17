@@ -66,17 +66,17 @@ const Dashboard: React.FC<DashboardProps> = ({ allMonths }) => {
         {/* Stat Card: Total Net Salary */}
         <div className="bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/50 rounded-xl p-6 flex flex-col justify-between shadow-lg">
           <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Total Net Salary</h3>
-          <p className="text-4xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-2">{formatCurrency(stats.totalNetSalary)}</p>
+          <p className="text-3xl sm:text-4xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-2">{formatCurrency(stats.totalNetSalary)}</p>
         </div>
         {/* Stat Card: Goal Completion Rate */}
         <div className="bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/50 rounded-xl p-6 flex flex-col justify-between shadow-lg">
           <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Overall Goal Completion</h3>
-          <p className="text-4xl font-extrabold text-amber-600 dark:text-amber-400 mt-2">{stats.completionRate.toFixed(1)}%</p>
+          <p className="text-3xl sm:text-4xl font-extrabold text-slate-600 dark:text-slate-400 mt-2">{stats.completionRate.toFixed(1)}%</p>
         </div>
         {/* Stat Card: Active Goals */}
         <div className="bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/50 rounded-xl p-6 flex flex-col justify-between shadow-lg">
           <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Active Goals</h3>
-          <p className="text-4xl font-extrabold text-zinc-900 dark:text-white mt-2">{stats.inProgressGoals}</p>
+          <p className="text-3xl sm:text-4xl font-extrabold text-zinc-900 dark:text-white mt-2">{stats.inProgressGoals}</p>
         </div>
       </div>
     </div>

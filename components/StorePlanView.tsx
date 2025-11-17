@@ -165,24 +165,23 @@ const StorePlanView: React.FC<StorePlanViewProps> = ({ plans, onPlanUpdate }) =>
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Branch Plans</h2>
+    <div>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+        <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Branch Plans</h2>
         
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
           <button
             onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 bg-zinc-200 dark:bg-zinc-700/80 rounded-lg text-zinc-800 dark:text-zinc-100 shadow-sm hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-zinc-200 dark:bg-zinc-700/80 rounded-lg text-zinc-800 dark:text-zinc-100 shadow-sm hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
           >
             <DownloadIcon />
             <span>Export</span>
           </button>
           
-          {/* Date picker button that opens the calendar popover */}
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <button
               onClick={() => setIsCalendarOpen(true)}
-              className="flex items-center gap-3 px-4 py-2 bg-zinc-200 dark:bg-zinc-700/80 rounded-lg text-zinc-800 dark:text-zinc-100 shadow-sm hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
+              className="w-full sm:w-auto flex items-center justify-center gap-3 px-4 py-2 bg-zinc-200 dark:bg-zinc-700/80 rounded-lg text-zinc-800 dark:text-zinc-100 shadow-sm hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
               aria-haspopup="true"
               aria-expanded={isCalendarOpen}
             >
@@ -204,7 +203,7 @@ const StorePlanView: React.FC<StorePlanViewProps> = ({ plans, onPlanUpdate }) =>
         </div>
       </div>
 
-      <div className="h-px bg-gradient-to-r from-amber-400 via-amber-600 to-transparent mb-8"></div>
+      <div className="h-px bg-gradient-to-r from-slate-400 via-slate-600 to-transparent mb-8"></div>
         
       <div className="grid grid-cols-1 gap-8 items-start">
         {plans.map((plan, index) => (
