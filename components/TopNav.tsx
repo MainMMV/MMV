@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { SunIcon, MoonIcon, MenuIcon } from './Icons';
+import { SunIcon, MoonIcon, MenuIcon, ChartBarIcon, CogIcon } from './Icons';
 
 /**
  * Props for the TopNav component.
@@ -7,23 +8,24 @@ import { SunIcon, MoonIcon, MenuIcon } from './Icons';
 interface TopNavProps {
   theme: 'light' | 'dark';
   toggleTheme: () => void;
-  activeView: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites';
-  onViewChange: (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites') => void;
+  activeView: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison';
+  onViewChange: (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison') => void;
+  onOpenSettings: () => void;
 }
 
 /**
  * The top navigation bar for the application.
  */
-const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewChange }) => {
+const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewChange, onOpenSettings }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleViewClick = (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites') => {
+  const handleViewClick = (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison') => {
     onViewChange(view);
     setIsMenuOpen(false);
   };
 
-  const getButtonClass = (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites') => {
-    const baseClass = "text-left p-2 rounded-md transition-colors w-full font-medium";
+  const getButtonClass = (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison') => {
+    const baseClass = "text-left p-2 rounded-md transition-colors w-full font-medium flex items-center gap-2";
     if (activeView === view) {
       return `${baseClass} bg-zinc-300 dark:bg-zinc-700 font-semibold text-zinc-900 dark:text-white`;
     }
@@ -48,6 +50,13 @@ const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewC
             </div>
             
             <div className="flex items-center gap-2 sm:gap-4">
+               <button
+                  onClick={onOpenSettings}
+                  className="p-2 rounded-md text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700/50 hover:text-zinc-800 dark:hover:text-white transition-colors"
+                  aria-label="Open Settings"
+              >
+                  <CogIcon />
+              </button>
               <button
                   onClick={toggleTheme}
                   className="p-2 rounded-md text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700/50 hover:text-zinc-800 dark:hover:text-white transition-colors"
@@ -80,6 +89,9 @@ const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewC
             <nav className="flex flex-col gap-2">
               <button className={getButtonClass('welcome')} onClick={() => handleViewClick('welcome')}>Home</button>
               <button className={getButtonClass('mmv')} onClick={() => handleViewClick('mmv')}>Dashboard</button>
+              <button className={getButtonClass('comparison')} onClick={() => handleViewClick('comparison')}>
+                  <ChartBarIcon /> Comparison
+              </button>
               <button className={getButtonClass('branch')} onClick={() => handleViewClick('branch')}>Branch Plan</button>
               <button className={getButtonClass('seller')} onClick={() => handleViewClick('seller')}>Seller View</button>
               <button className={getButtonClass('spending')} onClick={() => handleViewClick('spending')}>Spending Page</button>

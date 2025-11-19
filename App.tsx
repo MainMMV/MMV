@@ -5,10 +5,12 @@ import MonthCard from './components/MonthCard';
 import TopNav from './components/TopNav';
 import Dashboard from './components/Dashboard';
 import StorePlanView from './components/StorePlanView';
-import { PlusIcon } from './components/Icons';
+import { PlusIcon, GoogleSheetsIcon } from './components/Icons';
 import HomePage from './components/HomePage';
 import PowerfulWebSitesPage from './components/WelcomePage';
 import SpendingPage from './components/SpendingPage';
+import ComparisonDashboard from './components/ComparisonDashboard';
+import SettingsModal from './components/SettingsModal';
 
 // Initial sample data for the application, used only if no saved data is found.
 const initialData: MonthData[] = [
@@ -73,7 +75,8 @@ const initialSpending: SpendingItem[] = [];
  * Also handles saving and loading data to/from the browser's localStorage.
  */
 const App: React.FC = () => {
-  const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites'>('welcome');
+  const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison'>('welcome');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const [data, setData] = useState<MonthData[]>(() => {
     try {
@@ -253,6 +256,205 @@ const App: React.FC = () => {
     });
   };
 
+  // --- Data Management Handlers ---
+
+  const handleExportBackup = () => {
+      const backup = {
+          version: 1,
+          timestamp: new Date().toISOString(),
+          data: {
+            salaryGoalTrackerData: data,
+            storePlansData: storePlans,
+            favouriteLinks: links,
+            favouriteFolders: folders,
+            spendingData: spendingData,
+            theme: theme
+          }
+      };
+
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `mmv-backup-${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+  };
+
+  const handleImportBackup = (file: File) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+          try {
+              const text = e.target?.result as string;
+              const backup = JSON.parse(text);
+              
+              if (backup && backup.data) {
+                  if (window.confirm('This will overwrite all current data with the backup. Are you sure?')) {
+                      if (backup.data.salaryGoalTrackerData) setData(backup.data.salaryGoalTrackerData);
+                      if (backup.data.storePlansData) setStorePlans(backup.data.storePlansData);
+                      if (backup.data.favouriteLinks) setLinks(backup.data.favouriteLinks);
+                      if (backup.data.favouriteFolders) setFolders(backup.data.favouriteFolders);
+                      if (backup.data.spendingData) setSpendingData(backup.data.spendingData);
+                      if (backup.data.theme) setTheme(backup.data.theme);
+                      alert('Backup restored successfully!');
+                      setIsSettingsOpen(false);
+                  }
+              } else {
+                  alert('Invalid backup file format.');
+              }
+          } catch (err) {
+              console.error(err);
+              alert('Error parsing backup file.');
+          }
+      };
+      reader.readAsText(file);
+  };
+
+  const handleResetAllData = () => {
+      if (window.confirm('WARNING: This will delete ALL your data permanently. This action cannot be undone. Are you sure?')) {
+          setData(initialData);
+          setStorePlans(initialStorePlans);
+          setLinks(initialLinks);
+          setFolders(initialFolders);
+          setSpendingData(initialSpending);
+          localStorage.clear();
+          alert('All data has been reset.');
+          setIsSettingsOpen(false);
+      }
+  };
+
+  const handleSyncWithSheets = () => {
+    // 1. Generate Styled HTML for all data
+    const styles = `
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #ffffff; padding: 20px; }
+        .month-container { margin-bottom: 40px; border: 1px solid #e4e4e7; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .header { background-color: #3f3f46; color: white; padding: 15px; font-size: 18px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { background-color: #f4f4f5; color: #3f3f46; border: 1px solid #e4e4e7; padding: 10px; text-align: center; font-weight: bold; }
+        td { border: 1px solid #e4e4e7; padding: 8px; color: #18181b; vertical-align: middle; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .font-bold { font-weight: bold; }
+        .text-emerald { color: #059669; }
+        .text-rose { color: #e11d48; }
+        .bg-gray { background-color: #fafafa; }
+        .total-row { background-color: #f4f4f5; font-weight: bold; }
+      </style>
+    `;
+
+    let tablesHtml = '';
+
+    data.forEach(month => {
+        // Logic duplicated from MonthCard to ensure consistent data export
+        const rows = month.goals.map(goal => {
+             const getSalaryMultiplier = (goalName: string): number => {
+                const lowerCaseName = goalName.toLowerCase();
+                switch (lowerCaseName) {
+                  case 'within 5 minutes': return 20000;
+                  case 'within 10 minutes': return 12000;
+                  case 'within 20 minutes': return 5000;
+                  case 'who rejected': return 5000;
+                  case 'created by sellers': return 12000;
+                  default: return 0;
+                }
+             };
+
+             const multiplier = getSalaryMultiplier(goal.name);
+             const salary = goal.progress * multiplier;
+             const percentage = goal.endValue > 0 ? (goal.progress / goal.endValue) * 100 : 0;
+             
+             return { ...goal, salary, percentage };
+        });
+
+        const totalSalary = rows.reduce((sum, r) => sum + r.salary, 0);
+        const tax = totalSalary * 0.12;
+        const net = totalSalary - tax;
+
+        const tableRows = rows.map(r => `
+            <tr>
+                <td class="text-left font-bold">${r.name}</td>
+                <td class="text-center font-bold">${r.progress}</td>
+                <td class="text-center">${r.endValue}</td>
+                <td class="text-center">${r.percentage.toFixed(2)}%</td>
+                <td class="text-right text-emerald font-bold">${r.salary.toLocaleString('en-US')}</td>
+            </tr>
+        `).join('');
+
+        tablesHtml += `
+            <div class="month-container">
+                <div class="header">${month.name}</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="text-left">Goal Name</th>
+                            <th>Current</th>
+                            <th>Target</th>
+                            <th>Progress</th>
+                            <th class="text-right">Salary</th>
+                        </tr>
+                    </thead>
+                    <tbody>${tableRows}</tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td colspan="4" class="text-right">Total Gross:</td>
+                            <td class="text-right text-emerald">${totalSalary.toLocaleString('en-US')}</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td colspan="4" class="text-right" style="color: #71717a; font-size: 0.9em;">Tax (12%):</td>
+                            <td class="text-right text-rose" style="font-size: 0.9em;">-${tax.toLocaleString('en-US')}</td>
+                        </tr>
+                        <tr class="total-row" style="font-size: 1.1em; background-color: #e4e4e7;">
+                            <td colspan="4" class="text-right">Net Salary:</td>
+                            <td class="text-right text-emerald">${net.toLocaleString('en-US')}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        `;
+    });
+
+    const fullHtml = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+            <meta charset="utf-8">
+            <!--[if gte mso 9]>
+            <xml>
+              <x:ExcelWorkbook>
+                <x:ExcelWorksheets>
+                  <x:ExcelWorksheet>
+                    <x:Name>Full Report</x:Name>
+                    <x:WorksheetOptions>
+                      <x:DisplayGridlines/>
+                    </x:WorksheetOptions>
+                  </x:ExcelWorksheet>
+                </x:ExcelWorksheets>
+              </x:ExcelWorkbook>
+            </xml>
+            <![endif]-->
+            ${styles}
+        </head>
+        <body>
+            <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 10px; color: #18181b;">Salary & Goal Tracker - Full Report</h1>
+            <p style="margin-bottom: 20px; color: #71717a;">Generated on ${new Date().toLocaleDateString()}</p>
+            ${tablesHtml}
+        </body>
+        </html>
+    `;
+
+    // 2. Download as .xls
+    const blob = new Blob([fullHtml], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Salary_Tracker_Full_Report_${new Date().toISOString().split('T')[0]}.xls`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // --- Favourite Links and Folders Handlers ---
 
   const handleAddOrUpdateLink = (link: Omit<FavouriteLink, 'id'> & { id?: string }) => {
@@ -317,20 +519,32 @@ const App: React.FC = () => {
         return <div className="text-center p-8"><h2 className="text-2xl font-bold">Seller View Coming Soon</h2></div>;
       case 'spending':
         return <SpendingPage items={spendingData} onAdd={handleAddSpending} onDelete={handleDeleteSpending} />;
+      case 'comparison':
+        return <ComparisonDashboard allMonths={data} />;
       case 'mmv':
       default:
         return (
           <>
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
               <h2 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Dashboard</h2>
-              <button 
-                onClick={handleNewMonth}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-600 text-white rounded-lg shadow-md hover:bg-slate-700 transition-colors text-sm font-semibold"
-                aria-label="Create new month"
-              >
-                <PlusIcon />
-                <span>New Month</span>
-              </button>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={handleSyncWithSheets}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg shadow-md hover:bg-emerald-700 transition-colors text-sm font-semibold"
+                  aria-label="Sync with Google Sheets"
+                >
+                  <GoogleSheetsIcon />
+                  <span>Sync with Sheets</span>
+                </button>
+                <button 
+                  onClick={handleNewMonth}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-600 text-white rounded-lg shadow-md hover:bg-slate-700 transition-colors text-sm font-semibold"
+                  aria-label="Create new month"
+                >
+                  <PlusIcon />
+                  <span>New Month</span>
+                </button>
+              </div>
             </div>
 
             <Dashboard allMonths={data} />
@@ -359,10 +573,18 @@ const App: React.FC = () => {
         toggleTheme={toggleTheme}
         activeView={activeView}
         onViewChange={setActiveView}
+        onOpenSettings={() => setIsSettingsOpen(true)}
       />
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {renderContent()}
       </div>
+      <SettingsModal 
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        onExport={handleExportBackup}
+        onImport={handleImportBackup}
+        onReset={handleResetAllData}
+      />
     </div>
   );
 };

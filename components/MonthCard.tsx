@@ -1,7 +1,8 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { MonthData, Goal } from '../types';
 import GoalsTable from './GoalsTable';
-import { PencilIcon, EyeIcon, EyeOffIcon, TrashIcon, DotsVerticalIcon, DuplicateIcon, ArrowsRightLeftIcon, CalendarIcon } from './Icons';
+import { PencilIcon, EyeIcon, EyeOffIcon, TrashIcon, DotsVerticalIcon, DuplicateIcon, ArrowsRightLeftIcon, CalendarIcon, DownloadIcon } from './Icons';
 import Calendar from './Calendar';
 
 /**
@@ -60,6 +61,156 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
       setIsEditing(true);
       setIsMenuOpen(false);
   }
+
+  // Logic duplicated from GoalsTable to ensure export matches visual exactly
+  const getSalaryMultiplier = (goalName: string): number => {
+    const lowerCaseName = goalName.toLowerCase();
+    switch (lowerCaseName) {
+      case 'within 5 minutes': return 20000;
+      case 'within 10 minutes': return 12000;
+      case 'within 20 minutes': return 5000;
+      case 'who rejected': return 5000;
+      case 'created by sellers': return 12000;
+      default: return 0;
+    }
+  };
+
+  const handleExport = () => {
+    // 1. Prepare Data
+    const cardDate = new Date(monthData.date);
+    const selectedDay = cardDate.getDate();
+    const daysInMonth = new Date(cardDate.getFullYear(), cardDate.getMonth() + 1, 0).getDate();
+    const safeSelectedDay = selectedDay === 0 ? 1 : selectedDay;
+
+    const rows = monthData.goals.map(goal => {
+        let displayValue = goal.progress;
+        let projectedValue = 0;
+
+        if (viewMode === 'projected') {
+            if (safeSelectedDay > 0) {
+                projectedValue = (goal.progress / safeSelectedDay) * daysInMonth;
+            }
+            displayValue = Math.round(projectedValue);
+        }
+
+        const multiplier = getSalaryMultiplier(goal.name);
+        const salary = displayValue * multiplier;
+        const percentage = goal.endValue > 0 ? (displayValue / goal.endValue) * 100 : 0;
+
+        return {
+            name: goal.name,
+            value: displayValue,
+            target: goal.endValue,
+            percentage: percentage.toFixed(2) + '%',
+            salary: salary
+        };
+    });
+
+    const totalSalary = rows.reduce((acc, row) => acc + row.salary, 0);
+    const tax = totalSalary * 0.12;
+    const netSalary = totalSalary - tax;
+
+    // 2. Create HTML Content with Styles to mimic the card style
+    const styles = `
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .title { font-size: 22px; font-weight: bold; margin-bottom: 5px; color: #18181b; }
+        .subtitle { font-size: 12px; color: #71717a; margin-bottom: 15px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { background-color: #f4f4f5; color: #3f3f46; border: 1px solid #e4e4e7; padding: 12px 8px; text-align: center; font-weight: bold; }
+        td { border: 1px solid #e4e4e7; padding: 10px 8px; color: #18181b; vertical-align: middle; }
+        .text-left { text-align: left; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .font-bold { font-weight: bold; }
+        .font-medium { font-weight: 500; }
+        .text-emerald { color: #059669; }
+        .text-rose { color: #e11d48; }
+        .text-zinc { color: #71717a; }
+        .bg-gray { background-color: #f4f4f5; }
+        .border-top { border-top: 2px solid #d4d4d8; }
+        .salary-cell { font-family: monospace; font-weight: bold; }
+      </style>
+    `;
+
+    const tableRows = rows.map(row => `
+      <tr>
+        <td class="text-left font-bold">${row.name}</td>
+        <td class="text-center font-bold">${row.value}</td>
+        <td class="text-center">${row.target}</td>
+        <td class="text-center">${row.percentage}</td>
+        <td class="text-right text-emerald salary-cell">${row.salary.toLocaleString('en-US')}</td>
+      </tr>
+    `).join('');
+
+    const headerLabel = viewMode === 'current' ? 'Current' : 'End Stats';
+
+    const htmlContent = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8">
+        <!--[if gte mso 9]>
+        <xml>
+          <x:ExcelWorkbook>
+            <x:ExcelWorksheets>
+              <x:ExcelWorksheet>
+                <x:Name>${monthData.name}</x:Name>
+                <x:WorksheetOptions>
+                  <x:DisplayGridlines/>
+                </x:WorksheetOptions>
+              </x:ExcelWorksheet>
+            </x:ExcelWorksheets>
+          </x:ExcelWorkbook>
+        </xml>
+        <![endif]-->
+        ${styles}
+      </head>
+      <body>
+        <div class="title">${monthData.name}</div>
+        <div class="subtitle">View Mode: ${viewMode === 'current' ? 'Current Stats (Real-Time)' : 'Projected Stats'}</div>
+        <table>
+          <thead>
+            <tr>
+              <th class="text-left">Goal Name</th>
+              <th>${headerLabel}</th>
+              <th>Target</th>
+              <th>Progress</th>
+              <th class="text-right">Salary</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows}
+          </tbody>
+          <tfoot>
+             <tr>
+               <td colspan="4" class="text-right bg-gray font-bold">Total Gross:</td>
+               <td class="text-right bg-gray font-bold salary-cell">${totalSalary.toLocaleString('en-US')}</td>
+             </tr>
+             <tr>
+               <td colspan="4" class="text-right bg-gray text-zinc" style="font-size: 0.9em;">Tax (12%):</td>
+               <td class="text-right bg-gray text-rose salary-cell" style="font-size: 0.9em;">-${tax.toLocaleString('en-US')}</td>
+             </tr>
+             <tr>
+               <td colspan="4" class="text-right border-top font-bold" style="font-size: 1.1em;">Net Salary:</td>
+               <td class="text-right border-top text-emerald font-bold salary-cell" style="font-size: 1.1em;">${netSalary.toLocaleString('en-US')}</td>
+             </tr>
+          </tfoot>
+        </table>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${monthData.name.replace(/\s+/g, '_')}_${viewMode}.xls`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    setIsMenuOpen(false);
+  };
 
   return (
     <div className="bg-white dark:bg-zinc-800/50 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-700/50 overflow-hidden backdrop-blur-sm transition-all duration-300 ease-in-out">
@@ -132,7 +283,7 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
                     </button>
                     
                     {isMenuOpen && (
-                        <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-700 z-20 overflow-hidden">
+                        <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-700 z-20 overflow-hidden">
                             <div className="py-1">
                                 <button 
                                     onClick={startEditing}
@@ -150,6 +301,13 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
                                 >
                                     {isSalaryVisible ? <EyeOffIcon /> : <EyeIcon />}
                                     {isSalaryVisible ? 'Hide Overall Salary' : 'Show Overall Salary'}
+                                </button>
+                                <button 
+                                    onClick={handleExport}
+                                    className="flex items-center gap-3 w-full px-4 py-3 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700/50 transition-colors"
+                                >
+                                    <DownloadIcon />
+                                    Export as Excel
                                 </button>
                                 {onCloneCard && (
                                     <button 
