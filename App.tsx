@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
-import { MonthData, GoalStatus, Goal, StorePlan, FavouriteLink, FavouriteFolder } from './types';
+import { MonthData, GoalStatus, Goal, StorePlan, FavouriteLink, FavouriteFolder, SpendingItem } from './types';
 import MonthCard from './components/MonthCard';
 import TopNav from './components/TopNav';
 import Dashboard from './components/Dashboard';
@@ -7,6 +8,7 @@ import StorePlanView from './components/StorePlanView';
 import { PlusIcon } from './components/Icons';
 import HomePage from './components/HomePage';
 import PowerfulWebSitesPage from './components/WelcomePage';
+import SpendingPage from './components/SpendingPage';
 
 // Initial sample data for the application, used only if no saved data is found.
 const initialData: MonthData[] = [
@@ -62,6 +64,8 @@ const initialLinks: FavouriteLink[] = [
 
 const initialFolders: FavouriteFolder[] = [];
 
+const initialSpending: SpendingItem[] = [];
+
 
 /**
  * The main component of the application.
@@ -69,7 +73,7 @@ const initialFolders: FavouriteFolder[] = [];
  * Also handles saving and loading data to/from the browser's localStorage.
  */
 const App: React.FC = () => {
-  const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'branch' | 'seller' | 'powerful_sites'>('welcome');
+  const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites'>('welcome');
 
   const [data, setData] = useState<MonthData[]>(() => {
     try {
@@ -111,6 +115,16 @@ const App: React.FC = () => {
     }
   });
 
+  const [spendingData, setSpendingData] = useState<SpendingItem[]>(() => {
+    try {
+      const savedSpending = localStorage.getItem('spendingData');
+      return savedSpending ? JSON.parse(savedSpending) : initialSpending;
+    } catch (error) {
+      console.error("Error reading spending data from localStorage", error);
+      return initialSpending;
+    }
+  });
+
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const savedTheme = localStorage.getItem('theme');
     return (savedTheme === 'light' || savedTheme === 'dark') ? savedTheme : 'dark';
@@ -149,6 +163,14 @@ const App: React.FC = () => {
   }, [folders]);
 
   useEffect(() => {
+    try {
+        localStorage.setItem('spendingData', JSON.stringify(spendingData));
+    } catch (error) {
+        console.error("Error writing spending data to localStorage", error);
+    }
+  }, [spendingData]);
+
+  useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
@@ -179,6 +201,27 @@ const App: React.FC = () => {
 
   const handleDeleteMonth = (monthId: string) => {
     setData(currentData => currentData.filter(month => month.id !== monthId));
+  };
+  
+  const handleCloneMonth = (monthId: string) => {
+    const monthToClone = data.find(m => m.id === monthId);
+    if (monthToClone) {
+        const clonedGoals = monthToClone.goals.map(g => ({ ...g, progress: 0, status: GoalStatus.NOT_STARTED }));
+        
+        // Calculate next month date
+        const cloneDate = new Date(monthToClone.date);
+        cloneDate.setMonth(cloneDate.getMonth() + 1);
+        const newMonthName = cloneDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+
+        const newMonth: MonthData = {
+            ...monthToClone,
+            id: `month-${Date.now()}`,
+            name: newMonthName,
+            date: cloneDate.toISOString(),
+            goals: clonedGoals
+        };
+        setData(prev => [...prev, newMonth]);
+    }
   };
   
   const handleNewMonth = () => {
@@ -243,6 +286,16 @@ const App: React.FC = () => {
     setLinks(currentLinks => currentLinks.map(l => l.folderId === folderId ? { ...l, folderId: null } : l));
   };
 
+  // --- Spending Handlers ---
+  const handleAddSpending = (item: Omit<SpendingItem, 'id'>) => {
+    const newItem = { ...item, id: `spend-${Date.now()}` };
+    setSpendingData(prev => [newItem, ...prev]);
+  };
+
+  const handleDeleteSpending = (id: string) => {
+    setSpendingData(prev => prev.filter(item => item.id !== id));
+  };
+
 
   const renderContent = () => {
     switch (activeView) {
@@ -262,6 +315,8 @@ const App: React.FC = () => {
         return <StorePlanView plans={storePlans} onPlanUpdate={handleStorePlanUpdate} />;
       case 'seller':
         return <div className="text-center p-8"><h2 className="text-2xl font-bold">Seller View Coming Soon</h2></div>;
+      case 'spending':
+        return <SpendingPage items={spendingData} onAdd={handleAddSpending} onDelete={handleDeleteSpending} />;
       case 'mmv':
       default:
         return (
@@ -288,6 +343,7 @@ const App: React.FC = () => {
                   onGoalUpdate={handleGoalUpdate}
                   onUpdateMonth={(updatedValues) => handleUpdateMonth(monthData.id, updatedValues)}
                   onDeleteCard={() => handleDeleteMonth(monthData.id)}
+                  onCloneCard={() => handleCloneMonth(monthData.id)}
                 />
               ))}
             </div>

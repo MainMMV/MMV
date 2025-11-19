@@ -1,3 +1,4 @@
+
 /**
  * Enum representing the possible statuses of a goal.
  */
@@ -84,4 +85,15 @@ export interface FavouriteFolder {
   id: string;
   name: string;
   color?: string; // e.g., 'rose-500', 'amber-500'
+}
+
+/**
+ * Interface representing a spending item.
+ */
+export interface SpendingItem {
+  id: string;
+  date: string; // ISO string
+  amount: number;
+  category: string;
+  note: string;
 }

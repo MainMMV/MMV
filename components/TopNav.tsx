@@ -7,8 +7,8 @@ import { SunIcon, MoonIcon, MenuIcon } from './Icons';
 interface TopNavProps {
   theme: 'light' | 'dark';
   toggleTheme: () => void;
-  activeView: 'welcome' | 'mmv' | 'branch' | 'seller' | 'powerful_sites';
-  onViewChange: (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'powerful_sites') => void;
+  activeView: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites';
+  onViewChange: (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites') => void;
 }
 
 /**
@@ -17,12 +17,12 @@ interface TopNavProps {
 const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewChange }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleViewClick = (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'powerful_sites') => {
+  const handleViewClick = (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites') => {
     onViewChange(view);
     setIsMenuOpen(false);
   };
 
-  const getButtonClass = (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'powerful_sites') => {
+  const getButtonClass = (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites') => {
     const baseClass = "text-left p-2 rounded-md transition-colors w-full font-medium";
     if (activeView === view) {
       return `${baseClass} bg-zinc-300 dark:bg-zinc-700 font-semibold text-zinc-900 dark:text-white`;
@@ -82,6 +82,7 @@ const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewC
               <button className={getButtonClass('mmv')} onClick={() => handleViewClick('mmv')}>Dashboard</button>
               <button className={getButtonClass('branch')} onClick={() => handleViewClick('branch')}>Branch Plan</button>
               <button className={getButtonClass('seller')} onClick={() => handleViewClick('seller')}>Seller View</button>
+              <button className={getButtonClass('spending')} onClick={() => handleViewClick('spending')}>Spending Page</button>
               <button className={getButtonClass('powerful_sites')} onClick={() => handleViewClick('powerful_sites')}>Powerful Web Sites</button>
             </nav>
           </div>
