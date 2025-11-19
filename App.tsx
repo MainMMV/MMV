@@ -726,7 +726,7 @@ const App: React.FC = () => {
                         </button>
 
                         {expandedDashboardYears[year] && (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-8 items-start">
                                 {dashboardGroupedData.groups[year].map(monthData => (
                                     <MonthCard 
                                       key={monthData.id} 

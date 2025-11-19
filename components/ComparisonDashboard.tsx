@@ -251,9 +251,9 @@ const MonthlyPostcard: React.FC<{
             </div>
 
             {/* Content */}
-            <div className="flex-grow p-6 flex flex-col xl:flex-row gap-8 items-center xl:items-start justify-center">
+            <div className="flex-grow p-6 flex flex-col lg:flex-row gap-8 items-center lg:items-start justify-center">
                 {/* Chart Section */}
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-center flex-shrink-0">
                     <DonutChart data={donutData} />
                     <div className="mt-6 w-full space-y-2">
                          {donutData.slice(0, 3).map((d, i) => (
@@ -312,7 +312,8 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
   
   // 1. Process Data
   const analytics = useMemo(() => {
-    const sortedMonths = [...allMonths].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    // Sort descending (Newest First) per user request: "old month from below new month on top"
+    const sortedMonths = [...allMonths].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
     const getSalaryMultiplier = (goalName: string): number => {
         const lowerCaseName = goalName.toLowerCase();
@@ -378,8 +379,10 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 
-  // Data for Trend Chart (All Time)
-  const trendData = analytics.months.map(m => ({ label: m.shortName, value: m.net }));
+  // Data for Trend Chart (All Time) - Must be chronological (Old -> New) for trend to make sense
+  const trendData = useMemo(() => {
+    return [...analytics.months].reverse().map(m => ({ label: m.shortName, value: m.net }));
+  }, [analytics.months]);
 
   // Selected Month Data for Postcard
   const selectedMonthData = useMemo(() => {
@@ -469,7 +472,7 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
             <TrendChart data={trendData} color="#10b981" />
         </div>
         
-        {/* Replaced direct DonutChart container with MonthlyPostcard */}
+        {/* Monthly Postcard */}
         <MonthlyPostcard 
             monthData={selectedMonthData} 
             donutData={donutData} 
@@ -478,7 +481,7 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
         />
       </div>
 
-      {/* 3. Goal Performance Matrix (Existing) */}
+      {/* 3. Goal Performance Matrix */}
       <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-zinc-200 dark:border-zinc-700">
               <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Goal Performance Matrix</h3>
@@ -488,7 +491,7 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
               <table className="w-full text-sm text-left">
                   <thead className="text-xs text-zinc-500 dark:text-zinc-400 uppercase bg-zinc-50 dark:bg-zinc-700/50">
                       <tr>
-                          <th className="px-6 py-4 font-medium border-r border-zinc-200 dark:border-zinc-700">Goal Name</th>
+                          <th className="px-6 py-4 font-medium border-r border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 sticky left-0 z-10">Goal Name</th>
                           {analytics.months.map(m => (
                               <th key={m.id} className="px-4 py-4 text-center font-medium min-w-[80px]">{m.shortName}</th>
                           ))}
@@ -510,7 +513,7 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
 
                           return (
                               <tr key={goalName} className="border-b border-zinc-100 dark:border-zinc-700/50 last:border-none hover:bg-zinc-50/80 dark:hover:bg-zinc-700/30 transition-colors">
-                                  <td className="px-6 py-3 font-medium text-zinc-900 dark:text-white border-r border-zinc-200 dark:border-zinc-700 flex items-center gap-2">
+                                  <td className="px-6 py-3 font-medium text-zinc-900 dark:text-white border-r border-zinc-200 dark:border-zinc-700 flex items-center gap-2 bg-white dark:bg-zinc-800 sticky left-0 z-10">
                                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: getGoalColor(goalName) }}></div>
                                       {goalName}
                                   </td>
@@ -551,7 +554,7 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
       <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-zinc-200 dark:border-zinc-700">
             <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Financial Summary</h3>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">Gross, Tax, and Net Salary breakdown by year.</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Gross, Tax, and Net Salary breakdown by year (Newest First).</p>
         </div>
         <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
