@@ -1,53 +1,173 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { MonthData, GoalStatus, Goal, StorePlan, FavouriteLink, FavouriteFolder, SpendingItem } from './types';
 import MonthCard from './components/MonthCard';
 import TopNav from './components/TopNav';
 import Dashboard from './components/Dashboard';
 import StorePlanView from './components/StorePlanView';
-import { PlusIcon, GoogleSheetsIcon } from './components/Icons';
+import { PlusIcon, GoogleSheetsIcon, ChevronDownIcon, ChevronRightIcon } from './components/Icons';
 import HomePage from './components/HomePage';
 import PowerfulWebSitesPage from './components/WelcomePage';
 import SpendingPage from './components/SpendingPage';
 import ComparisonDashboard from './components/ComparisonDashboard';
 import SettingsModal from './components/SettingsModal';
 
-// Initial sample data for the application, used only if no saved data is found.
+// Initial sample data for the application, imported from Incone 2.0.xlsx
 const initialData: MonthData[] = [
-    {
-    id: 'november-2025',
-    name: 'November 2025',
-    date: '2025-11-15T00:00:00Z',
+  {
+    id: 'september-2024',
+    name: 'September 2024',
+    date: '2024-09-15T00:00:00Z',
     goals: [
-      { id: 'g1', name: 'within 5 minutes', progress: 1, endValue: 41, status: GoalStatus.NOT_STARTED },
-      { id: 'g2', name: 'within 10 minutes', progress: 1, endValue: 21, status: GoalStatus.NOT_STARTED },
-      { id: 'g3', name: 'within 20 minutes', progress: 1, endValue: 20, status: GoalStatus.NOT_STARTED },
-      { id: 'g4', name: 'who rejected', progress: 1, endValue: 71, status: GoalStatus.NOT_STARTED },
-      { id: 'g5', name: 'created by sellers', progress: 0, endValue: 153, status: GoalStatus.NOT_STARTED },
+      { id: 'g1', name: 'within 5 minutes', progress: 16, endValue: 16, status: GoalStatus.COMPLETED },
+      { id: 'g2', name: 'within 10 minutes', progress: 13, endValue: 13, status: GoalStatus.COMPLETED },
+      { id: 'g3', name: 'within 20 minutes', progress: 12, endValue: 12, status: GoalStatus.COMPLETED },
+      { id: 'g4', name: 'who rejected', progress: 15, endValue: 15, status: GoalStatus.COMPLETED },
+      { id: 'g5', name: 'created by sellers', progress: 0, endValue: 0, status: GoalStatus.COMPLETED },
     ],
   },
   {
-    id: 'december-2025',
-    name: 'December 2025',
-    date: '2025-12-15T00:00:00Z',
+    id: 'october-2024',
+    name: 'October 2024',
+    date: '2024-10-15T00:00:00Z',
     goals: [
-      { id: 'g1', name: 'within 5 minutes', progress: 0, endValue: 41, status: GoalStatus.NOT_STARTED },
-      { id: 'g2', name: 'within 10 minutes', progress: 0, endValue: 21, status: GoalStatus.NOT_STARTED },
-      { id: 'g3', name: 'within 20 minutes', progress: 0, endValue: 20, status: GoalStatus.NOT_STARTED },
-      { id: 'g4', name: 'who rejected', progress: 0, endValue: 71, status: GoalStatus.NOT_STARTED },
-      { id: 'g5', name: 'created by sellers', progress: 0, endValue: 153, status: GoalStatus.NOT_STARTED },
+      { id: 'g1', name: 'within 5 minutes', progress: 43, endValue: 43, status: GoalStatus.COMPLETED },
+      { id: 'g2', name: 'within 10 minutes', progress: 22, endValue: 22, status: GoalStatus.COMPLETED },
+      { id: 'g3', name: 'within 20 minutes', progress: 20, endValue: 20, status: GoalStatus.COMPLETED },
+      { id: 'g4', name: 'who rejected', progress: 41, endValue: 41, status: GoalStatus.COMPLETED },
+      { id: 'g5', name: 'created by sellers', progress: 0, endValue: 0, status: GoalStatus.COMPLETED },
     ],
   },
   {
-    id: 'january-2026',
-    name: 'January 2026',
-    date: '2026-01-15T00:00:00Z',
+    id: 'november-2024',
+    name: 'November 2024',
+    date: '2024-11-15T00:00:00Z',
     goals: [
-      { id: 'g1', name: 'within 5 minutes', progress: 0, endValue: 41, status: GoalStatus.NOT_STARTED },
-      { id: 'g2', name: 'within 10 minutes', progress: 0, endValue: 21, status: GoalStatus.NOT_STARTED },
-      { id: 'g3', name: 'within 20 minutes', progress: 0, endValue: 20, status: GoalStatus.NOT_STARTED },
-      { id: 'g4', name: 'who rejected', progress: 0, endValue: 71, status: GoalStatus.NOT_STARTED },
-      { id: 'g5', name: 'created by sellers', progress: 0, endValue: 153, status: GoalStatus.NOT_STARTED },
+      { id: 'g1', name: 'within 5 minutes', progress: 63, endValue: 63, status: GoalStatus.COMPLETED },
+      { id: 'g2', name: 'within 10 minutes', progress: 23, endValue: 23, status: GoalStatus.COMPLETED },
+      { id: 'g3', name: 'within 20 minutes', progress: 11, endValue: 11, status: GoalStatus.COMPLETED },
+      { id: 'g4', name: 'who rejected', progress: 71, endValue: 71, status: GoalStatus.COMPLETED },
+      { id: 'g5', name: 'created by sellers', progress: 0, endValue: 0, status: GoalStatus.COMPLETED },
+    ],
+  },
+  {
+    id: 'december-2024',
+    name: 'December 2024',
+    date: '2024-12-15T00:00:00Z',
+    goals: [
+      { id: 'g1', name: 'within 5 minutes', progress: 77, endValue: 77, status: GoalStatus.COMPLETED },
+      { id: 'g2', name: 'within 10 minutes', progress: 23, endValue: 23, status: GoalStatus.COMPLETED },
+      { id: 'g3', name: 'within 20 minutes', progress: 25, endValue: 25, status: GoalStatus.COMPLETED },
+      { id: 'g4', name: 'who rejected', progress: 59, endValue: 59, status: GoalStatus.COMPLETED },
+      { id: 'g5', name: 'created by sellers', progress: 24, endValue: 24, status: GoalStatus.COMPLETED },
+    ],
+  },
+  {
+    id: 'january-2025',
+    name: 'January 2025',
+    date: '2025-01-15T00:00:00Z',
+    goals: [
+      { id: 'g1', name: 'within 5 minutes', progress: 28, endValue: 28, status: GoalStatus.COMPLETED },
+      { id: 'g2', name: 'within 10 minutes', progress: 15, endValue: 15, status: GoalStatus.COMPLETED },
+      { id: 'g3', name: 'within 20 minutes', progress: 13, endValue: 13, status: GoalStatus.COMPLETED },
+      { id: 'g4', name: 'who rejected', progress: 20, endValue: 20, status: GoalStatus.COMPLETED },
+      { id: 'g5', name: 'created by sellers', progress: 118, endValue: 118, status: GoalStatus.COMPLETED },
+    ],
+  },
+  {
+    id: 'february-2025',
+    name: 'February 2025',
+    date: '2025-02-15T00:00:00Z',
+    goals: [
+      { id: 'g1', name: 'within 5 minutes', progress: 27, endValue: 27, status: GoalStatus.COMPLETED },
+      { id: 'g2', name: 'within 10 minutes', progress: 10, endValue: 10, status: GoalStatus.COMPLETED },
+      { id: 'g3', name: 'within 20 minutes', progress: 8, endValue: 8, status: GoalStatus.COMPLETED },
+      { id: 'g4', name: 'who rejected', progress: 11, endValue: 11, status: GoalStatus.COMPLETED },
+      { id: 'g5', name: 'created by sellers', progress: 102, endValue: 102, status: GoalStatus.COMPLETED },
+    ],
+  },
+  {
+    id: 'march-2025',
+    name: 'March 2025',
+    date: '2025-03-15T00:00:00Z',
+    goals: [
+      { id: 'g1', name: 'within 5 minutes', progress: 23, endValue: 23, status: GoalStatus.COMPLETED },
+      { id: 'g2', name: 'within 10 minutes', progress: 11, endValue: 11, status: GoalStatus.COMPLETED },
+      { id: 'g3', name: 'within 20 minutes', progress: 6, endValue: 6, status: GoalStatus.COMPLETED },
+      { id: 'g4', name: 'who rejected', progress: 33, endValue: 33, status: GoalStatus.COMPLETED },
+      { id: 'g5', name: 'created by sellers', progress: 77, endValue: 77, status: GoalStatus.COMPLETED },
+    ],
+  },
+  {
+    id: 'april-2025',
+    name: 'April 2025',
+    date: '2025-04-15T00:00:00Z',
+    goals: [
+      { id: 'g1', name: 'within 5 minutes', progress: 33, endValue: 33, status: GoalStatus.COMPLETED },
+      { id: 'g2', name: 'within 10 minutes', progress: 19, endValue: 19, status: GoalStatus.COMPLETED },
+      { id: 'g3', name: 'within 20 minutes', progress: 19, endValue: 19, status: GoalStatus.COMPLETED },
+      { id: 'g4', name: 'who rejected', progress: 41, endValue: 41, status: GoalStatus.COMPLETED },
+      { id: 'g5', name: 'created by sellers', progress: 61, endValue: 61, status: GoalStatus.COMPLETED },
+    ],
+  },
+  {
+    id: 'may-2025',
+    name: 'May 2025',
+    date: '2025-05-15T00:00:00Z',
+    goals: [
+      { id: 'g1', name: 'within 5 minutes', progress: 20, endValue: 20, status: GoalStatus.COMPLETED },
+      { id: 'g2', name: 'within 10 minutes', progress: 6, endValue: 6, status: GoalStatus.COMPLETED },
+      { id: 'g3', name: 'within 20 minutes', progress: 10, endValue: 10, status: GoalStatus.COMPLETED },
+      { id: 'g4', name: 'who rejected', progress: 36, endValue: 36, status: GoalStatus.COMPLETED },
+      { id: 'g5', name: 'created by sellers', progress: 76, endValue: 76, status: GoalStatus.COMPLETED },
+    ],
+  },
+  {
+    id: 'june-2025',
+    name: 'June 2025',
+    date: '2025-06-15T00:00:00Z',
+    goals: [
+      { id: 'g1', name: 'within 5 minutes', progress: 32, endValue: 32, status: GoalStatus.COMPLETED },
+      { id: 'g2', name: 'within 10 minutes', progress: 21, endValue: 21, status: GoalStatus.COMPLETED },
+      { id: 'g3', name: 'within 20 minutes', progress: 11, endValue: 11, status: GoalStatus.COMPLETED },
+      { id: 'g4', name: 'who rejected', progress: 64, endValue: 64, status: GoalStatus.COMPLETED },
+      { id: 'g5', name: 'created by sellers', progress: 124, endValue: 124, status: GoalStatus.COMPLETED },
+    ],
+  },
+  {
+    id: 'august-2025',
+    name: 'August 2025',
+    date: '2025-08-15T00:00:00Z',
+    goals: [
+      { id: 'g1', name: 'within 5 minutes', progress: 41, endValue: 41, status: GoalStatus.COMPLETED },
+      { id: 'g2', name: 'within 10 minutes', progress: 14, endValue: 14, status: GoalStatus.COMPLETED },
+      { id: 'g3', name: 'within 20 minutes', progress: 8, endValue: 8, status: GoalStatus.COMPLETED },
+      { id: 'g4', name: 'who rejected', progress: 53, endValue: 53, status: GoalStatus.COMPLETED },
+      { id: 'g5', name: 'created by sellers', progress: 153, endValue: 153, status: GoalStatus.COMPLETED },
+    ],
+  },
+  {
+    id: 'september-2025',
+    name: 'September 2025',
+    date: '2025-09-15T00:00:00Z',
+    goals: [
+      { id: 'g1', name: 'within 5 minutes', progress: 40, endValue: 40, status: GoalStatus.COMPLETED },
+      { id: 'g2', name: 'within 10 minutes', progress: 16, endValue: 16, status: GoalStatus.COMPLETED },
+      { id: 'g3', name: 'within 20 minutes', progress: 7, endValue: 7, status: GoalStatus.COMPLETED },
+      { id: 'g4', name: 'who rejected', progress: 60, endValue: 60, status: GoalStatus.COMPLETED },
+      { id: 'g5', name: 'created by sellers', progress: 110, endValue: 110, status: GoalStatus.COMPLETED },
+    ],
+  },
+  {
+    id: 'october-2025',
+    name: 'October 2025',
+    date: '2025-10-15T00:00:00Z',
+    goals: [
+      { id: 'g1', name: 'within 5 minutes', progress: 26, endValue: 26, status: GoalStatus.COMPLETED },
+      { id: 'g2', name: 'within 10 minutes', progress: 16, endValue: 16, status: GoalStatus.COMPLETED },
+      { id: 'g3', name: 'within 20 minutes', progress: 6, endValue: 6, status: GoalStatus.COMPLETED },
+      { id: 'g4', name: 'who rejected', progress: 58, endValue: 58, status: GoalStatus.COMPLETED },
+      { id: 'g5', name: 'created by sellers', progress: 94, endValue: 94, status: GoalStatus.COMPLETED },
     ],
   },
 ];
@@ -77,6 +197,9 @@ const initialSpending: SpendingItem[] = [];
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison'>('welcome');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  
+  // State to track expanded years in the dashboard view
+  const [expandedDashboardYears, setExpandedDashboardYears] = useState<Record<number, boolean>>({});
 
   const [data, setData] = useState<MonthData[]>(() => {
     try {
@@ -254,6 +377,40 @@ const App: React.FC = () => {
         
         return [...currentData, newMonth];
     });
+  };
+
+  // --- Grouping Logic for Dashboard ---
+  const dashboardGroupedData = useMemo(() => {
+      // Sort descending (newest first)
+      const sorted = [...data].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      
+      // Group by year
+      const groups: Record<number, MonthData[]> = {};
+      sorted.forEach(month => {
+          const year = new Date(month.date).getFullYear();
+          if (!groups[year]) groups[year] = [];
+          groups[year].push(month);
+      });
+      
+      const years = Object.keys(groups).map(Number).sort((a, b) => b - a); // Descending years
+      
+      return { groups, years };
+  }, [data]);
+
+  // Set default expanded year (latest) on first load or when years change
+  useEffect(() => {
+      if (dashboardGroupedData.years.length > 0) {
+          setExpandedDashboardYears(prev => {
+             if (Object.keys(prev).length === 0) {
+                 return { [dashboardGroupedData.years[0]]: true };
+             } 
+             return prev;
+          });
+      }
+  }, [dashboardGroupedData.years]);
+
+  const toggleDashboardYear = (year: number) => {
+      setExpandedDashboardYears(prev => ({ ...prev, [year]: !prev[year] }));
   };
 
   // --- Data Management Handlers ---
@@ -549,17 +706,41 @@ const App: React.FC = () => {
 
             <Dashboard allMonths={data} />
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-              {data.map(monthData => (
-                <MonthCard 
-                  key={monthData.id} 
-                  monthData={monthData} 
-                  onGoalUpdate={handleGoalUpdate}
-                  onUpdateMonth={(updatedValues) => handleUpdateMonth(monthData.id, updatedValues)}
-                  onDeleteCard={() => handleDeleteMonth(monthData.id)}
-                  onCloneCard={() => handleCloneMonth(monthData.id)}
-                />
-              ))}
+            <div className="space-y-8">
+                {dashboardGroupedData.years.map(year => (
+                    <div key={year} className="animate-fade-in">
+                        <button 
+                            onClick={() => toggleDashboardYear(year)}
+                            className="flex items-center gap-3 w-full mb-4 group"
+                        >
+                            <div className={`p-1 rounded-md transition-colors ${expandedDashboardYears[year] ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-white' : 'text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300'}`}>
+                                {expandedDashboardYears[year] ? <ChevronDownIcon /> : <ChevronRightIcon />}
+                            </div>
+                            <h3 className="text-2xl font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                {year}
+                            </h3>
+                            <div className="h-px flex-grow bg-zinc-200 dark:bg-zinc-700 group-hover:bg-zinc-300 dark:group-hover:bg-zinc-600 transition-colors"></div>
+                            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-full border border-zinc-200 dark:border-zinc-700">
+                                {dashboardGroupedData.groups[year].length} Months
+                            </span>
+                        </button>
+
+                        {expandedDashboardYears[year] && (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                                {dashboardGroupedData.groups[year].map(monthData => (
+                                    <MonthCard 
+                                      key={monthData.id} 
+                                      monthData={monthData} 
+                                      onGoalUpdate={handleGoalUpdate}
+                                      onUpdateMonth={(updatedValues) => handleUpdateMonth(monthData.id, updatedValues)}
+                                      onDeleteCard={() => handleDeleteMonth(monthData.id)}
+                                      onCloneCard={() => handleCloneMonth(monthData.id)}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                ))}
             </div>
           </>
         );

@@ -1,6 +1,7 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { MonthData } from '../types';
+import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon, ChevronDownIcon } from './Icons';
 
 interface ComparisonDashboardProps {
   allMonths: MonthData[];
@@ -26,7 +27,81 @@ const getGoalColor = (name: string) => {
     return GOAL_COLORS['default'];
 };
 
-// --- New Visual Components ---
+// --- Month Picker Component ---
+
+const MonthPicker: React.FC<{ selectedDate: Date, onChange: (date: Date) => void }> = ({ selectedDate, onChange }) => {
+    const [viewYear, setViewYear] = useState(selectedDate.getFullYear());
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        setViewYear(selectedDate.getFullYear());
+    }, [selectedDate]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const changeYear = (delta: number) => {
+        setViewYear(prev => prev + delta);
+    };
+
+    const selectMonth = (monthIndex: number) => {
+        const newDate = new Date(selectedDate);
+        newDate.setFullYear(viewYear);
+        newDate.setMonth(monthIndex);
+        onChange(newDate);
+        setIsOpen(false);
+    };
+
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const formattedDate = selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+    return (
+        <div className="relative" ref={containerRef}>
+            <button 
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-700 rounded-lg text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors border border-zinc-200 dark:border-zinc-600"
+            >
+                <CalendarIcon />
+                <span>{formattedDate}</span>
+            </button>
+
+            {isOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-700 z-50 p-4">
+                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-zinc-100 dark:border-zinc-700/50">
+                        <button onClick={() => changeYear(-1)} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded text-zinc-600 dark:text-zinc-400"><ChevronLeftIcon /></button>
+                        <span className="font-bold text-zinc-900 dark:text-white">{viewYear}</span>
+                        <button onClick={() => changeYear(1)} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded text-zinc-600 dark:text-zinc-400"><ChevronRightIcon /></button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                        {months.map((m, i) => (
+                            <button
+                                key={m}
+                                onClick={() => selectMonth(i)}
+                                className={`py-2 text-sm rounded-md transition-colors ${
+                                    selectedDate.getMonth() === i && selectedDate.getFullYear() === viewYear
+                                    ? 'bg-emerald-600 text-white font-medium shadow-md'
+                                    : 'hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300'
+                                }`}
+                            >
+                                {m}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// --- Visual Components ---
 
 const TrendChart: React.FC<{ data: { label: string; value: number }[]; color: string }> = ({ data, color }) => {
     if (data.length === 0) return <div className="h-64 flex items-center justify-center text-zinc-400 text-sm">No data available</div>;
@@ -106,8 +181,8 @@ const TrendChart: React.FC<{ data: { label: string; value: number }[]; color: st
 };
 
 const DonutChart: React.FC<{ data: { name: string; value: number; color: string }[] }> = ({ data }) => {
-    const size = 200;
-    const strokeWidth = 25;
+    const size = 180;
+    const strokeWidth = 20;
     const radius = (size - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;
     const total = data.reduce((sum, d) => sum + d.value, 0);
@@ -115,57 +190,114 @@ const DonutChart: React.FC<{ data: { name: string; value: number; color: string 
     let accumulatedOffset = 0;
     const sortedData = [...data].sort((a, b) => b.value - a.value);
 
-    if (total === 0) return <div className="h-48 flex items-center justify-center text-zinc-400">No income data</div>;
+    if (total === 0) return <div className="h-48 flex items-center justify-center text-zinc-400 text-sm italic">No revenue data</div>;
 
     return (
-        <div className="flex flex-col sm:flex-row items-center gap-8 justify-center h-full">
-            <div className="relative w-48 h-48 shrink-0">
-                <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`} className="transform -rotate-90">
-                    {sortedData.map((d, i) => {
-                        const percentage = d.value / total;
-                        const dashArray = percentage * circumference;
-                        // SVG dashoffset moves counter-clockwise, so we accumulate negatively
-                        const currentOffset = -1 * accumulatedOffset;
-                        accumulatedOffset += dashArray;
+        <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+            <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`} className="transform -rotate-90">
+                {sortedData.map((d, i) => {
+                    const percentage = d.value / total;
+                    const dashArray = percentage * circumference;
+                    const currentOffset = -1 * accumulatedOffset;
+                    accumulatedOffset += dashArray;
 
-                        return (
-                            <circle
-                                key={i}
-                                cx={size / 2}
-                                cy={size / 2}
-                                r={radius}
-                                fill="transparent"
-                                stroke={d.color}
-                                strokeWidth={strokeWidth}
-                                strokeDasharray={`${dashArray} ${circumference}`}
-                                strokeDashoffset={currentOffset}
-                                className="transition-all duration-300 hover:opacity-80 hover:stroke-[28]"
-                            >
-                                <title>{`${d.name}: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(d.value)}`}</title>
-                            </circle>
-                        );
-                    })}
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                     <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Total Gross</span>
-                     <span className="text-xl font-bold text-zinc-900 dark:text-white">
-                        {new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(total)}
-                     </span>
+                    return (
+                        <circle
+                            key={i}
+                            cx={size / 2}
+                            cy={size / 2}
+                            r={radius}
+                            fill="transparent"
+                            stroke={d.color}
+                            strokeWidth={strokeWidth}
+                            strokeDasharray={`${dashArray} ${circumference}`}
+                            strokeDashoffset={currentOffset}
+                            className="transition-all duration-300 hover:opacity-80"
+                        >
+                            <title>{`${d.name}: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(d.value)}`}</title>
+                        </circle>
+                    );
+                })}
+            </svg>
+             <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
+                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Total</span>
+                <span className="text-lg font-bold text-zinc-900 dark:text-white">
+                   {new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(total)}
+                </span>
+           </div>
+        </div>
+    );
+};
+
+const MonthlyPostcard: React.FC<{ 
+    monthData: any; 
+    donutData: { name: string; value: number; color: string }[];
+    selectedDate: Date;
+    onDateChange: (date: Date) => void;
+}> = ({ monthData, donutData, selectedDate, onDateChange }) => {
+    const totalRevenue = monthData?.grossTotal || 0;
+    const tax = monthData?.tax || 0;
+    const net = monthData?.net || 0;
+
+    return (
+        <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm overflow-hidden flex flex-col h-full">
+            {/* Header */}
+            <div className="p-6 border-b border-zinc-100 dark:border-zinc-700/50 flex justify-between items-center bg-zinc-50/50 dark:bg-zinc-800/50">
+                <div>
+                    <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Monthly Summary</h3>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">Snapshot Report</p>
                 </div>
+                <MonthPicker selectedDate={selectedDate} onChange={onDateChange} />
             </div>
-            <div className="space-y-3 max-h-64 overflow-y-auto custom-scrollbar pr-2 w-full sm:w-auto">
-                {sortedData.map((d, i) => (
-                    <div key={i} className="flex items-center gap-3 group">
-                        <div className="w-3 h-3 rounded-full shrink-0 ring-2 ring-transparent group-hover:ring-current transition-all" style={{ backgroundColor: d.color, color: d.color }}></div>
-                        <div className="flex flex-col">
-                            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">{d.name}</span>
-                            <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                                {new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0}).format(d.value)} 
-                                <span className="ml-1 opacity-70">({((d.value/total)*100).toFixed(1)}%)</span>
-                            </span>
+
+            {/* Content */}
+            <div className="flex-grow p-6 flex flex-col xl:flex-row gap-8 items-center xl:items-start justify-center">
+                {/* Chart Section */}
+                <div className="flex flex-col items-center">
+                    <DonutChart data={donutData} />
+                    <div className="mt-6 w-full space-y-2">
+                         {donutData.slice(0, 3).map((d, i) => (
+                            <div key={i} className="flex items-center justify-between gap-3 text-sm">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }}></div>
+                                    <span className="text-zinc-600 dark:text-zinc-300 truncate max-w-[120px]">{d.name}</span>
+                                </div>
+                                <span className="font-medium text-zinc-900 dark:text-white">
+                                    {new Intl.NumberFormat('en-US', { notation: "compact" }).format(d.value)}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Stats Section */}
+                <div className="flex-grow w-full space-y-4">
+                    <div className="p-4 rounded-lg bg-zinc-50 dark:bg-zinc-700/20 border border-zinc-100 dark:border-zinc-700/50 flex justify-between items-center">
+                        <div>
+                            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase">Gross Income</p>
+                            <p className="text-xl font-bold text-zinc-900 dark:text-white">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalRevenue)}</p>
+                        </div>
+                        <div className="h-8 w-1 bg-zinc-200 dark:bg-zinc-600 rounded-full"></div>
+                         <div className="text-right">
+                            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase">Tax (12%)</p>
+                            <p className="text-xl font-bold text-rose-500">-{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(tax)}</p>
                         </div>
                     </div>
-                ))}
+
+                   <div className="p-5 rounded-lg bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/10 border border-emerald-100 dark:border-emerald-900/30">
+                       <p className="text-sm font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wide mb-1">Net Earnings</p>
+                       <div className="flex items-baseline gap-2">
+                           <p className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(net)}
+                           </p>
+                           {monthData && (
+                               <span className="text-sm font-medium text-emerald-600/70 dark:text-emerald-400/60">
+                                   {monthData.name}
+                               </span>
+                           )}
+                       </div>
+                   </div>
+                </div>
             </div>
         </div>
     );
@@ -175,8 +307,9 @@ const DonutChart: React.FC<{ data: { name: string; value: number; color: string 
 // --- Main Component ---
 
 const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) => {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-
+  const [selectedRevenueDate, setSelectedRevenueDate] = useState(new Date());
+  const [expandedYears, setExpandedYears] = useState<Record<number, boolean>>({});
+  
   // 1. Process Data
   const analytics = useMemo(() => {
     const sortedMonths = [...allMonths].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -217,6 +350,7 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
         return {
             id: month.id,
             name: month.name,
+            date: new Date(month.date),
             shortName: new Date(month.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
             grossTotal,
             net,
@@ -244,18 +378,59 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 
-  // Chart Scaling
-  const maxGross = Math.max(...analytics.months.map(m => m.grossTotal), 1000);
-
-  // Data for new charts
+  // Data for Trend Chart (All Time)
   const trendData = analytics.months.map(m => ({ label: m.shortName, value: m.net }));
-  const donutData = analytics.uniqueGoalNames.map(goalName => {
-      const val = analytics.months.reduce((sum, m) => {
-          const g = m.goalBreakdown.find(item => item.name === goalName);
-          return sum + (g?.income || 0);
-      }, 0);
-      return { name: goalName, value: val, color: getGoalColor(goalName) };
-  }).filter(d => d.value > 0);
+
+  // Selected Month Data for Postcard
+  const selectedMonthData = useMemo(() => {
+      return analytics.months.find(m => 
+          m.date.getMonth() === selectedRevenueDate.getMonth() && 
+          m.date.getFullYear() === selectedRevenueDate.getFullYear()
+      );
+  }, [analytics.months, selectedRevenueDate]);
+
+  // Data for Monthly Revenue Donut (Filtered by Selection)
+  const donutData = useMemo(() => {
+      if (!selectedMonthData) return [];
+
+      // Aggregate revenue by goal name for this specific month
+      return analytics.uniqueGoalNames.map(goalName => {
+          const goal = selectedMonthData.goalBreakdown.find(item => item.name === goalName);
+          const val = goal ? goal.income : 0;
+          return { name: goalName, value: val, color: getGoalColor(goalName) };
+      }).filter(d => d.value > 0);
+
+  }, [selectedMonthData, analytics.uniqueGoalNames]);
+
+  // Group months by year for table
+  const monthsByYear = useMemo(() => {
+    const groups: Record<number, typeof analytics.months> = {};
+    analytics.months.forEach(m => {
+      const year = m.date.getFullYear();
+      if (!groups[year]) groups[year] = [];
+      groups[year].push(m);
+    });
+    return groups;
+  }, [analytics.months]);
+
+  const sortedYears = useMemo(() => Object.keys(monthsByYear).map(Number).sort((a, b) => b - a), [monthsByYear]);
+
+  useEffect(() => {
+      // Expand the latest year by default if not already set
+      if (sortedYears.length > 0) {
+          setExpandedYears(prev => {
+              // Only set default if no state exists (first load)
+              if (Object.keys(prev).length === 0) {
+                  return { [sortedYears[0]]: true };
+              }
+              return prev;
+          });
+      }
+  }, [sortedYears]);
+
+  const toggleYear = (year: number) => {
+    setExpandedYears(prev => ({ ...prev, [year]: !prev[year] }));
+  };
 
   return (
     <div className="space-y-8 pb-12">
@@ -284,7 +459,7 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
          </div>
       </div>
 
-      {/* 2. New Visual Charts (Trend & Distribution) */}
+      {/* 2. Visual Charts (Trend & Monthly Postcard) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm">
             <div className="mb-6">
@@ -293,117 +468,17 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
             </div>
             <TrendChart data={trendData} color="#10b981" />
         </div>
-        <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm flex flex-col">
-             <div className="mb-6">
-                <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Lifetime Revenue Share</h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">Total gross income contribution by goal.</p>
-            </div>
-            <div className="flex-grow flex items-center justify-center">
-                <DonutChart data={donutData} />
-            </div>
-        </div>
+        
+        {/* Replaced direct DonutChart container with MonthlyPostcard */}
+        <MonthlyPostcard 
+            monthData={selectedMonthData} 
+            donutData={donutData} 
+            selectedDate={selectedRevenueDate} 
+            onDateChange={setSelectedRevenueDate} 
+        />
       </div>
 
-      {/* 3. Revenue Composition Analysis (Existing Stacked Bar) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm">
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-2">Revenue Source Composition</h3>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">Breakdown of gross salary by goal type per month.</p>
-            
-            <div className="h-[300px] w-full relative flex items-end gap-4 sm:gap-8 pb-8 border-b border-zinc-200 dark:border-zinc-700">
-                {/* Y Axis Labels */}
-                 <div className="absolute left-0 top-0 bottom-8 w-full pointer-events-none flex flex-col justify-between text-xs text-zinc-400 z-0">
-                    <div className="border-t border-dashed border-zinc-200 dark:border-zinc-700 w-full">{formatCurrency(maxGross)}</div>
-                    <div className="border-t border-dashed border-zinc-200 dark:border-zinc-700 w-full">{formatCurrency(maxGross * 0.75)}</div>
-                    <div className="border-t border-dashed border-zinc-200 dark:border-zinc-700 w-full">{formatCurrency(maxGross * 0.5)}</div>
-                    <div className="border-t border-dashed border-zinc-200 dark:border-zinc-700 w-full">{formatCurrency(maxGross * 0.25)}</div>
-                    <div className="border-t border-dashed border-zinc-200 dark:border-zinc-700 w-full">0</div>
-                 </div>
-
-                 {analytics.months.map((month, index) => {
-                     let currentStackHeight = 0;
-                     const isHovered = hoveredIndex === index;
-
-                     return (
-                         <div 
-                            key={month.id} 
-                            className="relative flex-1 h-full flex flex-col justify-end z-10 group cursor-pointer"
-                            onMouseEnter={() => setHoveredIndex(index)}
-                            onMouseLeave={() => setHoveredIndex(null)}
-                        >
-                             {/* Stacked Bars */}
-                             <div className="w-full max-w-[60px] mx-auto flex flex-col-reverse rounded-t-md overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
-                                 {month.goalBreakdown.map((goal, gIndex) => {
-                                     if (goal.income === 0) return null;
-                                     const heightPercent = (goal.income / maxGross) * 100;
-                                     return (
-                                         <div 
-                                            key={gIndex}
-                                            style={{ height: `${heightPercent}%`, backgroundColor: goal.color }}
-                                            className="w-full transition-opacity duration-200 relative"
-                                         >
-                                            {/* Tooltip for specific segment */}
-                                            <div className="opacity-0 group-hover:opacity-100 absolute inset-0 bg-black/10 transition-opacity"></div>
-                                         </div>
-                                     );
-                                 })}
-                             </div>
-
-                             {/* X Axis Label */}
-                             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full mt-2 text-xs font-medium text-zinc-600 dark:text-zinc-400 text-center w-full">
-                                 {month.shortName}
-                             </div>
-
-                             {/* Floating Details Panel (Only on Hover) */}
-                             {isHovered && (
-                                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-zinc-900 text-white text-xs rounded-lg p-3 shadow-xl z-50 pointer-events-none">
-                                     <p className="font-bold mb-2 border-b border-zinc-700 pb-1">{month.name}</p>
-                                     <div className="space-y-1">
-                                         {month.goalBreakdown.map((g) => g.income > 0 && (
-                                             <div key={g.name} className="flex justify-between items-center">
-                                                 <div className="flex items-center gap-1">
-                                                     <div className="w-2 h-2 rounded-full" style={{backgroundColor: g.color}}></div>
-                                                     <span className="truncate max-w-[80px]">{g.name}</span>
-                                                 </div>
-                                                 <span className="font-mono">{formatCurrency(g.income)}</span>
-                                             </div>
-                                         ))}
-                                         <div className="border-t border-zinc-700 mt-1 pt-1 flex justify-between font-bold text-emerald-400">
-                                             <span>Total Gross</span>
-                                             <span>{formatCurrency(month.grossTotal)}</span>
-                                         </div>
-                                     </div>
-                                 </div>
-                             )}
-                         </div>
-                     );
-                 })}
-            </div>
-        </div>
-
-        <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm flex flex-col">
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-4">Legend</h3>
-            <div className="space-y-3 flex-grow overflow-y-auto custom-scrollbar">
-                {Object.entries(GOAL_COLORS).map(([name, color]) => {
-                    if (name === 'default') return null;
-                    return (
-                        <div key={name} className="flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors">
-                            <div className="w-4 h-4 rounded-full shadow-sm" style={{ backgroundColor: color }}></div>
-                            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 capitalize">{name}</span>
-                        </div>
-                    );
-                })}
-            </div>
-            <div className="mt-6 p-4 bg-zinc-50 dark:bg-zinc-700/30 rounded-lg border border-zinc-200 dark:border-zinc-700/50">
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">Insight</p>
-                <p className="text-sm text-zinc-700 dark:text-zinc-300 italic">
-                   "Within 5 minutes" goals typically yield the highest return per unit.
-                </p>
-            </div>
-        </div>
-      </div>
-
-      {/* 4. Goal Performance Matrix (Existing) */}
+      {/* 3. Goal Performance Matrix (Existing) */}
       <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-zinc-200 dark:border-zinc-700">
               <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Goal Performance Matrix</h3>
@@ -472,11 +547,11 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
           </div>
       </div>
       
-      {/* 5. Detailed Financial Table (Existing) */}
+      {/* 4. Detailed Financial Table (Grouped by Year) */}
       <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-zinc-200 dark:border-zinc-700">
             <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Financial Summary</h3>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">Gross, Tax, and Net Salary breakdown.</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Gross, Tax, and Net Salary breakdown by year.</p>
         </div>
         <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
@@ -488,16 +563,42 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
                         <th className="px-6 py-4 font-medium text-right text-emerald-600 dark:text-emerald-400">Net Salary</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {analytics.months.map(m => (
-                        <tr key={m.id} className="border-b border-zinc-100 dark:border-zinc-700/50 hover:bg-zinc-50 dark:hover:bg-zinc-700/30">
-                            <td className="px-6 py-4 font-bold text-zinc-900 dark:text-white">{m.name}</td>
-                            <td className="px-6 py-4 text-right font-mono text-zinc-600 dark:text-zinc-300">{formatCurrency(m.grossTotal)}</td>
-                            <td className="px-6 py-4 text-right font-mono text-rose-500">-{formatCurrency(m.tax)}</td>
-                            <td className="px-6 py-4 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 text-base">{formatCurrency(m.net)}</td>
-                        </tr>
-                    ))}
-                </tbody>
+                {sortedYears.map(year => {
+                     const yearMonths = monthsByYear[year];
+                     // Calculate totals for the year header
+                     const yearGross = yearMonths.reduce((sum, m) => sum + m.grossTotal, 0);
+                     const yearTax = yearMonths.reduce((sum, m) => sum + m.tax, 0);
+                     const yearNet = yearMonths.reduce((sum, m) => sum + m.net, 0);
+                     const isExpanded = expandedYears[year];
+
+                     return (
+                        <tbody key={year} className="border-b border-zinc-200 dark:border-zinc-700 last:border-none">
+                            <tr 
+                                onClick={() => toggleYear(year)}
+                                className="bg-zinc-100 dark:bg-zinc-700/50 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors select-none"
+                            >
+                                <td className="px-6 py-3 font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                                    {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
+                                    {year}
+                                    <span className="ml-2 text-xs font-normal text-zinc-500 dark:text-zinc-400 bg-zinc-200 dark:bg-zinc-600 px-2 py-0.5 rounded-full">
+                                        {yearMonths.length} Months
+                                    </span>
+                                </td>
+                                <td className="px-6 py-3 text-right font-mono font-semibold text-zinc-700 dark:text-zinc-300 text-xs">{formatCurrency(yearGross)}</td>
+                                <td className="px-6 py-3 text-right font-mono font-semibold text-rose-500 text-xs">-{formatCurrency(yearTax)}</td>
+                                <td className="px-6 py-3 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 text-xs">{formatCurrency(yearNet)}</td>
+                            </tr>
+                            {isExpanded && yearMonths.map(m => (
+                                <tr key={m.id} className="border-b border-zinc-100 dark:border-zinc-700/50 hover:bg-zinc-50 dark:hover:bg-zinc-700/30">
+                                    <td className="px-6 py-4 pl-12 font-medium text-zinc-900 dark:text-white border-l-4 border-transparent hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors">{m.name}</td>
+                                    <td className="px-6 py-4 text-right font-mono text-zinc-600 dark:text-zinc-300">{formatCurrency(m.grossTotal)}</td>
+                                    <td className="px-6 py-4 text-right font-mono text-rose-500">-{formatCurrency(m.tax)}</td>
+                                    <td className="px-6 py-4 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 text-base">{formatCurrency(m.net)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                     );
+                 })}
             </table>
         </div>
       </div>
