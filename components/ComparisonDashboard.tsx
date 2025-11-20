@@ -27,8 +27,7 @@ const getGoalColor = (name: string) => {
     return GOAL_COLORS['default'];
 };
 
-// --- Month Picker Component ---
-
+// MonthPicker Component
 const MonthPicker: React.FC<{ selectedDate: Date, onChange: (date: Date) => void }> = ({ selectedDate, onChange }) => {
     const [viewYear, setViewYear] = useState(selectedDate.getFullYear());
     const [isOpen, setIsOpen] = useState(false);
@@ -101,8 +100,7 @@ const MonthPicker: React.FC<{ selectedDate: Date, onChange: (date: Date) => void
     );
 };
 
-// --- Visual Components ---
-
+// TrendChart Component
 const TrendChart: React.FC<{ data: { label: string; value: number }[]; color: string }> = ({ data, color }) => {
     if (data.length === 0) return <div className="h-64 flex items-center justify-center text-zinc-400 text-sm">No data available</div>;
     
@@ -124,62 +122,59 @@ const TrendChart: React.FC<{ data: { label: string; value: number }[]; color: st
     
     const areaPath = data.length > 1 
         ? `${points} L ${data.length === 1 ? width/2 : width - paddingX},${height - paddingY} L ${data.length === 1 ? width/2 : paddingX},${height - paddingY} Z`
-        : `${width/2},${height-paddingY-(data[0].value/maxVal)*chartH} L ${width/2 + 20},${height-paddingY} L ${width/2 - 20},${height-paddingY} Z`;
+        : `${width/2},${height-paddingY-(data[0].value/maxVal)*chartH} L ${width/2 + 20},${height - paddingY} L ${width/2 - 20},${height - paddingY} Z`;
 
     return (
-        <div className="w-full h-64 select-none">
-            <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
-                <defs>
-                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-                        <stop offset="100%" stopColor={color} stopOpacity="0" />
-                    </linearGradient>
-                </defs>
-                
-                {/* Guides */}
-                <line x1={paddingX} y1={height - paddingY} x2={width - paddingX} y2={height - paddingY} stroke="currentColor" className="text-zinc-200 dark:text-zinc-700" strokeWidth="1" />
-                <line x1={paddingX} y1={paddingY} x2={width - paddingX} y2={paddingY} stroke="currentColor" className="text-zinc-200 dark:text-zinc-700" strokeWidth="1" strokeDasharray="4" />
-                
-                {/* Area & Line */}
-                {data.length > 0 && (
-                   <>
-                     <path d={areaPath} fill="url(#chartGradient)" />
-                     {data.length > 1 && <polyline points={points} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
-                   </>
-                )}
-                
-                {/* Data Points */}
-                {data.map((d, i) => {
-                     const x = data.length === 1 ? width / 2 : paddingX + (i / (data.length - 1)) * chartW;
-                     const y = height - paddingY - ((d.value - minVal) / (maxVal - minVal)) * chartH;
-                     return (
-                         <g key={i} className="group">
-                            <circle cx={x} cy={y} r="5" fill="white" stroke={color} strokeWidth="3" className="dark:fill-zinc-800 transition-all duration-200 group-hover:r-7 group-hover:stroke-white dark:group-hover:stroke-white group-hover:fill-emerald-500" />
-                            
-                            {/* Tooltip */}
-                            <foreignObject x={x - 50} y={y - 50} width="100" height="40" className="overflow-visible opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                <div className="bg-zinc-900 text-white text-xs font-bold py-1 px-2 rounded shadow-lg text-center transform -translate-y-1">
-                                    {new Intl.NumberFormat('en-US', { notation: "compact" }).format(d.value)}
-                                </div>
-                            </foreignObject>
-                         </g>
-                     );
-                })}
+        <div className="w-full h-64 select-none overflow-x-auto no-scrollbar">
+            <div className="min-w-[600px] h-full">
+                <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="w-full h-full overflow-visible">
+                    <defs>
+                        <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+                            <stop offset="100%" stopColor={color} stopOpacity="0" />
+                        </linearGradient>
+                    </defs>
+                    
+                    <line x1={paddingX} y1={height - paddingY} x2={width - paddingX} y2={height - paddingY} stroke="currentColor" className="text-zinc-200 dark:text-zinc-700" strokeWidth="1" />
+                    <line x1={paddingX} y1={paddingY} x2={width - paddingX} y2={paddingY} stroke="currentColor" className="text-zinc-200 dark:text-zinc-700" strokeWidth="1" strokeDasharray="4" />
+                    
+                    {data.length > 0 && (
+                    <>
+                        <path d={areaPath} fill="url(#chartGradient)" />
+                        {data.length > 1 && <polyline points={points} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
+                    </>
+                    )}
+                    
+                    {data.map((d, i) => {
+                        const x = data.length === 1 ? width / 2 : paddingX + (i / (data.length - 1)) * chartW;
+                        const y = height - paddingY - ((d.value - minVal) / (maxVal - minVal)) * chartH;
+                        return (
+                            <g key={i} className="group">
+                                <circle cx={x} cy={y} r="5" fill="white" stroke={color} strokeWidth="3" className="dark:fill-zinc-800 transition-all duration-200 group-hover:r-7 group-hover:stroke-white dark:group-hover:stroke-white group-hover:fill-emerald-500" />
+                                <foreignObject x={x - 50} y={y - 50} width="100" height="40" className="overflow-visible opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    <div className="bg-zinc-900 text-white text-xs font-bold py-1 px-2 rounded shadow-lg text-center transform -translate-y-1">
+                                        {new Intl.NumberFormat('en-US', { notation: "compact" }).format(d.value)}
+                                    </div>
+                                </foreignObject>
+                            </g>
+                        );
+                    })}
 
-                {/* X Axis Labels */}
-                {data.map((d, i) => {
-                     const x = data.length === 1 ? width / 2 : paddingX + (i / (data.length - 1)) * chartW;
-                     return (
-                         <text key={i} x={x} y={height - 10} textAnchor="middle" fontSize="11" fill="currentColor" className="text-zinc-500 dark:text-zinc-400 font-medium">
-                             {d.label}
-                         </text>
-                     );
-                })}
-            </svg>
+                    {data.map((d, i) => {
+                        const x = data.length === 1 ? width / 2 : paddingX + (i / (data.length - 1)) * chartW;
+                        return (
+                            <text key={i} x={x} y={height - 10} textAnchor="middle" fontSize="11" fill="currentColor" className="text-zinc-500 dark:text-zinc-400 font-medium">
+                                {d.label}
+                            </text>
+                        );
+                    })}
+                </svg>
+            </div>
         </div>
     );
 };
 
+// DonutChart Component
 const DonutChart: React.FC<{ data: { name: string; value: number; color: string }[] }> = ({ data }) => {
     const size = 180;
     const strokeWidth = 20;
@@ -229,6 +224,7 @@ const DonutChart: React.FC<{ data: { name: string; value: number; color: string 
     );
 };
 
+// MonthlyPostcard Component
 const MonthlyPostcard: React.FC<{ 
     monthData: any; 
     donutData: { name: string; value: number; color: string }[];
@@ -241,8 +237,7 @@ const MonthlyPostcard: React.FC<{
 
     return (
         <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm overflow-hidden flex flex-col h-full">
-            {/* Header */}
-            <div className="p-6 border-b border-zinc-100 dark:border-zinc-700/50 flex justify-between items-center bg-zinc-50/50 dark:bg-zinc-800/50">
+            <div className="p-4 sm:p-6 border-b border-zinc-100 dark:border-zinc-700/50 flex justify-between items-center bg-zinc-50/50 dark:bg-zinc-800/50">
                 <div>
                     <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Monthly Summary</h3>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400">Snapshot Report</p>
@@ -250,9 +245,7 @@ const MonthlyPostcard: React.FC<{
                 <MonthPicker selectedDate={selectedDate} onChange={onDateChange} />
             </div>
 
-            {/* Content */}
-            <div className="flex-grow p-6 flex flex-col lg:flex-row gap-8 items-center lg:items-start justify-center">
-                {/* Chart Section */}
+            <div className="flex-grow p-4 sm:p-6 flex flex-col lg:flex-row gap-8 items-center lg:items-start justify-center">
                 <div className="flex flex-col items-center flex-shrink-0">
                     <DonutChart data={donutData} />
                     <div className="mt-6 w-full space-y-2">
@@ -270,7 +263,6 @@ const MonthlyPostcard: React.FC<{
                     </div>
                 </div>
 
-                {/* Stats Section */}
                 <div className="flex-grow w-full space-y-4">
                     <div className="p-4 rounded-lg bg-zinc-50 dark:bg-zinc-700/20 border border-zinc-100 dark:border-zinc-700/50 flex justify-between items-center">
                         <div>
@@ -303,16 +295,24 @@ const MonthlyPostcard: React.FC<{
     );
 };
 
-
-// --- Main Component ---
-
+// Main Component
 const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) => {
   const [selectedRevenueDate, setSelectedRevenueDate] = useState(new Date());
-  const [expandedYears, setExpandedYears] = useState<Record<number, boolean>>({});
   
-  // 1. Process Data
+  const [expandedYears, setExpandedYears] = useState<Record<number, boolean>>(() => {
+      try {
+          const saved = localStorage.getItem('comparisonExpandedYears');
+          return saved ? JSON.parse(saved) : {};
+      } catch {
+          return {};
+      }
+  });
+
+  useEffect(() => {
+      localStorage.setItem('comparisonExpandedYears', JSON.stringify(expandedYears));
+  }, [expandedYears]);
+  
   const analytics = useMemo(() => {
-    // Sort descending (Newest First) per user request: "old month from below new month on top"
     const sortedMonths = [...allMonths].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
     const getSalaryMultiplier = (goalName: string): number => {
@@ -327,7 +327,6 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
         }
     };
 
-    // Aggregate data per month
     const processedMonths = sortedMonths.map(month => {
         let grossTotal = 0;
         const goalBreakdown: { name: string; count: number; income: number; color: string }[] = [];
@@ -360,13 +359,11 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
         };
     });
 
-    // Calculate Summary Stats
     const totalLifetimeNet = processedMonths.reduce((acc, m) => acc + m.net, 0);
     const averageMonthlyNet = processedMonths.length > 0 ? totalLifetimeNet / processedMonths.length : 0;
     const bestMonth = processedMonths.reduce((max, curr) => curr.net > max.net ? curr : max, processedMonths[0] || { name: '-', net: 0 });
     
-    // Goal Names for Matrix
-    const uniqueGoalNames = Array.from(new Set(allMonths.flatMap(m => m.goals.map(g => g.name))));
+    const uniqueGoalNames: string[] = Array.from(new Set(allMonths.flatMap(m => m.goals.map(g => g.name))));
 
     return {
         months: processedMonths,
@@ -379,12 +376,10 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 
-  // Data for Trend Chart (All Time) - Must be chronological (Old -> New) for trend to make sense
   const trendData = useMemo(() => {
     return [...analytics.months].reverse().map(m => ({ label: m.shortName, value: m.net }));
   }, [analytics.months]);
 
-  // Selected Month Data for Postcard
   const selectedMonthData = useMemo(() => {
       return analytics.months.find(m => 
           m.date.getMonth() === selectedRevenueDate.getMonth() && 
@@ -392,11 +387,9 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
       );
   }, [analytics.months, selectedRevenueDate]);
 
-  // Data for Monthly Revenue Donut (Filtered by Selection)
   const donutData = useMemo(() => {
       if (!selectedMonthData) return [];
 
-      // Aggregate revenue by goal name for this specific month
       return analytics.uniqueGoalNames.map(goalName => {
           const goal = selectedMonthData.goalBreakdown.find(item => item.name === goalName);
           const val = goal ? goal.income : 0;
@@ -405,7 +398,6 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
 
   }, [selectedMonthData, analytics.uniqueGoalNames]);
 
-  // Group months by year for table
   const monthsByYear = useMemo(() => {
     const groups: Record<number, typeof analytics.months> = {};
     analytics.months.forEach(m => {
@@ -419,10 +411,8 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
   const sortedYears = useMemo(() => Object.keys(monthsByYear).map(Number).sort((a, b) => b - a), [monthsByYear]);
 
   useEffect(() => {
-      // Expand the latest year by default if not already set
       if (sortedYears.length > 0) {
           setExpandedYears(prev => {
-              // Only set default if no state exists (first load)
               if (Object.keys(prev).length === 0) {
                   return { [sortedYears[0]]: true };
               }
@@ -442,7 +432,6 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
         <p className="text-zinc-500 dark:text-zinc-400">Deep dive into your performance metrics and revenue sources.</p>
       </div>
 
-      {/* 1. Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
          <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm relative overflow-hidden">
              <div className="relative z-10">
@@ -462,7 +451,6 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
          </div>
       </div>
 
-      {/* 2. Visual Charts (Trend & Monthly Postcard) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm">
             <div className="mb-6">
@@ -472,7 +460,6 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
             <TrendChart data={trendData} color="#10b981" />
         </div>
         
-        {/* Monthly Postcard */}
         <MonthlyPostcard 
             monthData={selectedMonthData} 
             donutData={donutData} 
@@ -481,7 +468,6 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
         />
       </div>
 
-      {/* 3. Goal Performance Matrix */}
       <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-zinc-200 dark:border-zinc-700">
               <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Goal Performance Matrix</h3>
@@ -491,31 +477,31 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
               <table className="w-full text-sm text-left">
                   <thead className="text-xs text-zinc-500 dark:text-zinc-400 uppercase bg-zinc-50 dark:bg-zinc-700/50">
                       <tr>
-                          <th className="px-6 py-4 font-medium border-r border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 sticky left-0 z-10">Goal Name</th>
+                          <th className="px-4 py-3 sm:px-6 sm:py-4 font-medium border-r border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 sticky left-0 z-10 whitespace-nowrap">Goal Name</th>
                           {analytics.months.map(m => (
-                              <th key={m.id} className="px-4 py-4 text-center font-medium min-w-[80px]">{m.shortName}</th>
+                              <th key={m.id} className="px-4 py-3 sm:py-4 text-center font-medium min-w-[80px]">{m.shortName}</th>
                           ))}
-                          <th className="px-4 py-4 text-center font-bold text-zinc-700 dark:text-zinc-200">Total</th>
+                          <th className="px-4 py-3 sm:py-4 text-center font-bold text-zinc-700 dark:text-zinc-200">Total</th>
                       </tr>
                   </thead>
                   <tbody>
                       {analytics.uniqueGoalNames.map((goalName) => {
-                          // Calculate row total
                           const rowTotal = analytics.months.reduce((acc, m) => {
                               const goal = m.goalBreakdown.find(g => g.name === goalName);
                               return acc + (goal?.count || 0);
                           }, 0);
                           
-                          // Find max for this row to calculate opacity
                           const maxInRow = Math.max(...analytics.months.map(m => {
                               return m.goalBreakdown.find(g => g.name === goalName)?.count || 0;
                           }));
 
                           return (
                               <tr key={goalName} className="border-b border-zinc-100 dark:border-zinc-700/50 last:border-none hover:bg-zinc-50/80 dark:hover:bg-zinc-700/30 transition-colors">
-                                  <td className="px-6 py-3 font-medium text-zinc-900 dark:text-white border-r border-zinc-200 dark:border-zinc-700 flex items-center gap-2 bg-white dark:bg-zinc-800 sticky left-0 z-10">
-                                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: getGoalColor(goalName) }}></div>
-                                      {goalName}
+                                  <td className="px-3 py-3 sm:px-6 border-r border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 sticky left-0 z-10">
+                                      <div className="flex items-center gap-2 font-medium text-zinc-900 dark:text-white whitespace-nowrap h-full">
+                                          <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: getGoalColor(goalName) }}></div>
+                                          {goalName}
+                                      </div>
                                   </td>
                                   {analytics.months.map(m => {
                                       const goalData = m.goalBreakdown.find(g => g.name === goalName);
@@ -530,7 +516,7 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
                                                             className="absolute inset-1 rounded-md" 
                                                             style={{ 
                                                                 backgroundColor: getGoalColor(goalName), 
-                                                                opacity: opacity * 0.2 // Lower opacity for background
+                                                                opacity: opacity * 0.2
                                                             }}
                                                        ></div>
                                                        <span className="relative font-semibold z-10 text-zinc-700 dark:text-zinc-200">{count}</span>
@@ -550,7 +536,6 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
           </div>
       </div>
       
-      {/* 4. Detailed Financial Table (Grouped by Year) */}
       <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-zinc-200 dark:border-zinc-700">
             <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Financial Summary</h3>
@@ -560,15 +545,14 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
             <table className="w-full text-sm text-left">
                 <thead className="text-xs text-zinc-500 dark:text-zinc-400 uppercase bg-zinc-50 dark:bg-zinc-700/50">
                     <tr>
-                        <th className="px-6 py-4 font-medium">Month</th>
-                        <th className="px-6 py-4 font-medium text-right">Gross Salary</th>
-                        <th className="px-6 py-4 font-medium text-right text-rose-500">Tax (12%)</th>
-                        <th className="px-6 py-4 font-medium text-right text-emerald-600 dark:text-emerald-400">Net Salary</th>
+                        <th className="px-3 py-3 sm:px-6 sm:py-4 font-medium">Month</th>
+                        <th className="px-3 py-3 sm:px-6 sm:py-4 font-medium text-right">Gross Salary</th>
+                        <th className="px-3 py-3 sm:px-6 sm:py-4 font-medium text-right text-rose-500">Tax (12%)</th>
+                        <th className="px-3 py-3 sm:px-6 sm:py-4 font-medium text-right text-emerald-600 dark:text-emerald-400">Net Salary</th>
                     </tr>
                 </thead>
                 {sortedYears.map(year => {
                      const yearMonths = monthsByYear[year];
-                     // Calculate totals for the year header
                      const yearGross = yearMonths.reduce((sum, m) => sum + m.grossTotal, 0);
                      const yearTax = yearMonths.reduce((sum, m) => sum + m.tax, 0);
                      const yearNet = yearMonths.reduce((sum, m) => sum + m.net, 0);
@@ -580,23 +564,23 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
                                 onClick={() => toggleYear(year)}
                                 className="bg-zinc-100 dark:bg-zinc-700/50 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors select-none"
                             >
-                                <td className="px-6 py-3 font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                                <td className="px-3 py-3 sm:px-6 font-bold text-zinc-900 dark:text-white flex items-center gap-2">
                                     {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
                                     {year}
                                     <span className="ml-2 text-xs font-normal text-zinc-500 dark:text-zinc-400 bg-zinc-200 dark:bg-zinc-600 px-2 py-0.5 rounded-full">
                                         {yearMonths.length} Months
                                     </span>
                                 </td>
-                                <td className="px-6 py-3 text-right font-mono font-semibold text-zinc-700 dark:text-zinc-300 text-xs">{formatCurrency(yearGross)}</td>
-                                <td className="px-6 py-3 text-right font-mono font-semibold text-rose-500 text-xs">-{formatCurrency(yearTax)}</td>
-                                <td className="px-6 py-3 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 text-xs">{formatCurrency(yearNet)}</td>
+                                <td className="px-3 py-3 sm:px-6 text-right font-mono font-semibold text-zinc-700 dark:text-zinc-300 text-xs">{formatCurrency(yearGross)}</td>
+                                <td className="px-3 py-3 sm:px-6 text-right font-mono font-semibold text-rose-500 text-xs">-{formatCurrency(yearTax)}</td>
+                                <td className="px-3 py-3 sm:px-6 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 text-xs">{formatCurrency(yearNet)}</td>
                             </tr>
                             {isExpanded && yearMonths.map(m => (
                                 <tr key={m.id} className="border-b border-zinc-100 dark:border-zinc-700/50 hover:bg-zinc-50 dark:hover:bg-zinc-700/30">
-                                    <td className="px-6 py-4 pl-12 font-medium text-zinc-900 dark:text-white border-l-4 border-transparent hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors">{m.name}</td>
-                                    <td className="px-6 py-4 text-right font-mono text-zinc-600 dark:text-zinc-300">{formatCurrency(m.grossTotal)}</td>
-                                    <td className="px-6 py-4 text-right font-mono text-rose-500">-{formatCurrency(m.tax)}</td>
-                                    <td className="px-6 py-4 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 text-base">{formatCurrency(m.net)}</td>
+                                    <td className="px-3 py-3 sm:px-6 pl-8 sm:pl-12 font-medium text-zinc-900 dark:text-white border-l-4 border-transparent hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors">{m.name}</td>
+                                    <td className="px-3 py-3 sm:px-6 text-right font-mono text-zinc-600 dark:text-zinc-300">{formatCurrency(m.grossTotal)}</td>
+                                    <td className="px-3 py-3 sm:px-6 text-right font-mono text-rose-500">-{formatCurrency(m.tax)}</td>
+                                    <td className="px-3 py-3 sm:px-6 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 text-base">{formatCurrency(m.net)}</td>
                                 </tr>
                             ))}
                         </tbody>

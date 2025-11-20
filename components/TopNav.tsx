@@ -1,6 +1,9 @@
 
 import React, { useState } from 'react';
-import { SunIcon, MoonIcon, MenuIcon, ChartBarIcon, CogIcon } from './Icons';
+import { 
+  SunIcon, MoonIcon, MenuIcon, ChartBarIcon, CogIcon, CheckCircleIcon,
+  HomeIcon, Squares2X2Icon, BuildingStoreIcon, UserGroupIcon, WalletIcon, GlobeAltIcon 
+} from './Icons';
 
 /**
  * Props for the TopNav component.
@@ -50,6 +53,10 @@ const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewC
             </div>
             
             <div className="flex items-center gap-2 sm:gap-4">
+               <div className="hidden sm:flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-900/30">
+                  <CheckCircleIcon className="h-3.5 w-3.5" />
+                  <span>Auto-saved</span>
+               </div>
                <button
                   onClick={onOpenSettings}
                   className="p-2 rounded-md text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700/50 hover:text-zinc-800 dark:hover:text-white transition-colors"
@@ -87,15 +94,27 @@ const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewC
           <div className="p-6">
             <h2 className="text-xl font-bold mb-8 text-zinc-900 dark:text-white">Menu</h2>
             <nav className="flex flex-col gap-2">
-              <button className={getButtonClass('welcome')} onClick={() => handleViewClick('welcome')}>Home</button>
-              <button className={getButtonClass('mmv')} onClick={() => handleViewClick('mmv')}>Dashboard</button>
+              <button className={getButtonClass('welcome')} onClick={() => handleViewClick('welcome')}>
+                <HomeIcon /> Home
+              </button>
+              <button className={getButtonClass('mmv')} onClick={() => handleViewClick('mmv')}>
+                <Squares2X2Icon /> Dashboard
+              </button>
               <button className={getButtonClass('comparison')} onClick={() => handleViewClick('comparison')}>
                   <ChartBarIcon /> Comparison
               </button>
-              <button className={getButtonClass('branch')} onClick={() => handleViewClick('branch')}>Branch Plan</button>
-              <button className={getButtonClass('seller')} onClick={() => handleViewClick('seller')}>Seller View</button>
-              <button className={getButtonClass('spending')} onClick={() => handleViewClick('spending')}>Spending Page</button>
-              <button className={getButtonClass('powerful_sites')} onClick={() => handleViewClick('powerful_sites')}>Powerful Web Sites</button>
+              <button className={getButtonClass('branch')} onClick={() => handleViewClick('branch')}>
+                <BuildingStoreIcon /> Branch Plan
+              </button>
+              <button className={getButtonClass('seller')} onClick={() => handleViewClick('seller')}>
+                <UserGroupIcon /> Seller View
+              </button>
+              <button className={getButtonClass('spending')} onClick={() => handleViewClick('spending')}>
+                <WalletIcon /> Spending Page
+              </button>
+              <button className={getButtonClass('powerful_sites')} onClick={() => handleViewClick('powerful_sites')}>
+                <GlobeAltIcon /> Powerful Web Sites
+              </button>
             </nav>
           </div>
         </div>

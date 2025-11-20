@@ -11,6 +11,7 @@ import PowerfulWebSitesPage from './components/WelcomePage';
 import SpendingPage from './components/SpendingPage';
 import ComparisonDashboard from './components/ComparisonDashboard';
 import SettingsModal from './components/SettingsModal';
+import NewMonthModal from './components/NewMonthModal';
 
 // Initial sample data for the application, imported from Incone 2.0.xlsx
 const initialData: MonthData[] = [
@@ -195,11 +196,34 @@ const initialSpending: SpendingItem[] = [];
  * Also handles saving and loading data to/from the browser's localStorage.
  */
 const App: React.FC = () => {
-  const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison'>('welcome');
+  const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison'>(() => {
+      const saved = localStorage.getItem('activeView');
+      if (saved && ['welcome', 'mmv', 'branch', 'seller', 'spending', 'powerful_sites', 'comparison'].includes(saved)) {
+          return saved as any;
+      }
+      return 'welcome';
+  });
+
+  useEffect(() => {
+      localStorage.setItem('activeView', activeView);
+  }, [activeView]);
+
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isNewMonthModalOpen, setIsNewMonthModalOpen] = useState(false);
   
   // State to track expanded years in the dashboard view
-  const [expandedDashboardYears, setExpandedDashboardYears] = useState<Record<number, boolean>>({});
+  const [expandedDashboardYears, setExpandedDashboardYears] = useState<Record<number, boolean>>(() => {
+      try {
+          const saved = localStorage.getItem('expandedDashboardYears');
+          return saved ? JSON.parse(saved) : {};
+      } catch {
+          return {};
+      }
+  });
+
+  useEffect(() => {
+      localStorage.setItem('expandedDashboardYears', JSON.stringify(expandedDashboardYears));
+  }, [expandedDashboardYears]);
 
   const [data, setData] = useState<MonthData[]>(() => {
     try {
@@ -349,34 +373,45 @@ const App: React.FC = () => {
         setData(prev => [...prev, newMonth]);
     }
   };
+
+  // Calculate existing months to disable them in the picker
+  const existingMonths = useMemo(() => {
+      const set = new Set<string>();
+      data.forEach(month => {
+          const d = new Date(month.date);
+          set.add(`${d.getFullYear()}-${d.getMonth()}`);
+      });
+      return set;
+  }, [data]);
   
   const handleNewMonth = () => {
-    setData(currentData => {
-        // Find the latest date from the existing data to determine the next month
-        const latestDate = currentData.length > 0 
-            ? currentData.reduce((max, month) => new Date(month.date) > new Date(max.date) ? month : max).date
-            : new Date(2025, 10, 15).toISOString(); // Fallback if no data
+      setIsNewMonthModalOpen(true);
+  };
 
-        const newMonthDate = new Date(latestDate);
-        newMonthDate.setUTCMonth(newMonthDate.getUTCMonth() + 1);
-        
-        const newMonthName = newMonthDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-        
-        const newMonth: MonthData = {
-            id: `month-${new Date().getTime()}`,
-            name: newMonthName,
-            date: newMonthDate.toISOString(),
-            goals: [
-              { id: 'g1', name: 'within 5 minutes', progress: 0, endValue: 41, status: GoalStatus.NOT_STARTED },
-              { id: 'g2', name: 'within 10 minutes', progress: 0, endValue: 21, status: GoalStatus.NOT_STARTED },
-              { id: 'g3', name: 'within 20 minutes', progress: 0, endValue: 20, status: GoalStatus.NOT_STARTED },
-              { id: 'g4', name: 'who rejected', progress: 0, endValue: 71, status: GoalStatus.NOT_STARTED },
-              { id: 'g5', name: 'created by sellers', progress: 0, endValue: 153, status: GoalStatus.NOT_STARTED },
-            ],
-        };
-        
-        return [...currentData, newMonth];
+  const handleCreateSpecificMonth = (year: number, monthIndex: number) => {
+    // Set date to the 15th to avoid timezone month shifting issues
+    const newDate = new Date(year, monthIndex, 15);
+    const newMonthName = newDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+    
+    const newMonth: MonthData = {
+        id: `month-${newDate.getTime()}`,
+        name: newMonthName,
+        date: newDate.toISOString(),
+        goals: [
+          { id: 'g1', name: 'within 5 minutes', progress: 0, endValue: 41, status: GoalStatus.NOT_STARTED },
+          { id: 'g2', name: 'within 10 minutes', progress: 0, endValue: 21, status: GoalStatus.NOT_STARTED },
+          { id: 'g3', name: 'within 20 minutes', progress: 0, endValue: 20, status: GoalStatus.NOT_STARTED },
+          { id: 'g4', name: 'who rejected', progress: 0, endValue: 71, status: GoalStatus.NOT_STARTED },
+          { id: 'g5', name: 'created by sellers', progress: 0, endValue: 153, status: GoalStatus.NOT_STARTED },
+        ],
+    };
+    
+    setData(prev => {
+        const updatedData = [...prev, newMonth];
+        // Sort by date ascending
+        return updatedData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     });
+    setIsNewMonthModalOpen(false);
   };
 
   // --- Grouping Logic for Dashboard ---
@@ -765,6 +800,12 @@ const App: React.FC = () => {
         onExport={handleExportBackup}
         onImport={handleImportBackup}
         onReset={handleResetAllData}
+      />
+      <NewMonthModal 
+        isOpen={isNewMonthModalOpen}
+        onClose={() => setIsNewMonthModalOpen(false)}
+        onSelectMonth={handleCreateSpecificMonth}
+        existingMonths={existingMonths}
       />
     </div>
   );
