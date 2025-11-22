@@ -214,54 +214,60 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
 
   return (
     <div className="bg-white dark:bg-zinc-800/50 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-700/50 overflow-hidden backdrop-blur-sm transition-all duration-300 ease-in-out">
-      <div className="p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 relative">
-            <div className="flex items-center gap-4 flex-grow w-full">
-                <div className="relative flex-shrink-0">
-                  <button
-                    onClick={() => setIsCalendarOpen(prev => !prev)}
-                    className="bg-zinc-200 dark:bg-zinc-700/80 rounded-xl text-zinc-800 dark:text-zinc-100 font-bold text-center w-16 h-16 flex flex-col items-center justify-center p-2 shadow-md hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-zinc-800 focus:ring-slate-600"
-                    aria-haspopup="true"
-                    aria-expanded={isCalendarOpen}
-                    aria-label="Change month date"
-                  >
-                    <span className="text-xs uppercase tracking-wider">{monthShort}</span>
-                    <span className="text-3xl font-extrabold">{day}</span>
-                  </button>
-                  {isCalendarOpen && (
-                    <Calendar
-                        selectedDate={date}
-                        onDateChange={(newDate) => {
-                            onUpdateMonth({ date: newDate.toISOString() });
-                            setIsCalendarOpen(false);
-                        }}
-                        onClose={() => setIsCalendarOpen(false)}
-                    />
-                  )}
+      <div className="p-4 sm:p-6">
+        <div className="flex flex-col gap-4 mb-6 relative">
+            <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3 sm:gap-4 flex-grow min-w-0">
+                    <div className="relative flex-shrink-0">
+                      <button
+                        onClick={() => setIsCalendarOpen(prev => !prev)}
+                        className="bg-zinc-200 dark:bg-zinc-700/80 rounded-xl text-zinc-800 dark:text-zinc-100 font-bold text-center w-14 h-14 sm:w-16 sm:h-16 flex flex-col items-center justify-center p-2 shadow-md hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-zinc-800 focus:ring-slate-600"
+                        aria-haspopup="true"
+                        aria-expanded={isCalendarOpen}
+                        aria-label="Change month date"
+                      >
+                        <span className="text-[10px] sm:text-xs uppercase tracking-wider">{monthShort}</span>
+                        <span className="text-2xl sm:text-3xl font-extrabold">{day}</span>
+                      </button>
+                      {isCalendarOpen && (
+                        <Calendar
+                            selectedDate={date}
+                            onDateChange={(newDate) => {
+                                onUpdateMonth({ date: newDate.toISOString() });
+                                setIsCalendarOpen(false);
+                            }}
+                            onClose={() => setIsCalendarOpen(false)}
+                        />
+                      )}
+                    </div>
+                    <div className="flex-grow min-w-0">
+                      {!isEditing ? (
+                          <h2 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-white truncate">{monthData.name}</h2>
+                      ) : (
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full">
+                              <input 
+                                type="text"
+                                value={editingName}
+                                onChange={(e) => setEditingName(e.target.value)}
+                                className="bg-zinc-100 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white text-lg sm:text-xl font-bold rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-600 w-full sm:w-auto"
+                              />
+                              <div className="flex gap-2">
+                                  <button onClick={handleSave} className="px-3 py-1 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm font-semibold">Save</button>
+                                  <button onClick={handleCancel} className="px-3 py-1 bg-zinc-500 dark:bg-zinc-600 text-white rounded-md hover:bg-zinc-600 dark:hover:bg-zinc-700 text-sm">Cancel</button>
+                              </div>
+                          </div>
+                      )}
+                    </div>
                 </div>
-                <div className="flex-grow">
-                  {!isEditing ? (
-                      <h2 className="text-2xl font-bold text-zinc-900 dark:text-white">{monthData.name}</h2>
-                  ) : (
-                      <div className="flex items-center gap-2">
-                          <input 
-                            type="text"
-                            value={editingName}
-                            onChange={(e) => setEditingName(e.target.value)}
-                            className="bg-zinc-100 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white text-xl font-bold rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-600 w-full"
-                          />
-                          <button onClick={handleSave} className="px-3 py-1 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm font-semibold">Save</button>
-                          <button onClick={handleCancel} className="px-3 py-1 bg-zinc-500 dark:bg-zinc-600 text-white rounded-md hover:bg-zinc-600 dark:hover:bg-zinc-700 text-sm">Cancel</button>
-                      </div>
-                  )}
-                </div>
+                
+                {/* Desktop Action Buttons Group - Hidden on Mobile/Small screens if desired, or kept minimal */}
             </div>
             
-            <div className="flex items-center gap-2 self-end sm:self-auto">
+            <div className="flex items-center justify-end gap-2">
                 {/* View Toggle Button */}
                  <button
                     onClick={toggleViewMode}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                    className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex-grow sm:flex-grow-0 ${
                         viewMode === 'current' 
                         ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600' 
                         : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50'
@@ -275,7 +281,7 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
                 <div className="relative" ref={menuRef}>
                     <button 
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="p-2 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700/50 hover:text-zinc-800 dark:hover:text-white transition-colors text-zinc-500 dark:text-zinc-400"
+                        className="p-2 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700/50 hover:text-zinc-800 dark:hover:text-white transition-colors text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-700/30"
                         aria-label="Options"
                         aria-expanded={isMenuOpen}
                     >
@@ -343,9 +349,9 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
 
         {monthData.goals.length > 0 && (
           <div>
-            <h3 className="text-lg font-semibold text-zinc-600 dark:text-zinc-300 mb-3 flex items-center justify-between">
-                {viewMode === 'current' ? 'Current Stats' : 'End Project Stats'}
-                <span className="text-xs font-normal text-zinc-400">
+            <h3 className="text-md sm:text-lg font-semibold text-zinc-600 dark:text-zinc-300 mb-3 flex items-center justify-between">
+                <span>{viewMode === 'current' ? 'Current Stats' : 'End Project Stats'}</span>
+                <span className="text-[10px] sm:text-xs font-normal text-zinc-400">
                     {viewMode === 'current' ? 'Real-Time' : 'Projection'}
                 </span>
             </h3>

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { StorePlan } from '../types';
 import PieChart from './PieChart';
@@ -93,41 +94,43 @@ const StorePlanCard: React.FC<StorePlanCardProps> = ({ planData, onUpdate, curre
 
     return (
       <tr className="border-b border-zinc-200 dark:border-zinc-700">
-        <td className="px-2 py-2 whitespace-nowrap">{label}</td>
-        <td className="px-2 py-2 whitespace-nowrap text-red-500 font-bold text-right">
+        <td className="px-1 sm:px-2 py-2 whitespace-nowrap">{label}</td>
+        <td className="px-1 sm:px-2 py-2 whitespace-nowrap text-red-500 font-bold text-right">
           {isPlanEditable ? (
              <input
                 type="text"
+                inputMode="numeric"
                 value={formatNumber(Number(editingPlan))}
                 onChange={(e) => handleChange(setEditingPlan, e.target.value)}
                 onBlur={() => handleBlur('plan100')}
-                className="w-full bg-transparent text-right focus:outline-none focus:ring-1 focus:ring-slate-600 rounded-md p-1"
+                className="w-full bg-transparent text-right focus:outline-none focus:ring-1 focus:ring-slate-600 rounded-md p-1 min-w-[80px]"
               />
           ) : formatNumber(planValue)}
         </td>
-        <td className="px-2 py-2 whitespace-nowrap text-right">
+        <td className="px-1 sm:px-2 py-2 whitespace-nowrap text-right">
           {isActualEditable ? (
              <input
                 type="text"
+                inputMode="numeric"
                 value={formatNumber(Number(editingActual))}
                 onChange={(e) => handleChange(setEditingActual, e.target.value)}
                 onBlur={() => handleBlur('actualSum')}
-                className="w-full bg-transparent text-right focus:outline-none focus:ring-1 focus:ring-slate-600 rounded-md p-1"
+                className="w-full bg-transparent text-right focus:outline-none focus:ring-1 focus:ring-slate-600 rounded-md p-1 min-w-[80px]"
               />
           ) : formatNumber(planData.actualSum)}
         </td>
-        <td className="px-2 py-2">
+        <td className="px-1 sm:px-2 py-2">
             <div className="flex justify-center">
-                <PieChart percentage={actualPercent} />
+                <PieChart percentage={actualPercent} size={30} />
             </div>
         </td>
-        <td className="px-2 py-2 hidden sm:table-cell">
+        <td className="px-1 sm:px-2 py-2 hidden sm:table-cell">
             <div className="flex justify-center">
-                <PieChart percentage={tempPercent} />
+                <PieChart percentage={tempPercent} size={30} />
             </div>
         </td>
-        <td className="px-2 py-2 whitespace-nowrap text-red-500 font-bold text-right">{formatNumber(remainder)}</td>
-        <td className="px-2 py-2 whitespace-nowrap text-right">{formatNumber(daily)}</td>
+        <td className="px-1 sm:px-2 py-2 whitespace-nowrap text-red-500 font-bold text-right">{formatNumber(remainder)}</td>
+        <td className="px-1 sm:px-2 py-2 whitespace-nowrap text-right">{formatNumber(daily)}</td>
       </tr>
     );
   };
@@ -137,25 +140,27 @@ const StorePlanCard: React.FC<StorePlanCardProps> = ({ planData, onUpdate, curre
 
   return (
     <div className="bg-white dark:bg-zinc-800/50 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-700/50 overflow-hidden">
-        <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-zinc-600 dark:text-zinc-300 table-fixed">
-                <thead className="text-xs text-white uppercase bg-zinc-600 dark:bg-zinc-700">
-                    <tr>
-                        <th scope="col" className="px-2 py-2 w-48">{planData.name}</th>
-                        <th scope="col" className="px-2 py-2 text-right w-44">Plan</th>
-                        <th scope="col" className="px-2 py-2 text-right w-44">Total Sum</th>
-                        <th scope="col" className="px-2 py-2 text-center w-28">Total %</th>
-                        <th scope="col" className="px-2 py-2 text-center w-28 hidden sm:table-cell">Temp %</th>
-                        <th scope="col" className="px-2 py-2 text-right w-44">Remainder</th>
-                        <th scope="col" className="px-2 py-2 text-right w-44">Daily</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {renderRow('To 100%', planData.plan100)}
-                    {renderRow('To 90%', plan90)}
-                    {renderRow('To 80%', plan80)}
-                </tbody>
-            </table>
+        <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <div className="min-w-[600px] px-4 sm:px-0">
+                <table className="w-full text-sm text-left text-zinc-600 dark:text-zinc-300 table-fixed">
+                    <thead className="text-xs text-white uppercase bg-zinc-600 dark:bg-zinc-700">
+                        <tr>
+                            <th scope="col" className="px-1 sm:px-2 py-2 w-32 sm:w-48">{planData.name}</th>
+                            <th scope="col" className="px-1 sm:px-2 py-2 text-right w-28 sm:w-44">Plan</th>
+                            <th scope="col" className="px-1 sm:px-2 py-2 text-right w-28 sm:w-44">Total Sum</th>
+                            <th scope="col" className="px-1 sm:px-2 py-2 text-center w-20 sm:w-28">Total %</th>
+                            <th scope="col" className="px-1 sm:px-2 py-2 text-center w-20 sm:w-28 hidden sm:table-cell">Temp %</th>
+                            <th scope="col" className="px-1 sm:px-2 py-2 text-right w-28 sm:w-44">Remainder</th>
+                            <th scope="col" className="px-1 sm:px-2 py-2 text-right w-28 sm:w-44">Daily</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {renderRow('To 100%', planData.plan100)}
+                        {renderRow('To 90%', plan90)}
+                        {renderRow('To 80%', plan80)}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
   );

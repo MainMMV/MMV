@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GoogleSheetsIcon, PuzzlePieceIcon, CheckCircleIcon, ExternalLinkIcon } from './Icons';
 
 interface Integration {
@@ -12,7 +12,11 @@ interface Integration {
     url?: string;
 }
 
-const IntegrationsPage: React.FC = () => {
+interface IntegrationsPageProps {
+    onConnectDrive?: () => void;
+}
+
+const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ onConnectDrive }) => {
     const [integrations, setIntegrations] = useState<Integration[]>([
         {
             id: 'google-sheets',
@@ -36,8 +40,8 @@ const IntegrationsPage: React.FC = () => {
         },
         {
             id: 'google-drive',
-            name: 'Google Drive',
-            description: 'Automatically backup your JSON data to a dedicated folder.',
+            name: 'Google Drive (via Desktop)',
+            description: 'Sync data to a local file monitored by Google Drive.',
             icon: (
                  <svg className="h-8 w-8 text-zinc-700 dark:text-zinc-200" viewBox="0 0 24 24" fill="currentColor">
                      <path d="M7.784 14l4.22-7.304 2.11-3.653h7.22L12 14H7.784zM6.528 12L2.636 5.26 8.673 2h10.582l-2.166 3.75H9.342L6.528 12zm.844 1.5L2.118 22.5h-.005l6.526.001 10.552.003L13.01 13.5H7.372z"/>
@@ -45,21 +49,23 @@ const IntegrationsPage: React.FC = () => {
             ),
             connected: false,
             type: 'storage'
-        },
-        {
-            id: '1anketa',
-            name: '1Anketa Merchant',
-            description: 'Directly access the merchant application submission portal.',
-            icon: (
-                <svg className="h-8 w-8 text-zinc-700 dark:text-zinc-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-            ),
-            connected: true,
-            type: 'external',
-            url: 'https://merchant.1anketa.uz/#/applications/add'
         }
     ]);
+
+    const handleDriveConnection = () => {
+        // If drive is not connected, we try to connect it via file system
+        const driveIntegration = integrations.find(i => i.id === 'google-drive');
+        if (driveIntegration && !driveIntegration.connected && onConnectDrive) {
+            // Trigger the file picker in App.tsx
+            onConnectDrive();
+            // Ideally we wait for success, but for UI feedback we can toggle if user completes action
+            // For now, we let App.tsx handle the "connected" state via fileHandle, but here we just visual toggle for demo
+            // In a real app, props would drive the 'connected' state
+        } else {
+            // Disconnect logic if needed
+            toggleConnection('google-drive');
+        }
+    };
 
     const toggleConnection = (id: string) => {
         setIntegrations(prev => prev.map(integration => {
@@ -103,7 +109,7 @@ const IntegrationsPage: React.FC = () => {
                         
                         <div className="flex gap-3">
                             <button
-                                onClick={() => toggleConnection(item.id)}
+                                onClick={() => item.id === 'google-drive' ? handleDriveConnection() : toggleConnection(item.id)}
                                 className={`flex-grow py-2.5 rounded-lg font-medium transition-all duration-200 ${
                                     item.connected 
                                     ? 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600'

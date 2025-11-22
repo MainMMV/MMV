@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { MonthData, GoalStatus, Goal, StorePlan, FavouriteLink, FavouriteFolder, SpendingItem } from './types';
 import MonthCard from './components/MonthCard';
 import TopNav from './components/TopNav';
@@ -211,6 +211,7 @@ const App: React.FC = () => {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNewMonthModalOpen, setIsNewMonthModalOpen] = useState(false);
+  const [fileHandle, setFileHandle] = useState<any>(null); // FileSystemFileHandle
   
   // State to track expanded years in the dashboard view
   const [expandedDashboardYears, setExpandedDashboardYears] = useState<Record<number, boolean>>(() => {
@@ -281,6 +282,7 @@ const App: React.FC = () => {
     return (savedTheme === 'light' || savedTheme === 'dark') ? savedTheme : 'dark';
   });
 
+  // Persist to localStorage
   useEffect(() => {
     try {
       localStorage.setItem('salaryGoalTrackerData', JSON.stringify(data));
@@ -327,6 +329,93 @@ const App: React.FC = () => {
     root.classList.add(theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  // --- Cloud / File System Sync Logic ---
+  
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const generateBackupJSON = useCallback(() => {
+    return JSON.stringify({
+        version: 1,
+        timestamp: new Date().toISOString(),
+        data: {
+            salaryGoalTrackerData: data,
+            storePlansData: storePlans,
+            favouriteLinks: links,
+            favouriteFolders: folders,
+            spendingData: spendingData,
+            theme: theme
+        }
+    }, null, 2);
+  }, [data, storePlans, links, folders, spendingData, theme]);
+
+  // Auto-save to file handle if connected
+  useEffect(() => {
+    if (!fileHandle) return;
+
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+
+    saveTimeoutRef.current = setTimeout(async () => {
+        try {
+            const writable = await fileHandle.createWritable();
+            const content = generateBackupJSON();
+            await writable.write(content);
+            await writable.close();
+            console.log("Auto-saved to file.");
+        } catch (err) {
+            console.error("Failed to auto-save to file:", err);
+            // If permission is lost or file moved, we might want to reset fileHandle
+            // setFileHandle(null); 
+        }
+    }, 2000); // Debounce 2 seconds
+
+    return () => {
+        if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, [data, storePlans, links, folders, spendingData, theme, fileHandle, generateBackupJSON]);
+
+  const handleConnectFile = async () => {
+      try {
+          // @ts-ignore - File System Access API
+          if (!window.showOpenFilePicker) {
+              alert("Your browser does not support local file access. Please use Chrome, Edge, or Opera on Desktop.");
+              return;
+          }
+          
+          // @ts-ignore
+          const [handle] = await window.showOpenFilePicker({
+              types: [{
+                  description: 'JSON Data Files',
+                  accept: { 'application/json': ['.json'] }
+              }],
+              multiple: false
+          });
+
+          const file = await handle.getFile();
+          const text = await file.text();
+          const backup = JSON.parse(text);
+
+          if (backup && backup.data) {
+              if (backup.data.salaryGoalTrackerData) setData(backup.data.salaryGoalTrackerData);
+              if (backup.data.storePlansData) setStorePlans(backup.data.storePlansData);
+              if (backup.data.favouriteLinks) setLinks(backup.data.favouriteLinks);
+              if (backup.data.favouriteFolders) setFolders(backup.data.favouriteFolders);
+              if (backup.data.spendingData) setSpendingData(backup.data.spendingData);
+              if (backup.data.theme) setTheme(backup.data.theme);
+              
+              setFileHandle(handle);
+              alert("File connected successfully! Changes will now auto-sync to this file.");
+              setIsSettingsOpen(false);
+          } else {
+              alert("Invalid file format.");
+          }
+      } catch (err: any) {
+          if (err.name !== 'AbortError') {
+              console.error(err);
+              alert("Error connecting to file.");
+          }
+      }
+  };
 
   const toggleTheme = () => {
     setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
@@ -452,20 +541,8 @@ const App: React.FC = () => {
   // --- Data Management Handlers ---
 
   const handleExportBackup = () => {
-      const backup = {
-          version: 1,
-          timestamp: new Date().toISOString(),
-          data: {
-            salaryGoalTrackerData: data,
-            storePlansData: storePlans,
-            favouriteLinks: links,
-            favouriteFolders: folders,
-            spendingData: spendingData,
-            theme: theme
-          }
-      };
-
-      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const content = generateBackupJSON();
+      const blob = new Blob([content], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
@@ -512,13 +589,52 @@ const App: React.FC = () => {
           setFolders(initialFolders);
           setSpendingData(initialSpending);
           localStorage.clear();
+          setFileHandle(null); // Disconnect file sync
           alert('All data has been reset.');
           setIsSettingsOpen(false);
       }
   };
 
   const handleSyncWithSheets = () => {
-    // 1. Generate Styled HTML for all data
+    // Helper for salary calculation
+    const getSalaryMultiplier = (goalName: string): number => {
+        const lowerCaseName = goalName.toLowerCase();
+        switch (lowerCaseName) {
+          case 'within 5 minutes': return 20000;
+          case 'within 10 minutes': return 12000;
+          case 'within 20 minutes': return 5000;
+          case 'who rejected': return 5000;
+          case 'created by sellers': return 12000;
+          default: return 0;
+        }
+     };
+
+    // 1. Calculate Dashboard Stats for Summary
+    let totalNetSalary = 0;
+    let totalGoals = 0;
+    let completedGoals = 0;
+    let inProgressGoals = 0;
+
+    data.forEach(month => {
+        let monthGross = 0;
+        month.goals.forEach(goal => {
+            totalGoals++;
+            if (goal.progress >= goal.endValue && goal.endValue > 0) {
+                completedGoals++;
+            }
+            if (goal.status === GoalStatus.IN_PROGRESS) {
+                inProgressGoals++;
+            }
+            const multiplier = getSalaryMultiplier(goal.name);
+            monthGross += goal.progress * multiplier;
+        });
+        const tax = monthGross * 0.12;
+        totalNetSalary += (monthGross - tax);
+    });
+
+    const completionRate = totalGoals > 0 ? (completedGoals / totalGoals) * 100 : 0;
+
+    // 2. Generate Styled HTML for all data
     const styles = `
       <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #ffffff; padding: 20px; }
@@ -535,26 +651,52 @@ const App: React.FC = () => {
         .text-rose { color: #e11d48; }
         .bg-gray { background-color: #fafafa; }
         .total-row { background-color: #f4f4f5; font-weight: bold; }
+        .dashboard-summary { margin-bottom: 40px; }
       </style>
     `;
 
-    let tablesHtml = '';
+    let contentHtml = '';
+
+    // Add Dashboard Summary Table
+    contentHtml += `
+        <div class="month-container dashboard-summary">
+            <div class="header" style="background-color: #059669;">Dashboard Overview</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="text-left">Metric</th>
+                        <th class="text-right">Value</th>
+                        <th class="text-left">Visual</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="font-bold">Total Net Salary</td>
+                        <td class="text-right text-emerald font-bold" style="font-size: 1.2em;">${totalNetSalary.toLocaleString('en-US')}</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="font-bold">Overall Goal Completion</td>
+                        <td class="text-right font-bold">${completionRate.toFixed(2)}%</td>
+                        <td>
+                            <div style="width: 100px; background-color: #e4e4e7; height: 10px; border-radius: 5px;">
+                                <div style="width: ${completionRate}%; background-color: #059669; height: 10px; border-radius: 5px;"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="font-bold">Active Goals</td>
+                        <td class="text-right">${inProgressGoals}</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    `;
 
     data.forEach(month => {
         // Logic duplicated from MonthCard to ensure consistent data export
         const rows = month.goals.map(goal => {
-             const getSalaryMultiplier = (goalName: string): number => {
-                const lowerCaseName = goalName.toLowerCase();
-                switch (lowerCaseName) {
-                  case 'within 5 minutes': return 20000;
-                  case 'within 10 minutes': return 12000;
-                  case 'within 20 minutes': return 5000;
-                  case 'who rejected': return 5000;
-                  case 'created by sellers': return 12000;
-                  default: return 0;
-                }
-             };
-
              const multiplier = getSalaryMultiplier(goal.name);
              const salary = goal.progress * multiplier;
              const percentage = goal.endValue > 0 ? (goal.progress / goal.endValue) * 100 : 0;
@@ -576,7 +718,7 @@ const App: React.FC = () => {
             </tr>
         `).join('');
 
-        tablesHtml += `
+        contentHtml += `
             <div class="month-container">
                 <div class="header">${month.name}</div>
                 <table>
@@ -632,12 +774,12 @@ const App: React.FC = () => {
         <body>
             <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 10px; color: #18181b;">Salary & Goal Tracker - Full Report</h1>
             <p style="margin-bottom: 20px; color: #71717a;">Generated on ${new Date().toLocaleDateString()}</p>
-            ${tablesHtml}
+            ${contentHtml}
         </body>
         </html>
     `;
 
-    // 2. Download as .xls
+    // 3. Download as .xls
     const blob = new Blob([fullHtml], { type: 'application/vnd.ms-excel' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -715,17 +857,17 @@ const App: React.FC = () => {
       case 'comparison':
         return <ComparisonDashboard allMonths={data} />;
       case 'integrations':
-        return <IntegrationsPage />;
+        return <IntegrationsPage onConnectDrive={handleConnectFile} />;
       case 'mmv':
       default:
         return (
           <>
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-              <h2 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Dashboard</h2>
-              <div className="flex items-center gap-3">
+              <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Dashboard</h2>
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                 <button 
                   onClick={handleSyncWithSheets}
-                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg shadow-md hover:bg-emerald-700 transition-colors text-sm font-semibold"
+                  className="w-full sm:w-auto flex justify-center items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg shadow-md hover:bg-emerald-700 transition-colors text-sm font-semibold"
                   aria-label="Sync with Google Sheets"
                 >
                   <GoogleSheetsIcon />
@@ -733,7 +875,7 @@ const App: React.FC = () => {
                 </button>
                 <button 
                   onClick={handleNewMonth}
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-600 text-white rounded-lg shadow-md hover:bg-slate-700 transition-colors text-sm font-semibold"
+                  className="w-full sm:w-auto flex justify-center items-center gap-2 px-4 py-2 bg-slate-600 text-white rounded-lg shadow-md hover:bg-slate-700 transition-colors text-sm font-semibold"
                   aria-label="Create new month"
                 >
                   <PlusIcon />
@@ -793,6 +935,7 @@ const App: React.FC = () => {
         activeView={activeView}
         onViewChange={setActiveView}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        isCloudSyncActive={!!fileHandle}
       />
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {renderContent()}
@@ -803,6 +946,8 @@ const App: React.FC = () => {
         onExport={handleExportBackup}
         onImport={handleImportBackup}
         onReset={handleResetAllData}
+        onConnectFile={handleConnectFile}
+        isFileConnected={!!fileHandle}
       />
       <NewMonthModal 
         isOpen={isNewMonthModalOpen}

@@ -84,7 +84,7 @@ const SpendingPage: React.FC<SpendingPageProps> = ({ items, onAdd, onDelete }) =
             <WalletIcon className="h-8 w-8 text-white" />
         </div>
         <div>
-            <h2 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Spending Tracker</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Spending Tracker</h2>
             <p className="text-zinc-500 dark:text-zinc-400">Manage your expenses efficiently</p>
         </div>
       </div>
@@ -190,7 +190,7 @@ const SpendingPage: React.FC<SpendingPageProps> = ({ items, onAdd, onDelete }) =
             ) : (
                 <div className="space-y-3">
                     {sortedItems.map(item => (
-                        <div key={item.id} className="bg-white dark:bg-zinc-800 p-4 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 flex items-center justify-between hover:shadow-md transition-shadow">
+                        <div key={item.id} className="bg-white dark:bg-zinc-800 p-4 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:shadow-md transition-shadow">
                             <div className="flex items-center gap-4">
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 
                                     ${item.category === 'Food & Dining' ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' : 
@@ -200,21 +200,21 @@ const SpendingPage: React.FC<SpendingPageProps> = ({ items, onAdd, onDelete }) =
                                 >
                                     <TagIcon className="h-5 w-5" />
                                 </div>
-                                <div>
-                                    <h4 className="font-semibold text-zinc-900 dark:text-white">{item.category}</h4>
-                                    <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-                                        <span className="flex items-center gap-1"><CalendarIcon /> {formatDate(item.date)}</span>
+                                <div className="min-w-0">
+                                    <h4 className="font-semibold text-zinc-900 dark:text-white truncate">{item.category}</h4>
+                                    <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                                        <span className="flex items-center gap-1 shrink-0"><CalendarIcon /> {formatDate(item.date)}</span>
                                         {item.note && (
                                             <>
-                                                <span>•</span>
-                                                <span className="truncate max-w-[150px]">{item.note}</span>
+                                                <span className="hidden sm:inline">•</span>
+                                                <span className="truncate max-w-[200px]">{item.note}</span>
                                             </>
                                         )}
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-4">
-                                <span className="font-bold text-zinc-900 dark:text-white">{formatCurrency(item.amount)}</span>
+                            <div className="flex items-center justify-between sm:justify-end gap-4 pl-14 sm:pl-0">
+                                <span className="font-bold text-zinc-900 dark:text-white text-lg">{formatCurrency(item.amount)}</span>
                                 <button 
                                     onClick={() => onDelete(item.id)}
                                     className="p-2 text-zinc-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
