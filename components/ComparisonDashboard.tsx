@@ -27,6 +27,120 @@ const getGoalColor = (name: string) => {
     return GOAL_COLORS['default'];
 };
 
+// --- New Charts Components ---
+
+const SingleGoalBarChart: React.FC<{ config: any, data: any[] }> = ({ config, data }) => {
+    if (data.length === 0) return null;
+    
+    const height = 150;
+    // Dynamic width based on data points to prevent cramping
+    const width = Math.max(data.length * 60, 800); 
+    const padding = { top: 30, right: 20, bottom: 25, left: 20 };
+    
+    const maxValue = Math.max(...data.map(d => d.value));
+    const yMax = maxValue > 0 ? maxValue * 1.2 : 10;
+    
+    const barWidth = (width - padding.left - padding.right) / data.length * 0.6;
+    const step = (width - padding.left - padding.right) / data.length;
+
+    return (
+        <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 p-4 shadow-sm">
+            <h4 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3 pb-2 border-b border-zinc-100 dark:border-zinc-700/50">
+                {config.label}
+            </h4>
+            <div className="w-full h-40 overflow-x-auto no-scrollbar">
+                 <div style={{ minWidth: '100%', width: '100%', height: '100%' }}>
+                    <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="w-full h-full overflow-visible">
+                        {/* Grid Lines */}
+                        {[0, 0.25, 0.5, 0.75, 1].map(tick => {
+                            const y = height - padding.bottom - (tick * (height - padding.top - padding.bottom));
+                            return (
+                                <line key={tick} x1={padding.left} y1={y} x2={width - padding.right} y2={y} stroke="currentColor" className="text-zinc-100 dark:text-zinc-700" strokeWidth="1" />
+                            )
+                        })}
+
+                        {data.map((d, i) => {
+                            const x = padding.left + i * step + step / 2;
+                            const barHeight = (d.value / yMax) * (height - padding.top - padding.bottom);
+                            const y = height - padding.bottom - barHeight;
+                            
+                            return (
+                                <g key={i} className="group">
+                                    <rect 
+                                        x={x - barWidth / 2} 
+                                        y={y} 
+                                        width={barWidth} 
+                                        height={barHeight} 
+                                        fill={config.barColor} 
+                                        className="transition-opacity duration-300 group-hover:opacity-80"
+                                        rx="2"
+                                    />
+                                    {/* Value Label */}
+                                    <text 
+                                        x={x} 
+                                        y={y - 8} 
+                                        textAnchor="middle" 
+                                        fontSize="12" 
+                                        fontWeight="bold" 
+                                        fill="currentColor" 
+                                        className="text-zinc-600 dark:text-zinc-300"
+                                    >
+                                        {d.value > 0 ? d.value : ''}
+                                    </text>
+                                    
+                                    {/* X Axis Label */}
+                                    <text 
+                                        x={x} 
+                                        y={height} 
+                                        textAnchor="middle" 
+                                        fontSize="11" 
+                                        fontWeight="500"
+                                        fill="currentColor" 
+                                        className="text-zinc-400 dark:text-zinc-500"
+                                    >
+                                        {d.month}
+                                    </text>
+                                </g>
+                            );
+                        })}
+                    </svg>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const GoalVolumeCharts: React.FC<{ months: any[] }> = ({ months }) => {
+    const charts = [
+        { label: '00 - 05 Per Month', goal: 'within 5 minutes', barColor: '#4ade80' }, // Green
+        { label: '05 - 10 Per Month', goal: 'within 10 minutes', barColor: '#60a5fa' }, // Blue
+        { label: '11 - 20 Per Month', goal: 'within 20 minutes', barColor: '#1e40af' }, // Dark Blue
+        { label: 'Rejected', goal: 'who rejected', barColor: '#fb923c' }, // Orange
+        { label: 'Seller', goal: 'created by sellers', barColor: '#9ca3af' }  // Grey
+    ];
+
+    // Prepare data for each chart
+    const preparedData = charts.map(chartConfig => {
+        const data = months.map(m => {
+            const goal = m.goalBreakdown.find((g: any) => g.name === chartConfig.goal);
+            return {
+                month: m.shortName,
+                value: goal ? goal.count : 0
+            };
+        });
+        return { config: chartConfig, data };
+    });
+
+    return (
+        <div className="grid grid-cols-1 gap-6 mb-8">
+            {preparedData.map((item, index) => (
+                <SingleGoalBarChart key={index} config={item.config} data={item.data} />
+            ))}
+        </div>
+    );
+};
+
+
 // MonthPicker Component
 const MonthPicker: React.FC<{ selectedDate: Date, onChange: (date: Date) => void }> = ({ selectedDate, onChange }) => {
     const [viewYear, setViewYear] = useState(selectedDate.getFullYear());
@@ -380,6 +494,11 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
     return [...analytics.months].reverse().map(m => ({ label: m.shortName, value: m.net }));
   }, [analytics.months]);
 
+  // Create chronologically ascending months array for bar charts
+  const ascendingMonths = useMemo(() => {
+      return [...analytics.months].reverse();
+  }, [analytics.months]);
+
   const selectedMonthData = useMemo(() => {
       return analytics.months.find(m => 
           m.date.getMonth() === selectedRevenueDate.getMonth() && 
@@ -450,6 +569,9 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
              <p className="text-sm text-zinc-500 dark:text-zinc-400">{formatCurrency(analytics.bestMonth.net)}</p>
          </div>
       </div>
+
+      {/* New Goal Volume Charts Section */}
+      <GoalVolumeCharts months={ascendingMonths} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm">
