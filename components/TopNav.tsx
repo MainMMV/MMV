@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { 
   SunIcon, MoonIcon, MenuIcon, ChartBarIcon, CogIcon, CheckCircleIcon,
-  HomeIcon, Squares2X2Icon, BuildingStoreIcon, UserGroupIcon, WalletIcon, GlobeAltIcon, PuzzlePieceIcon 
+  HomeIcon, Squares2X2Icon, BuildingStoreIcon, UserGroupIcon, WalletIcon, GlobeAltIcon, PuzzlePieceIcon, QrCodeIcon 
 } from './Icons';
 
 /**
@@ -11,8 +11,8 @@ import {
 interface TopNavProps {
   theme: 'light' | 'dark';
   toggleTheme: () => void;
-  activeView: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison' | 'integrations';
-  onViewChange: (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison' | 'integrations') => void;
+  activeView: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison' | 'integrations' | 'qr_generator';
+  onViewChange: (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison' | 'integrations' | 'qr_generator') => void;
   onOpenSettings: () => void;
   isCloudSyncActive?: boolean;
 }
@@ -23,12 +23,12 @@ interface TopNavProps {
 const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewChange, onOpenSettings, isCloudSyncActive }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleViewClick = (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison' | 'integrations') => {
+  const handleViewClick = (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison' | 'integrations' | 'qr_generator') => {
     onViewChange(view);
     setIsMenuOpen(false);
   };
 
-  const getButtonClass = (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison' | 'integrations') => {
+  const getButtonClass = (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison' | 'integrations' | 'qr_generator') => {
     const baseClass = "text-left p-2 rounded-md transition-colors w-full font-medium flex items-center gap-2";
     if (activeView === view) {
       return `${baseClass} bg-zinc-300 dark:bg-zinc-700 font-semibold text-zinc-900 dark:text-white`;
@@ -130,6 +130,9 @@ const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewC
               </button>
               <button className={getButtonClass('powerful_sites')} onClick={() => handleViewClick('powerful_sites')}>
                 <GlobeAltIcon /> Powerful Web Sites
+              </button>
+              <button className={getButtonClass('qr_generator')} onClick={() => handleViewClick('qr_generator')}>
+                <QrCodeIcon /> QR Generator
               </button>
               <div className="border-t border-zinc-200 dark:border-zinc-700 my-2"></div>
               <button className={getButtonClass('integrations')} onClick={() => handleViewClick('integrations')}>

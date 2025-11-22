@@ -13,6 +13,7 @@ import ComparisonDashboard from './components/ComparisonDashboard';
 import SettingsModal from './components/SettingsModal';
 import NewMonthModal from './components/NewMonthModal';
 import IntegrationsPage from './components/IntegrationsPage';
+import QRCodePage from './components/QRCodePage';
 
 // Initial sample data for the application, imported from Incone 2.0.xlsx
 const initialData: MonthData[] = [
@@ -197,9 +198,9 @@ const initialSpending: SpendingItem[] = [];
  * Also handles saving and loading data to/from the browser's localStorage.
  */
 const App: React.FC = () => {
-  const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison' | 'integrations'>(() => {
+  const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison' | 'integrations' | 'qr_generator'>(() => {
       const saved = localStorage.getItem('activeView');
-      if (saved && ['welcome', 'mmv', 'branch', 'seller', 'spending', 'powerful_sites', 'comparison', 'integrations'].includes(saved)) {
+      if (saved && ['welcome', 'mmv', 'branch', 'seller', 'spending', 'powerful_sites', 'comparison', 'integrations', 'qr_generator'].includes(saved)) {
           return saved as any;
       }
       return 'welcome';
@@ -858,6 +859,8 @@ const App: React.FC = () => {
         return <ComparisonDashboard allMonths={data} />;
       case 'integrations':
         return <IntegrationsPage onConnectDrive={handleConnectFile} />;
+      case 'qr_generator':
+        return <QRCodePage />;
       case 'mmv':
       default:
         return (

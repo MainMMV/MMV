@@ -282,3 +282,14 @@ export const GiftIcon: React.FC<{className?: string}> = ({className}) => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
     </svg>
 );
+
+// QR Code Icon
+export const QrCodeIcon: React.FC = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4h2v-4zm-6 2v3m6 2v1m-2-4h2v2h-2v-2zm2-3h2v2h-2v-2zm0-4h2v2h-2v-2zm0-4h2v2h-2V4zm-6 9h2v2h-2v-2zm-4-4h2v2h-2V9zm0-4h2v2H2V5zm2 0v1m2-1v1m10-1v1m2-1v1m-6 5h2v2h-2v-2zm-4 0h2v2h-2v-2zm-4 0h2v2H6v-2zm2-7h8v8H8V4zm-4 0h4v4H4V4zm12 0h4v4h-4V4z" />
+    <rect x="5" y="5" width="2" height="2" />
+    <rect x="17" y="5" width="2" height="2" />
+    <rect x="5" y="17" width="2" height="2" />
+    <path d="M3 3h6v6H3V3zm2 2v2h2V5H5zm8-2h6v6h-6V3zm2 2v2h2V5h-2zM3 13h6v6H3v-6zm2 2v2h2v-2H5zm8-2h6v6h-6v-6zm2 2v2h2v-2h-2z" />
+  </svg>
+);
