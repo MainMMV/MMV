@@ -1,7 +1,7 @@
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { MonthData } from '../types';
-import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon, ChevronDownIcon } from './Icons';
+import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon, ChevronDownIcon, DownloadIcon } from './Icons';
 
 interface ComparisonDashboardProps {
   allMonths: MonthData[];
@@ -544,14 +544,39 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
     setExpandedYears(prev => ({ ...prev, [year]: !prev[year] }));
   };
 
+  const handleExportReport = () => {
+      // Basic CSV Export for Analytics
+      const headers = ["Month", "Gross Salary", "Tax", "Net Salary", "Best Goal"];
+      const rows = analytics.months.map(m => {
+          const bestGoal = m.goalBreakdown.sort((a,b) => b.income - a.income)[0]?.name || 'N/A';
+          return `${m.name},${m.grossTotal},${m.tax},${m.net},${bestGoal}`;
+      });
+      
+      const csvContent = [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Analytics_Report_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-8 pb-12">
-      <div className="flex flex-col gap-2">
-        <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Analytics Dashboard</h2>
-        <p className="text-zinc-500 dark:text-zinc-400">Deep dive into your performance metrics and revenue sources.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col gap-2">
+            <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Analytics Dashboard</h2>
+            <p className="text-zinc-500 dark:text-zinc-400">Deep dive into your performance metrics.</p>
+        </div>
+        <button onClick={handleExportReport} className="flex items-center justify-center gap-2 px-4 py-2 bg-zinc-100 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors text-sm font-medium">
+            <DownloadIcon />
+            <span>Export CSV</span>
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
          <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm relative overflow-hidden">
              <div className="relative z-10">
                  <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Lifetime Net Earnings</h3>
@@ -565,7 +590,7 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
          </div>
          <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm">
              <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Best Month</h3>
-             <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mt-2">{analytics.bestMonth.name}</p>
+             <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mt-2 truncate">{analytics.bestMonth.name}</p>
              <p className="text-sm text-zinc-500 dark:text-zinc-400">{formatCurrency(analytics.bestMonth.net)}</p>
          </div>
       </div>
@@ -573,7 +598,7 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
       {/* New Goal Volume Charts Section */}
       <GoalVolumeCharts months={ascendingMonths} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         <div className="lg:col-span-2 bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm">
             <div className="mb-6">
                 <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Net Salary Trend</h3>

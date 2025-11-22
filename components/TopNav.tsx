@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { 
   SunIcon, MoonIcon, MenuIcon, ChartBarIcon, CogIcon, CheckCircleIcon,
-  HomeIcon, Squares2X2Icon, BuildingStoreIcon, UserGroupIcon, WalletIcon, GlobeAltIcon, PuzzlePieceIcon, QrCodeIcon 
+  HomeIcon, Squares2X2Icon, BuildingStoreIcon, UserGroupIcon, WalletIcon, GlobeAltIcon, QrCodeIcon 
 } from './Icons';
 
 /**
@@ -133,10 +133,6 @@ const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewC
               </button>
               <button className={getButtonClass('qr_generator')} onClick={() => handleViewClick('qr_generator')}>
                 <QrCodeIcon /> QR Generator
-              </button>
-              <div className="border-t border-zinc-200 dark:border-zinc-700 my-2"></div>
-              <button className={getButtonClass('integrations')} onClick={() => handleViewClick('integrations')}>
-                <PuzzlePieceIcon /> Integrations
               </button>
             </nav>
           </div>

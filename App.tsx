@@ -12,7 +12,6 @@ import SpendingPage from './components/SpendingPage';
 import ComparisonDashboard from './components/ComparisonDashboard';
 import SettingsModal from './components/SettingsModal';
 import NewMonthModal from './components/NewMonthModal';
-import IntegrationsPage from './components/IntegrationsPage';
 import QRCodePage from './components/QRCodePage';
 
 // Initial sample data for the application, imported from Incone 2.0.xlsx
@@ -838,7 +837,20 @@ const App: React.FC = () => {
   const renderContent = () => {
     switch (activeView) {
       case 'welcome':
-        return <HomePage />;
+        // Find current month data for dashboard summary on Home Page
+        const now = new Date();
+        const currentMonthData = data.find(m => {
+            const d = new Date(m.date);
+            return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        });
+
+        return (
+          <HomePage 
+            monthData={currentMonthData}
+            spendingData={spendingData}
+            onNavigate={setActiveView}
+          />
+        );
       case 'powerful_sites':
         return <PowerfulWebSitesPage 
           links={links}
@@ -857,8 +869,6 @@ const App: React.FC = () => {
         return <SpendingPage items={spendingData} onAdd={handleAddSpending} onDelete={handleDeleteSpending} />;
       case 'comparison':
         return <ComparisonDashboard allMonths={data} />;
-      case 'integrations':
-        return <IntegrationsPage onConnectDrive={handleConnectFile} />;
       case 'qr_generator':
         return <QRCodePage />;
       case 'mmv':

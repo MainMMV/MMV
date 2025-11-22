@@ -1,6 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { FavouriteLink, FavouriteFolder } from '../types';
-import { PlusIcon, FolderIcon, TrashIcon, PencilIcon, CloseIcon, ChevronDownIcon, InstagramIcon } from './Icons';
+import { 
+    PlusIcon, FolderIcon, TrashIcon, PencilIcon, CloseIcon, ChevronDownIcon, 
+    InstagramIcon, MagnifyingGlassIcon, Squares2X2Icon, ListBulletIcon, ClipboardIcon 
+} from './Icons';
 
 // --- Add/Edit Link Modal Component ---
 interface AddLinkModalProps {
@@ -255,33 +259,71 @@ interface LinkCardProps {
   link: FavouriteLink;
   onEdit: (link: FavouriteLink) => void;
   onRemove: (linkId: string) => void;
+  viewMode: 'grid' | 'list';
 }
 
-const LinkCard: React.FC<LinkCardProps> = ({ link, onEdit, onRemove }) => (
-  <div className="group relative p-6 bg-white dark:bg-zinc-800/50 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border border-zinc-200 dark:border-zinc-700/50">
-    <a href={link.url} target="_blank" rel="noopener noreferrer" className="block">
-      <div className="flex items-center gap-3">
-        <img 
-            src={`https://www.google.com/s2/favicons?sz=64&domain_url=${link.url}`} 
-            alt={`${link.title} favicon`}
-            className="w-6 h-6 object-contain"
-            onError={(e) => { e.currentTarget.style.display = 'none'; }}
-        />
-        <h3 className="text-xl font-bold text-zinc-900 dark:text-white truncate">{link.title}</h3>
-      </div>
-      <p className="mt-2 text-zinc-500 dark:text-zinc-400 h-10">{link.description}</p>
-    </a>
-    <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        {link.instagramUrl && (
-          <a href={link.instagramUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-md bg-zinc-200/50 dark:bg-zinc-700/50 hover:bg-zinc-300 dark:hover:bg-zinc-600" aria-label="View Instagram video">
-            <InstagramIcon />
-          </a>
-        )}
-        <button onClick={() => onEdit(link)} className="p-1.5 rounded-md bg-zinc-200/50 dark:bg-zinc-700/50 hover:bg-zinc-300 dark:hover:bg-zinc-600" aria-label="Edit link"><PencilIcon/></button>
-        <button onClick={() => onRemove(link.id)} className="p-1.5 rounded-md bg-zinc-200/50 dark:bg-zinc-700/50 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-500 dark:text-rose-400" aria-label="Delete link"><TrashIcon/></button>
-    </div>
-  </div>
-);
+const LinkCard: React.FC<LinkCardProps> = ({ link, onEdit, onRemove, viewMode }) => {
+    const handleCopy = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        navigator.clipboard.writeText(link.url);
+        // Could add a toast notification here
+    };
+
+    if (viewMode === 'list') {
+        return (
+            <div className="group relative flex items-center justify-between p-4 bg-white dark:bg-zinc-800/50 rounded-xl shadow-sm hover:shadow-md border border-zinc-200 dark:border-zinc-700/50 transition-all duration-200">
+                 <a href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 flex-grow min-w-0">
+                    <img 
+                        src={`https://www.google.com/s2/favicons?sz=64&domain_url=${link.url}`} 
+                        alt={`${link.title} favicon`}
+                        className="w-8 h-8 object-contain shrink-0"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                    <div className="min-w-0">
+                        <h3 className="text-base font-bold text-zinc-900 dark:text-white truncate">{link.title}</h3>
+                        {link.description && <p className="text-sm text-zinc-500 dark:text-zinc-400 truncate">{link.description}</p>}
+                    </div>
+                 </a>
+                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                     <button onClick={handleCopy} className="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-500 dark:text-zinc-400" title="Copy Link"><ClipboardIcon className="h-4 w-4"/></button>
+                     {link.instagramUrl && (
+                        <a href={link.instagramUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-600 dark:text-zinc-300"><InstagramIcon /></a>
+                     )}
+                     <button onClick={() => onEdit(link)} className="p-1.5 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-600 dark:text-zinc-300"><PencilIcon /></button>
+                     <button onClick={() => onRemove(link.id)} className="p-1.5 rounded-md bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-500 dark:text-rose-400"><TrashIcon /></button>
+                 </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="group relative p-6 bg-white dark:bg-zinc-800/50 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border border-zinc-200 dark:border-zinc-700/50 h-full flex flex-col">
+            <a href={link.url} target="_blank" rel="noopener noreferrer" className="block flex-grow">
+            <div className="flex items-center gap-3 mb-2">
+                <img 
+                    src={`https://www.google.com/s2/favicons?sz=64&domain_url=${link.url}`} 
+                    alt={`${link.title} favicon`}
+                    className="w-6 h-6 object-contain"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+                <h3 className="text-xl font-bold text-zinc-900 dark:text-white truncate">{link.title}</h3>
+            </div>
+            <p className="mt-2 text-zinc-500 dark:text-zinc-400 text-sm line-clamp-2">{link.description}</p>
+            </a>
+            <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 dark:bg-zinc-800/90 p-1 rounded-lg shadow-sm backdrop-blur-sm">
+                <button onClick={handleCopy} className="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-500 dark:text-zinc-400" title="Copy Link"><ClipboardIcon className="h-4 w-4"/></button>
+                {link.instagramUrl && (
+                <a href={link.instagramUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-md bg-zinc-200/50 dark:bg-zinc-700/50 hover:bg-zinc-300 dark:hover:bg-zinc-600" aria-label="View Instagram video">
+                    <InstagramIcon />
+                </a>
+                )}
+                <button onClick={() => onEdit(link)} className="p-1.5 rounded-md bg-zinc-200/50 dark:bg-zinc-700/50 hover:bg-zinc-300 dark:hover:bg-zinc-600" aria-label="Edit link"><PencilIcon/></button>
+                <button onClick={() => onRemove(link.id)} className="p-1.5 rounded-md bg-zinc-200/50 dark:bg-zinc-700/50 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-500 dark:text-rose-400" aria-label="Delete link"><TrashIcon/></button>
+            </div>
+        </div>
+    );
+};
 
 // --- Main PowerfulWebSitesPage Component ---
 interface PowerfulWebSitesPageProps {
@@ -300,7 +342,11 @@ const PowerfulWebSitesPage: React.FC<PowerfulWebSitesPageProps> = ({ links, fold
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
   const [folderToEdit, setFolderToEdit] = useState<FavouriteFolder | null>(null);
   const [isAddFolderModalOpen, setIsAddFolderModalOpen] = useState(false);
-
+  
+  // UI States
+  const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [sortBy, setSortBy] = useState<'az' | 'za' | 'newest'>('az');
 
   const handleAddFolderClick = () => {
     setIsAddFolderModalOpen(true);
@@ -326,60 +372,143 @@ const PowerfulWebSitesPage: React.FC<PowerfulWebSitesPageProps> = ({ links, fold
       onRemoveFolder(folderId);
     }
   };
+  
+  const filteredLinks = useMemo(() => {
+      let result = links.filter(l => 
+          l.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+          l.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          l.url.toLowerCase().includes(searchQuery.toLowerCase())
+      );
 
-  const ungroupedLinks = links.filter(link => !link.folderId);
+      if (sortBy === 'az') {
+          result.sort((a, b) => a.title.localeCompare(b.title));
+      } else if (sortBy === 'za') {
+          result.sort((a, b) => b.title.localeCompare(a.title));
+      } else if (sortBy === 'newest') {
+          // Assuming ID is roughly chronological or add a createdAt field
+          result.reverse(); 
+      }
+      
+      return result;
+  }, [links, searchQuery, sortBy]);
+
+  // Group filtered links
+  const groupedLinks = useMemo(() => {
+      const grouped: { folder: FavouriteFolder | null, links: FavouriteLink[] }[] = [];
+      
+      // Only show folders if search query is empty, otherwise just show results
+      if (searchQuery) {
+          grouped.push({ folder: null, links: filteredLinks });
+          return grouped;
+      }
+
+      folders.forEach(folder => {
+          const folderLinks = filteredLinks.filter(l => l.folderId === folder.id);
+          if (folderLinks.length > 0) {
+              grouped.push({ folder, links: folderLinks });
+          }
+      });
+      
+      const ungrouped = filteredLinks.filter(l => !l.folderId);
+      if (ungrouped.length > 0) {
+          grouped.push({ folder: null, links: ungrouped });
+      }
+      
+      // If there are empty folders but no search, show them too? 
+      // Current logic hides empty folders, let's keep it clean.
+      // To show empty folders we'd iterate all folders regardless of links.
+      const emptyFolders = folders.filter(f => !filteredLinks.some(l => l.folderId === f.id));
+      emptyFolders.forEach(f => {
+          grouped.push({ folder: f, links: [] });
+      });
+
+      // Sort folders A-Z always? or preserve creation order?
+      // Let's just keep creation order for now.
+      
+      return grouped;
+  }, [filteredLinks, folders, searchQuery]);
+
 
   return (
     <div className="w-full">
-        {/*This is a hack to make sure tailwind includes the dynamic color classes. They are not visible.*/}
+        {/* Hidden classes for dynamic colors */}
         <span className="hidden bg-rose-500 bg-slate-500 bg-emerald-500 bg-sky-500 bg-indigo-500 bg-purple-500 text-rose-500 text-slate-500 text-emerald-500 text-sky-500 text-indigo-500 text-purple-500"></span>
 
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Powerful Web Sites</h2>
-          <div className="flex items-center gap-2 self-stretch sm:self-auto">
-            <button onClick={handleAddFolderClick} className="flex-grow sm:flex-grow-0 flex items-center justify-center gap-2 px-3 py-2 bg-zinc-200 dark:bg-zinc-700/80 rounded-lg text-zinc-800 dark:text-zinc-100 shadow-sm hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors text-sm font-medium">
-              <FolderIcon className="h-4 w-4" />
-              <span>Add Folder</span>
-            </button>
-            <button onClick={handleOpenModalToAdd} className="flex-grow sm:flex-grow-0 flex items-center justify-center gap-2 px-3 py-2 bg-slate-600 text-white rounded-lg shadow-md hover:bg-slate-700 transition-colors text-sm font-semibold">
-              <PlusIcon />
-              <span>Add Page</span>
-            </button>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+          <div>
+            <h2 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Powerful Web Sites</h2>
+            <p className="text-zinc-500 dark:text-zinc-400">Your curated collection of essential tools.</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+             <div className="relative">
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                <input 
+                    type="text" 
+                    placeholder="Search..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 pr-4 py-2 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm focus:ring-2 focus:ring-slate-500 outline-none w-full sm:w-64"
+                />
+             </div>
+             <div className="flex items-center bg-zinc-100 dark:bg-zinc-800 rounded-lg p-1 border border-zinc-200 dark:border-zinc-700">
+                <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded ${viewMode === 'grid' ? 'bg-white dark:bg-zinc-700 shadow text-zinc-900 dark:text-white' : 'text-zinc-400 hover:text-zinc-600'}`}><Squares2X2Icon className="h-4 w-4" /></button>
+                <button onClick={() => setViewMode('list')} className={`p-1.5 rounded ${viewMode === 'list' ? 'bg-white dark:bg-zinc-700 shadow text-zinc-900 dark:text-white' : 'text-zinc-400 hover:text-zinc-600'}`}><ListBulletIcon className="h-4 w-4" /></button>
+             </div>
+             <button onClick={handleAddFolderClick} className="flex items-center justify-center gap-2 px-4 py-2 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded-lg text-zinc-800 dark:text-zinc-100 transition-colors text-sm font-medium">
+               <FolderIcon className="h-4 w-4" />
+               <span className="hidden sm:inline">Add Folder</span>
+             </button>
+             <button onClick={handleOpenModalToAdd} className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-600 text-white hover:bg-slate-700 rounded-lg shadow-md transition-colors text-sm font-semibold">
+               <PlusIcon />
+               <span className="hidden sm:inline">Add Page</span>
+             </button>
           </div>
         </div>
 
-        {folders.map(folder => (
-          <div key={folder.id} className="mb-10">
-            <div className="flex items-center gap-3 mb-4 border-b border-zinc-200 dark:border-zinc-700 pb-2">
-              <FolderIcon className={`h-6 w-6 ${folder.color ? `text-${folder.color}` : 'text-slate-500'}`} />
-              <h3 className="text-xl font-bold text-zinc-800 dark:text-zinc-200">{folder.name}</h3>
-              <button onClick={() => handleOpenFolderModalToEdit(folder)} className="p-1 rounded-md text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700/50 hover:text-zinc-500" aria-label={`Edit ${folder.name} folder`}>
-                <PencilIcon />
-              </button>
-              <button onClick={() => handleRemoveFolderClick(folder.id, folder.name)} className="p-1 rounded-md text-zinc-400 hover:bg-rose-100 dark:hover:bg-rose-500/20 hover:text-rose-500" aria-label={`Delete ${folder.name} folder`}>
-                <TrashIcon />
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {links.filter(link => link.folderId === folder.id).map(link => (
-                <LinkCard key={link.id} link={link} onEdit={handleOpenModalToEdit} onRemove={onRemoveLink} />
-              ))}
-            </div>
-          </div>
-        ))}
-        
-        {ungroupedLinks.length > 0 && (
-          <div className="mb-10">
-             <div className="flex items-center gap-3 mb-4 border-b border-zinc-200 dark:border-zinc-700 pb-2">
-              <h3 className="text-xl font-bold text-zinc-800 dark:text-zinc-200">Other Pages</h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {ungroupedLinks.map(link => (
-                <LinkCard key={link.id} link={link} onEdit={handleOpenModalToEdit} onRemove={onRemoveLink} />
-              ))}
-            </div>
-          </div>
+        {groupedLinks.length === 0 && (
+             <div className="text-center py-20 text-zinc-400">
+                 <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <MagnifyingGlassIcon className="h-8 w-8" />
+                 </div>
+                 <h3 className="text-lg font-medium">No sites found</h3>
+                 <p>Try adjusting your search or add a new page.</p>
+             </div>
         )}
+
+        {groupedLinks.map((group, idx) => (
+            <div key={group.folder ? group.folder.id : 'ungrouped'} className="mb-8 animate-fade-in">
+                {/* Folder Header (only if not searching, or if searching but we want to separate context - simplifying to: only header if folder exists) */}
+                {!searchQuery && group.folder && (
+                     <div className="flex items-center gap-3 mb-4 border-b border-zinc-200 dark:border-zinc-700/50 pb-2 group">
+                        <FolderIcon className={`h-6 w-6 ${group.folder.color ? `text-${group.folder.color}` : 'text-slate-500'}`} />
+                        <h3 className="text-xl font-bold text-zinc-800 dark:text-zinc-200">{group.folder.name}</h3>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => handleOpenFolderModalToEdit(group.folder!)} className="p-1 rounded-md text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-600"><PencilIcon /></button>
+                            <button onClick={() => handleRemoveFolderClick(group.folder!.id, group.folder!.name)} className="p-1 rounded-md text-zinc-400 hover:bg-rose-100 dark:hover:bg-rose-500/20 hover:text-rose-500"><TrashIcon /></button>
+                        </div>
+                        <span className="ml-auto text-xs font-medium text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-full">{group.links.length}</span>
+                    </div>
+                )}
+                {/* Fallback header for ungrouped items if folders exist */}
+                {!searchQuery && !group.folder && folders.length > 0 && group.links.length > 0 && (
+                    <div className="flex items-center gap-3 mb-4 border-b border-zinc-200 dark:border-zinc-700/50 pb-2">
+                        <h3 className="text-xl font-bold text-zinc-800 dark:text-zinc-200">Other Pages</h3>
+                        <span className="ml-auto text-xs font-medium text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-full">{group.links.length}</span>
+                    </div>
+                )}
+
+                <div className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
+                    {group.links.map(link => (
+                        <LinkCard key={link.id} link={link} onEdit={handleOpenModalToEdit} onRemove={onRemoveLink} viewMode={viewMode} />
+                    ))}
+                </div>
+                {group.links.length === 0 && group.folder && !searchQuery && (
+                    <div className="text-center py-8 bg-zinc-50 dark:bg-zinc-800/30 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-700">
+                        <p className="text-sm text-zinc-500">This folder is empty.</p>
+                    </div>
+                )}
+            </div>
+        ))}
 
       <AddLinkModal 
         isOpen={isModalOpen}
