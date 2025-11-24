@@ -1,23 +1,29 @@
 
-import React, { useRef, useState } from 'react';
-import { CloseIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, TrashIcon, FolderIcon, PuzzlePieceIcon, GoogleSheetsIcon, CheckCircleIcon, ExternalLinkIcon } from './Icons';
+import React, { useState } from 'react';
+import { CloseIcon, FolderIcon, GoogleSheetsIcon, CheckCircleIcon, ExternalLinkIcon } from './Icons';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onExport: () => void;
-  onImport: (file: File) => void;
-  onReset: () => void;
   onConnectFile?: () => void;
   isFileConnected?: boolean;
 }
 
-const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onExport, onImport, onReset, onConnectFile, isFileConnected }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+interface IntegrationItem {
+  id: string;
+  name: string;
+  description: string;
+  icon: React.ReactNode;
+  connected: boolean;
+  type: string;
+  url?: string;
+}
+
+const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onConnectFile, isFileConnected }) => {
   const [activeTab, setActiveTab] = useState<'general' | 'integrations'>('general');
   
   // Integrations State
-  const [integrations, setIntegrations] = useState([
+  const [integrations, setIntegrations] = useState<IntegrationItem[]>([
         {
             id: 'google-sheets',
             name: 'Google Sheets',
@@ -72,20 +78,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onExport
 
 
   if (!isOpen) return null;
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      onImport(file);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
-
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
 
   return (
     <div 
@@ -153,69 +145,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onExport
                   <span>{isFileConnected ? "File Connected & Syncing" : "Open File to Sync"}</span>
                 </button>
               </div>
-
-              <div className="border-t border-zinc-200 dark:border-zinc-700"></div>
-
-              {/* Export Section */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded-lg">
-                        <ArrowDownTrayIcon />
-                    </div>
-                    <div>
-                        <h3 className="font-semibold text-zinc-900 dark:text-white">Manual Backup</h3>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400">Download a copy of your data.</p>
-                    </div>
-                </div>
-                <button 
-                  onClick={onExport}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-zinc-100 dark:bg-zinc-700 text-zinc-800 dark:text-white rounded-xl font-medium hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-all active:scale-95 border border-zinc-200 dark:border-zinc-600"
-                >
-                  <ArrowDownTrayIcon />
-                  <span>Download JSON</span>
-                </button>
+              
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-900/30 rounded-xl border border-zinc-100 dark:border-zinc-700/50 text-center">
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      Live sync is active. Your data is automatically saved to your connected file.
+                  </p>
               </div>
-
-              {/* Import Section */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-lg">
-                        <ArrowUpTrayIcon />
-                    </div>
-                    <div>
-                        <h3 className="font-semibold text-zinc-900 dark:text-white">Restore Backup</h3>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400">Load a JSON file to restore progress.</p>
-                    </div>
-                </div>
-                <input 
-                    type="file" 
-                    ref={fileInputRef}
-                    onChange={handleFileChange} 
-                    accept=".json" 
-                    className="hidden" 
-                />
-                <button 
-                  onClick={triggerFileInput}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-zinc-100 dark:bg-zinc-700 text-zinc-800 dark:text-white rounded-xl font-medium hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-all active:scale-95 border border-zinc-200 dark:border-zinc-600"
-                >
-                  <ArrowUpTrayIcon />
-                  <span>Select Backup File</span>
-                </button>
-              </div>
-
-               {/* Reset Section */}
-               <div className="pt-6 border-t border-zinc-200 dark:border-zinc-700">
-                 <div className="space-y-3">
-                    <h3 className="font-semibold text-rose-600 dark:text-rose-400 text-sm uppercase tracking-wider">Danger Zone</h3>
-                    <button 
-                      onClick={onReset}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-rose-50 dark:bg-rose-900/10 text-rose-600 dark:text-rose-400 rounded-xl font-medium hover:bg-rose-100 dark:hover:bg-rose-900/20 transition-all active:scale-95 border border-rose-200 dark:border-rose-900/30"
-                    >
-                      <TrashIcon />
-                      <span>Clear All Data</span>
-                    </button>
-                 </div>
-               </div>
             </div>
           )}
 
@@ -234,7 +169,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onExport
                                 {item.icon}
                             </div>
                             <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide flex items-center gap-1 ${item.connected ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-zinc-200 text-zinc-500 dark:bg-zinc-600 dark:text-zinc-400'}`}>
-                                {item.connected ? 'Active' : 'Inactive'}
+                                {item.connected ? (
+                                    <><CheckCircleIcon className="w-3 h-3" /> Connected</>
+                                ) : (
+                                    'Disconnected'
+                                )}
                             </div>
                         </div>
                         
@@ -251,6 +190,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onExport
                         >
                             {item.connected ? 'Disconnect' : 'Connect'}
                         </button>
+                        
+                        {item.connected && item.url && (
+                            <a 
+                                href={item.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="flex items-center justify-center px-4 mt-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50 transition-colors"
+                                title="Open Portal"
+                            >
+                                <ExternalLinkIcon />
+                            </a>
+                        )}
                     </div>
                 ))}
               </div>

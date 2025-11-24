@@ -15,140 +15,8 @@ import NewMonthModal from './components/NewMonthModal';
 import QRCodePage from './components/QRCodePage';
 import IntegrationsPage from './components/IntegrationsPage';
 
-// Initial sample data for the application, imported from Incone 2.0.xlsx
+// Initial sample data for the application
 const initialData: MonthData[] = [
-  {
-    id: 'september-2024',
-    name: 'September 2024',
-    date: '2024-09-15T00:00:00Z',
-    goals: [
-      { id: 'g1', name: 'within 5 minutes', progress: 16, endValue: 16, status: GoalStatus.COMPLETED },
-      { id: 'g2', name: 'within 10 minutes', progress: 13, endValue: 13, status: GoalStatus.COMPLETED },
-      { id: 'g3', name: 'within 20 minutes', progress: 12, endValue: 12, status: GoalStatus.COMPLETED },
-      { id: 'g4', name: 'who rejected', progress: 15, endValue: 15, status: GoalStatus.COMPLETED },
-      { id: 'g5', name: 'created by sellers', progress: 0, endValue: 0, status: GoalStatus.COMPLETED },
-    ],
-  },
-  {
-    id: 'october-2024',
-    name: 'October 2024',
-    date: '2024-10-15T00:00:00Z',
-    goals: [
-      { id: 'g1', name: 'within 5 minutes', progress: 43, endValue: 43, status: GoalStatus.COMPLETED },
-      { id: 'g2', name: 'within 10 minutes', progress: 22, endValue: 22, status: GoalStatus.COMPLETED },
-      { id: 'g3', name: 'within 20 minutes', progress: 20, endValue: 20, status: GoalStatus.COMPLETED },
-      { id: 'g4', name: 'who rejected', progress: 41, endValue: 41, status: GoalStatus.COMPLETED },
-      { id: 'g5', name: 'created by sellers', progress: 0, endValue: 0, status: GoalStatus.COMPLETED },
-    ],
-  },
-  {
-    id: 'november-2024',
-    name: 'November 2024',
-    date: '2024-11-15T00:00:00Z',
-    goals: [
-      { id: 'g1', name: 'within 5 minutes', progress: 63, endValue: 63, status: GoalStatus.COMPLETED },
-      { id: 'g2', name: 'within 10 minutes', progress: 23, endValue: 23, status: GoalStatus.COMPLETED },
-      { id: 'g3', name: 'within 20 minutes', progress: 11, endValue: 11, status: GoalStatus.COMPLETED },
-      { id: 'g4', name: 'who rejected', progress: 71, endValue: 71, status: GoalStatus.COMPLETED },
-      { id: 'g5', name: 'created by sellers', progress: 0, endValue: 0, status: GoalStatus.COMPLETED },
-    ],
-  },
-  {
-    id: 'december-2024',
-    name: 'December 2024',
-    date: '2024-12-15T00:00:00Z',
-    goals: [
-      { id: 'g1', name: 'within 5 minutes', progress: 77, endValue: 77, status: GoalStatus.COMPLETED },
-      { id: 'g2', name: 'within 10 minutes', progress: 23, endValue: 23, status: GoalStatus.COMPLETED },
-      { id: 'g3', name: 'within 20 minutes', progress: 25, endValue: 25, status: GoalStatus.COMPLETED },
-      { id: 'g4', name: 'who rejected', progress: 59, endValue: 59, status: GoalStatus.COMPLETED },
-      { id: 'g5', name: 'created by sellers', progress: 24, endValue: 24, status: GoalStatus.COMPLETED },
-    ],
-  },
-  {
-    id: 'january-2025',
-    name: 'January 2025',
-    date: '2025-01-15T00:00:00Z',
-    goals: [
-      { id: 'g1', name: 'within 5 minutes', progress: 28, endValue: 28, status: GoalStatus.COMPLETED },
-      { id: 'g2', name: 'within 10 minutes', progress: 15, endValue: 15, status: GoalStatus.COMPLETED },
-      { id: 'g3', name: 'within 20 minutes', progress: 13, endValue: 13, status: GoalStatus.COMPLETED },
-      { id: 'g4', name: 'who rejected', progress: 20, endValue: 20, status: GoalStatus.COMPLETED },
-      { id: 'g5', name: 'created by sellers', progress: 118, endValue: 118, status: GoalStatus.COMPLETED },
-    ],
-  },
-  {
-    id: 'february-2025',
-    name: 'February 2025',
-    date: '2025-02-15T00:00:00Z',
-    goals: [
-      { id: 'g1', name: 'within 5 minutes', progress: 27, endValue: 27, status: GoalStatus.COMPLETED },
-      { id: 'g2', name: 'within 10 minutes', progress: 10, endValue: 10, status: GoalStatus.COMPLETED },
-      { id: 'g3', name: 'within 20 minutes', progress: 8, endValue: 8, status: GoalStatus.COMPLETED },
-      { id: 'g4', name: 'who rejected', progress: 11, endValue: 11, status: GoalStatus.COMPLETED },
-      { id: 'g5', name: 'created by sellers', progress: 102, endValue: 102, status: GoalStatus.COMPLETED },
-    ],
-  },
-  {
-    id: 'march-2025',
-    name: 'March 2025',
-    date: '2025-03-15T00:00:00Z',
-    goals: [
-      { id: 'g1', name: 'within 5 minutes', progress: 23, endValue: 23, status: GoalStatus.COMPLETED },
-      { id: 'g2', name: 'within 10 minutes', progress: 11, endValue: 11, status: GoalStatus.COMPLETED },
-      { id: 'g3', name: 'within 20 minutes', progress: 6, endValue: 6, status: GoalStatus.COMPLETED },
-      { id: 'g4', name: 'who rejected', progress: 33, endValue: 33, status: GoalStatus.COMPLETED },
-      { id: 'g5', name: 'created by sellers', progress: 77, endValue: 77, status: GoalStatus.COMPLETED },
-    ],
-  },
-  {
-    id: 'april-2025',
-    name: 'April 2025',
-    date: '2025-04-15T00:00:00Z',
-    goals: [
-      { id: 'g1', name: 'within 5 minutes', progress: 33, endValue: 33, status: GoalStatus.COMPLETED },
-      { id: 'g2', name: 'within 10 minutes', progress: 19, endValue: 19, status: GoalStatus.COMPLETED },
-      { id: 'g3', name: 'within 20 minutes', progress: 19, endValue: 19, status: GoalStatus.COMPLETED },
-      { id: 'g4', name: 'who rejected', progress: 41, endValue: 41, status: GoalStatus.COMPLETED },
-      { id: 'g5', name: 'created by sellers', progress: 61, endValue: 61, status: GoalStatus.COMPLETED },
-    ],
-  },
-  {
-    id: 'may-2025',
-    name: 'May 2025',
-    date: '2025-05-15T00:00:00Z',
-    goals: [
-      { id: 'g1', name: 'within 5 minutes', progress: 20, endValue: 20, status: GoalStatus.COMPLETED },
-      { id: 'g2', name: 'within 10 minutes', progress: 6, endValue: 6, status: GoalStatus.COMPLETED },
-      { id: 'g3', name: 'within 20 minutes', progress: 10, endValue: 10, status: GoalStatus.COMPLETED },
-      { id: 'g4', name: 'who rejected', progress: 36, endValue: 36, status: GoalStatus.COMPLETED },
-      { id: 'g5', name: 'created by sellers', progress: 76, endValue: 76, status: GoalStatus.COMPLETED },
-    ],
-  },
-  {
-    id: 'june-2025',
-    name: 'June 2025',
-    date: '2025-06-15T00:00:00Z',
-    goals: [
-      { id: 'g1', name: 'within 5 minutes', progress: 32, endValue: 32, status: GoalStatus.COMPLETED },
-      { id: 'g2', name: 'within 10 minutes', progress: 21, endValue: 21, status: GoalStatus.COMPLETED },
-      { id: 'g3', name: 'within 20 minutes', progress: 11, endValue: 11, status: GoalStatus.COMPLETED },
-      { id: 'g4', name: 'who rejected', progress: 64, endValue: 64, status: GoalStatus.COMPLETED },
-      { id: 'g5', name: 'created by sellers', progress: 124, endValue: 124, status: GoalStatus.COMPLETED },
-    ],
-  },
-  {
-    id: 'august-2025',
-    name: 'August 2025',
-    date: '2025-08-15T00:00:00Z',
-    goals: [
-      { id: 'g1', name: 'within 5 minutes', progress: 41, endValue: 41, status: GoalStatus.COMPLETED },
-      { id: 'g2', name: 'within 10 minutes', progress: 14, endValue: 14, status: GoalStatus.COMPLETED },
-      { id: 'g3', name: 'within 20 minutes', progress: 8, endValue: 8, status: GoalStatus.COMPLETED },
-      { id: 'g4', name: 'who rejected', progress: 53, endValue: 53, status: GoalStatus.COMPLETED },
-      { id: 'g5', name: 'created by sellers', progress: 153, endValue: 153, status: GoalStatus.COMPLETED },
-    ],
-  },
   {
     id: 'september-2025',
     name: 'September 2025',
@@ -195,135 +63,29 @@ const initialSpending: SpendingItem[] = [];
 /**
  * The main component of the application.
  * Manages the state for all month data and handles CRUD operations.
- * Also handles saving and loading data to/from the browser's localStorage.
  */
 const App: React.FC = () => {
-  const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison' | 'integrations' | 'qr_generator'>(() => {
-      const saved = localStorage.getItem('activeView');
-      if (saved && ['welcome', 'mmv', 'branch', 'seller', 'spending', 'powerful_sites', 'comparison', 'integrations', 'qr_generator'].includes(saved)) {
-          return saved as any;
-      }
-      return 'welcome';
-  });
-
-  useEffect(() => {
-      localStorage.setItem('activeView', activeView);
-  }, [activeView]);
+  const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison' | 'integrations' | 'qr_generator'>('welcome');
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNewMonthModalOpen, setIsNewMonthModalOpen] = useState(false);
   const [fileHandle, setFileHandle] = useState<any>(null); // FileSystemFileHandle
   
   // State to track expanded years in the dashboard view
-  const [expandedDashboardYears, setExpandedDashboardYears] = useState<Record<number, boolean>>(() => {
-      try {
-          const saved = localStorage.getItem('expandedDashboardYears');
-          return saved ? JSON.parse(saved) : {};
-      } catch {
-          return {};
-      }
-  });
+  const [expandedDashboardYears, setExpandedDashboardYears] = useState<Record<number, boolean>>({});
 
-  useEffect(() => {
-      localStorage.setItem('expandedDashboardYears', JSON.stringify(expandedDashboardYears));
-  }, [expandedDashboardYears]);
-
-  const [data, setData] = useState<MonthData[]>(() => {
-    try {
-      const savedData = localStorage.getItem('salaryGoalTrackerData');
-      return savedData ? JSON.parse(savedData) : initialData;
-    } catch (error) {
-      console.error("Error reading from localStorage", error);
-      return initialData;
-    }
-  });
-  
-  const [storePlans, setStorePlans] = useState<StorePlan[]>(() => {
-    try {
-      const savedPlans = localStorage.getItem('storePlansData');
-      return savedPlans ? JSON.parse(savedPlans) : initialStorePlans;
-    } catch (error) {
-      console.error("Error reading store plans from localStorage", error);
-      return initialStorePlans;
-    }
-  });
-
-  const [links, setLinks] = useState<FavouriteLink[]>(() => {
-    try {
-      const savedLinks = localStorage.getItem('favouriteLinks');
-      return savedLinks ? JSON.parse(savedLinks) : initialLinks;
-    } catch (error) {
-      console.error("Error reading links from localStorage", error);
-      return initialLinks;
-    }
-  });
-
-  const [folders, setFolders] = useState<FavouriteFolder[]>(() => {
-    try {
-      const savedFolders = localStorage.getItem('favouriteFolders');
-      return savedFolders ? JSON.parse(savedFolders) : initialFolders;
-    } catch (error) {
-      console.error("Error reading folders from localStorage", error);
-      return initialFolders;
-    }
-  });
-
-  const [spendingData, setSpendingData] = useState<SpendingItem[]>(() => {
-    try {
-      const savedSpending = localStorage.getItem('spendingData');
-      return savedSpending ? JSON.parse(savedSpending) : initialSpending;
-    } catch (error) {
-      console.error("Error reading spending data from localStorage", error);
-      return initialSpending;
-    }
-  });
+  const [data, setData] = useState<MonthData[]>(initialData);
+  const [storePlans, setStorePlans] = useState<StorePlan[]>(initialStorePlans);
+  const [links, setLinks] = useState<FavouriteLink[]>(initialLinks);
+  const [folders, setFolders] = useState<FavouriteFolder[]>(initialFolders);
+  const [spendingData, setSpendingData] = useState<SpendingItem[]>(initialSpending);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const savedTheme = localStorage.getItem('theme');
     return (savedTheme === 'light' || savedTheme === 'dark') ? savedTheme : 'dark';
   });
 
-  // Persist to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem('salaryGoalTrackerData', JSON.stringify(data));
-    } catch (error) {
-      console.error("Error writing to localStorage", error);
-    }
-  }, [data]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('storePlansData', JSON.stringify(storePlans));
-    } catch (error) {
-      console.error("Error writing store plans to localStorage", error);
-    }
-  }, [storePlans]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('favouriteLinks', JSON.stringify(links));
-    } catch (error) {
-      console.error("Error writing links to localStorage", error);
-    }
-  }, [links]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('favouriteFolders', JSON.stringify(folders));
-    } catch (error) {
-      console.error("Error writing folders to localStorage", error);
-    }
-  }, [folders]);
-
-  useEffect(() => {
-    try {
-        localStorage.setItem('spendingData', JSON.stringify(spendingData));
-    } catch (error) {
-        console.error("Error writing spending data to localStorage", error);
-    }
-  }, [spendingData]);
-
+  // Only persist theme to localStorage
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
@@ -564,62 +326,6 @@ const App: React.FC = () => {
       setExpandedDashboardYears(prev => ({ ...prev, [year]: !prev[year] }));
   };
 
-  // --- Data Management Handlers ---
-
-  const handleExportBackup = () => {
-      const content = generateBackupJSON();
-      const blob = new Blob([content], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", `mmv-backup-${new Date().toISOString().split('T')[0]}.json`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-  };
-
-  const handleImportBackup = (file: File) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-          try {
-              const text = e.target?.result as string;
-              const backup = JSON.parse(text);
-              
-              if (backup && backup.data) {
-                  if (window.confirm('This will overwrite all current data with the backup. Are you sure?')) {
-                      if (backup.data.salaryGoalTrackerData) setData(backup.data.salaryGoalTrackerData);
-                      if (backup.data.storePlansData) setStorePlans(backup.data.storePlansData);
-                      if (backup.data.favouriteLinks) setLinks(backup.data.favouriteLinks);
-                      if (backup.data.favouriteFolders) setFolders(backup.data.favouriteFolders);
-                      if (backup.data.spendingData) setSpendingData(backup.data.spendingData);
-                      if (backup.data.theme) setTheme(backup.data.theme);
-                      alert('Backup restored successfully!');
-                      setIsSettingsOpen(false);
-                  }
-              } else {
-                  alert('Invalid backup file format.');
-              }
-          } catch (err) {
-              console.error(err);
-              alert('Error parsing backup file.');
-          }
-      };
-      reader.readAsText(file);
-  };
-
-  const handleResetAllData = () => {
-      if (window.confirm('WARNING: This will delete ALL your data permanently. This action cannot be undone. Are you sure?')) {
-          setData(initialData);
-          setStorePlans(initialStorePlans);
-          setLinks(initialLinks);
-          setFolders(initialFolders);
-          setSpendingData(initialSpending);
-          localStorage.clear();
-          setFileHandle(null); // Disconnect file sync
-          alert('All data has been reset.');
-          setIsSettingsOpen(false);
-      }
-  };
 
   const handleSyncWithSheets = () => {
     // Helper for salary calculation
@@ -993,9 +699,6 @@ const App: React.FC = () => {
       <SettingsModal 
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        onExport={handleExportBackup}
-        onImport={handleImportBackup}
-        onReset={handleResetAllData}
         onConnectFile={handleConnectFile}
         isFileConnected={!!fileHandle}
       />
