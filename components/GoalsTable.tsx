@@ -1,7 +1,6 @@
-
 import React, { useMemo } from 'react';
 import { Goal } from '../types';
-import PieChart from './PieChart';
+import GaugeChart from './GaugeChart';
 
 interface GoalsTableProps {
   goals: Goal[];
@@ -83,30 +82,30 @@ const GoalsTable: React.FC<GoalsTableProps> = ({ goals, onGoalUpdate, isSalaryVi
   const netSalary = totals - tax;
 
   return (
-    <div className="overflow-x-auto -mx-4 sm:mx-0">
-        <div className="min-w-[350px] px-4 sm:px-0">
-            <table className="w-full text-sm text-left text-zinc-500 dark:text-zinc-400">
-                <thead className="text-xs text-zinc-700 uppercase bg-zinc-100 dark:bg-zinc-700 dark:text-zinc-400">
+    <div className="overflow-x-auto -mx-4 sm:mx-0 rounded-2xl border border-white/30 dark:border-gray-700/30 bg-white/40 dark:bg-gray-900/20 backdrop-blur-sm shadow-inner">
+        <div className="min-w-[350px]">
+            <table className="w-full text-sm text-left text-gray-600 dark:text-gray-300">
+                <thead className="text-xs text-gray-500 dark:text-gray-400 uppercase border-b border-white/30 dark:border-gray-700/30 bg-white/20 dark:bg-gray-800/20">
                     <tr>
-                        <th scope="col" className="px-2 sm:px-4 py-3 rounded-tl-lg whitespace-nowrap">Goal Name</th>
-                        <th scope="col" className="px-2 sm:px-4 py-3 text-center">
+                        <th scope="col" className="px-4 py-4 whitespace-nowrap font-bold">Goal Name</th>
+                        <th scope="col" className="px-2 py-4 text-center font-bold">
                             {viewMode === 'current' ? 'Curr' : 'End'}
                         </th>
-                        <th scope="col" className="px-2 sm:px-4 py-3 text-center">Target</th>
-                        <th scope="col" className="px-2 sm:px-4 py-3 text-center">Prog</th>
-                        <th scope="col" className="px-2 sm:px-4 py-3 text-right rounded-tr-lg">Salary</th>
+                        <th scope="col" className="px-2 py-4 text-center font-bold">Target</th>
+                        <th scope="col" className="px-2 py-4 text-center font-bold">Prog</th>
+                        <th scope="col" className="px-4 py-4 text-right font-bold">Salary</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-white/20 dark:divide-gray-700/30">
                     {goals.map((goal) => {
                         const { displayValue, salary, percentage } = calculateRow(goal);
                         
                         return (
-                            <tr key={goal.id} className="bg-white border-b dark:bg-zinc-800 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-600 transition-colors">
-                                <td className="px-2 sm:px-4 py-3 font-medium text-zinc-900 dark:text-white">
+                            <tr key={goal.id} className="hover:bg-white/30 dark:hover:bg-gray-700/20 transition-colors">
+                                <td className="px-4 py-3 font-semibold text-gray-800 dark:text-gray-100">
                                     {goal.name}
                                 </td>
-                                <td className="px-2 sm:px-4 py-3 text-center font-bold text-zinc-900 dark:text-white">
+                                <td className="px-2 py-3 text-center font-bold text-gray-900 dark:text-white">
                                     {viewMode === 'current' ? (
                                          <input
                                             type="text"
@@ -114,28 +113,30 @@ const GoalsTable: React.FC<GoalsTableProps> = ({ goals, onGoalUpdate, isSalaryVi
                                             pattern="[0-9]*"
                                             value={goal.progress}
                                             onChange={(e) => handleInputChange(goal.id, 'progress', e.target.value)}
-                                            className="w-12 sm:w-16 text-center bg-zinc-100 dark:bg-zinc-700 border-none rounded focus:ring-1 focus:ring-slate-500 p-1"
+                                            className="w-14 text-center bg-white/70 dark:bg-gray-800/70 border border-white/20 dark:border-gray-600/50 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500/50 focus:outline-none p-1.5 backdrop-blur-sm transition-all"
                                         />
                                     ) : (
-                                        <span className="text-emerald-600 dark:text-emerald-400">{displayValue}</span>
+                                        <span className="inline-block px-2 py-1 rounded bg-emerald-100/50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 backdrop-blur-md">
+                                            {displayValue}
+                                        </span>
                                     )}
                                 </td>
-                                 <td className="px-2 sm:px-4 py-3 text-center">
+                                 <td className="px-2 py-3 text-center">
                                      <input
                                         type="text"
                                         inputMode="numeric"
                                         pattern="[0-9]*"
                                         value={goal.endValue}
                                         onChange={(e) => handleInputChange(goal.id, 'endValue', e.target.value)}
-                                        className="w-12 sm:w-16 text-center bg-zinc-100 dark:bg-zinc-700 border-none rounded focus:ring-1 focus:ring-slate-500 p-1"
+                                        className="w-14 text-center bg-white/50 dark:bg-gray-800/50 border border-white/20 dark:border-gray-600/50 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500/50 focus:outline-none p-1.5 backdrop-blur-sm transition-all"
                                     />
                                 </td>
-                                <td className="px-2 sm:px-4 py-3">
-                                    <div className="flex justify-center">
-                                        <PieChart percentage={percentage} size={28} strokeWidth={3} />
+                                <td className="px-2 py-3">
+                                    <div className="flex justify-center pb-1">
+                                        <GaugeChart percentage={percentage} size={42} strokeWidth={5} />
                                     </div>
                                 </td>
-                                <td className="px-2 sm:px-4 py-3 text-right font-mono text-emerald-600 dark:text-emerald-400">
+                                <td className="px-4 py-3 text-right font-mono text-emerald-600 dark:text-emerald-400 font-bold">
                                     {formatCurrency(salary)}
                                 </td>
                             </tr>
@@ -143,18 +144,18 @@ const GoalsTable: React.FC<GoalsTableProps> = ({ goals, onGoalUpdate, isSalaryVi
                     })}
                 </tbody>
                 {isSalaryVisible && (
-                    <tfoot className="bg-zinc-100 dark:bg-zinc-700/50 font-semibold text-zinc-900 dark:text-white">
+                    <tfoot className="border-t border-white/40 dark:border-gray-700/40 bg-white/20 dark:bg-gray-800/20 font-semibold text-gray-900 dark:text-white backdrop-blur-md">
                         <tr>
-                            <td colSpan={4} className="px-2 sm:px-4 py-2 text-right text-xs sm:text-sm">Total Gross:</td>
-                            <td className="px-2 sm:px-4 py-2 text-right font-mono text-xs sm:text-sm">{formatCurrency(totals)}</td>
+                            <td colSpan={4} className="px-4 py-2 text-right text-xs sm:text-sm">Total Gross:</td>
+                            <td className="px-4 py-2 text-right font-mono text-xs sm:text-sm">{formatCurrency(totals)}</td>
                         </tr>
                          <tr>
-                            <td colSpan={4} className="px-2 sm:px-4 py-2 text-right text-xs text-zinc-500">Tax (12%):</td>
-                            <td className="px-2 sm:px-4 py-2 text-right font-mono text-xs text-rose-500">-{formatCurrency(tax)}</td>
+                            <td colSpan={4} className="px-4 py-2 text-right text-xs text-gray-500 dark:text-gray-400">Tax (12%):</td>
+                            <td className="px-4 py-2 text-right font-mono text-xs text-rose-500">-{formatCurrency(tax)}</td>
                         </tr>
-                        <tr className="text-base sm:text-lg border-t border-zinc-300 dark:border-zinc-600">
-                            <td colSpan={4} className="px-2 sm:px-4 py-3 text-right">Net Salary:</td>
-                            <td className="px-2 sm:px-4 py-3 text-right font-mono text-emerald-600 dark:text-emerald-400">{formatCurrency(netSalary)}</td>
+                        <tr className="text-base sm:text-lg border-t border-white/20 dark:border-gray-700/30">
+                            <td colSpan={4} className="px-4 py-3 text-right">Net Salary:</td>
+                            <td className="px-4 py-3 text-right font-mono text-emerald-600 dark:text-emerald-400 font-bold drop-shadow-sm">{formatCurrency(netSalary)}</td>
                         </tr>
                     </tfoot>
                 )}

@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from './Icons';
 
 interface NewMonthModalProps {
@@ -10,57 +9,99 @@ interface NewMonthModalProps {
 }
 
 const NewMonthModal: React.FC<NewMonthModalProps> = ({ isOpen, onClose, onSelectMonth, existingMonths }) => {
-  const [year, setYear] = useState(new Date().getFullYear());
-
-  if (!isOpen) return null;
+  const [viewYear, setViewYear] = useState(new Date().getFullYear());
+  const modalRef = useRef<HTMLDivElement>(null);
 
   const months = [
-    "January", "February", "March", "April", "May", "June", 
+    "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
 
+  // Reset year when opening
+  useEffect(() => {
+    if (isOpen) {
+      setViewYear(new Date().getFullYear());
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+          if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+              onClose();
+          }
+      };
+
+      if (isOpen) {
+          document.addEventListener('mousedown', handleClickOutside);
+      }
+      
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen, onClose]);
+
+
+  if (!isOpen) return null;
+
+  const changeYear = (delta: number) => {
+    setViewYear(prev => prev + delta);
+  };
+
+  const handleMonthClick = (monthIndex: number) => {
+    // The existingMonths set format is "YYYY-M"
+    if (existingMonths.has(`${viewYear}-${monthIndex}`)) {
+       // If month already exists, we do not allow creating it again to avoid duplication confusion
+       return;
+    }
+    onSelectMonth(viewYear, monthIndex);
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-sm border border-zinc-200 dark:border-zinc-700 overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-700">
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Create New Month</h3>
-            <button onClick={onClose} className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500 dark:text-zinc-400">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div ref={modalRef} className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-gray-700 overflow-hidden transform transition-all">
+        
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Select Month</h3>
+            <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors">
                 <CloseIcon />
             </button>
         </div>
-        
+
         <div className="p-6">
             <div className="flex items-center justify-between mb-6">
-                <button onClick={() => setYear(y => y - 1)} className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-colors">
+                <button onClick={() => changeYear(-1)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 transition-colors">
                     <ChevronLeftIcon />
                 </button>
-                <span className="text-xl font-bold text-zinc-900 dark:text-white">{year}</span>
-                <button onClick={() => setYear(y => y + 1)} className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-colors">
+                <span className="text-xl font-bold text-gray-900 dark:text-white">{viewYear}</span>
+                <button onClick={() => changeYear(1)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 transition-colors">
                     <ChevronRightIcon />
                 </button>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
                 {months.map((month, index) => {
-                    const isExists = existingMonths.has(`${year}-${index}`);
+                    const isExisting = existingMonths.has(`${viewYear}-${index}`);
                     return (
                         <button
                             key={month}
-                            onClick={() => !isExists && onSelectMonth(year, index)}
-                            disabled={isExists}
+                            onClick={() => !isExisting && handleMonthClick(index)}
+                            disabled={isExisting}
                             className={`
-                                py-3 px-2 rounded-xl text-sm font-medium transition-all
-                                ${isExists 
-                                    ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed border border-zinc-200 dark:border-zinc-700/50 opacity-60' 
-                                    : 'bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400 hover:shadow-md border border-zinc-200 dark:border-zinc-600 active:scale-95'
+                                py-3 px-2 rounded-xl text-sm font-medium transition-all relative
+                                ${isExisting 
+                                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed border border-transparent' 
+                                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 hover:shadow-md border border-gray-200 dark:border-gray-600'
                                 }
                             `}
                         >
-                            {month.slice(0, 3)}
+                            {month}
+                            {isExisting && <span className="absolute bottom-1 left-0 right-0 text-[9px] text-center font-normal opacity-70">Added</span>}
                         </button>
                     );
                 })}
             </div>
+        </div>
+        
+        <div className="p-4 bg-gray-50 dark:bg-gray-900/30 text-center text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700/50">
+            Select a month to create a new tracking card.
         </div>
       </div>
     </div>

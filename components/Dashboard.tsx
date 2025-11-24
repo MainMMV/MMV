@@ -9,8 +9,8 @@ const Dashboard: React.FC<DashboardProps> = ({ allMonths }) => {
   const stats = useMemo(() => {
     let totalGoals = 0;
     let completedGoals = 0;
-    let inProgressGoals = 0;
     let totalNetSalary = 0;
+    let totalGrossSalary = 0;
 
     const getSalaryMultiplier = (goalName: string): number => {
       const lowerCaseName = goalName.toLowerCase();
@@ -32,12 +32,10 @@ const Dashboard: React.FC<DashboardProps> = ({ allMonths }) => {
         if (goal.progress >= goal.endValue && goal.endValue > 0) {
           completedGoals++;
         }
-        if (goal.status === GoalStatus.IN_PROGRESS) {
-          inProgressGoals++;
-        }
         monthTotalSalary += getSalaryMultiplier(goal.name) * goal.progress;
       });
       
+      totalGrossSalary += monthTotalSalary;
       const taxDeduction = monthTotalSalary * 0.12;
       totalNetSalary += monthTotalSalary - taxDeduction;
     });
@@ -47,7 +45,7 @@ const Dashboard: React.FC<DashboardProps> = ({ allMonths }) => {
     return {
       totalNetSalary,
       completionRate,
-      inProgressGoals,
+      totalGrossSalary,
     };
   }, [allMonths]);
 
@@ -64,19 +62,19 @@ const Dashboard: React.FC<DashboardProps> = ({ allMonths }) => {
     <div className="mb-12">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Stat Card: Total Net Salary */}
-        <div className="bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/50 rounded-xl p-6 flex flex-col justify-between shadow-lg">
-          <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Total Net Salary</h3>
+        <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 rounded-xl p-6 flex flex-col justify-between shadow-lg">
+          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Net Salary</h3>
           <p className="text-3xl sm:text-4xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-2">{formatCurrency(stats.totalNetSalary)}</p>
         </div>
         {/* Stat Card: Goal Completion Rate */}
-        <div className="bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/50 rounded-xl p-6 flex flex-col justify-between shadow-lg">
-          <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Overall Goal Completion</h3>
+        <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 rounded-xl p-6 flex flex-col justify-between shadow-lg">
+          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Overall Goal Completion</h3>
           <p className="text-3xl sm:text-4xl font-extrabold text-slate-600 dark:text-slate-400 mt-2">{stats.completionRate.toFixed(1)}%</p>
         </div>
-        {/* Stat Card: Active Goals */}
-        <div className="bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/50 rounded-xl p-6 flex flex-col justify-between shadow-lg">
-          <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Active Goals</h3>
-          <p className="text-3xl sm:text-4xl font-extrabold text-zinc-900 dark:text-white mt-2">{stats.inProgressGoals}</p>
+        {/* Stat Card: Total Gross Income */}
+        <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 rounded-xl p-6 flex flex-col justify-between shadow-lg">
+          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Gross Income</h3>
+          <p className="text-3xl sm:text-4xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-2">{formatCurrency(stats.totalGrossSalary)}</p>
         </div>
       </div>
     </div>

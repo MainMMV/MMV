@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { MonthData, GoalStatus, Goal, StorePlan, FavouriteLink, FavouriteFolder, SpendingItem } from './types';
 import MonthCard from './components/MonthCard';
@@ -34,11 +33,11 @@ const initialData: MonthData[] = [
     name: 'October 2025',
     date: '2025-10-15T00:00:00Z',
     goals: [
-      { id: 'g1', name: 'within 5 minutes', progress: 26, endValue: 26, status: GoalStatus.COMPLETED },
+      { id: 'g1', name: 'within 5 minutes', progress: 26, endValue: 40, status: GoalStatus.COMPLETED },
       { id: 'g2', name: 'within 10 minutes', progress: 16, endValue: 16, status: GoalStatus.COMPLETED },
-      { id: 'g3', name: 'within 20 minutes', progress: 6, endValue: 6, status: GoalStatus.COMPLETED },
-      { id: 'g4', name: 'who rejected', progress: 58, endValue: 58, status: GoalStatus.COMPLETED },
-      { id: 'g5', name: 'created by sellers', progress: 94, endValue: 94, status: GoalStatus.COMPLETED },
+      { id: 'g3', name: 'within 20 minutes', progress: 6, endValue: 7, status: GoalStatus.COMPLETED },
+      { id: 'g4', name: 'who rejected', progress: 58, endValue: 60, status: GoalStatus.COMPLETED },
+      { id: 'g5', name: 'created by sellers', progress: 94, endValue: 110, status: GoalStatus.COMPLETED },
     ],
   },
 ];
@@ -210,9 +209,54 @@ const App: React.FC = () => {
   };
 
   const handleGoalUpdate = useCallback((monthId: string, goalId: string, updatedValues: Partial<Goal>) => {
-    setData(currentData =>
-      currentData.map(month => (month.id === monthId ? { ...month, goals: month.goals.map(goal => (goal.id === goalId ? { ...goal, ...updatedValues } : goal)) } : month))
-    );
+    setData(currentData => {
+        // 1. First pass: Apply the update to the specific month/goal
+        const dataWithUpdate = currentData.map(month => {
+            if (month.id === monthId) {
+                return {
+                    ...month,
+                    goals: month.goals.map(goal => 
+                        goal.id === goalId ? { ...goal, ...updatedValues } : goal
+                    )
+                };
+            }
+            return month;
+        });
+
+        // 2. Calculate the global max progress for this specific goal ID across ALL months
+        let maxProgress = 0;
+        dataWithUpdate.forEach(month => {
+            const goal = month.goals.find(g => g.id === goalId);
+            if (goal && goal.progress > maxProgress) {
+                maxProgress = goal.progress;
+            }
+        });
+
+        // 3. Find the date of the month being updated
+        const targetMonth = dataWithUpdate.find(m => m.id === monthId);
+        const targetDateTimestamp = targetMonth ? new Date(targetMonth.date).getTime() : 0;
+
+        // 4. Second pass: Update endValue for this goal ID ONLY for current and future months
+        return dataWithUpdate.map(month => {
+            const monthDate = new Date(month.date);
+            
+            // Only update target if the month is the one being edited or a future month
+            // Past months retain their historical target
+            if (monthDate.getTime() < targetDateTimestamp) {
+                return month;
+            }
+
+            return {
+                ...month,
+                goals: month.goals.map(goal => {
+                    if (goal.id === goalId) {
+                        return { ...goal, endValue: maxProgress };
+                    }
+                    return goal;
+                })
+            };
+        });
+    });
   }, []);
   
   const handleStorePlanUpdate = (planId: string, updatedValues: Partial<StorePlan>) => {
@@ -234,6 +278,7 @@ const App: React.FC = () => {
   const handleCloneMonth = (monthId: string) => {
     const monthToClone = data.find(m => m.id === monthId);
     if (monthToClone) {
+        // Clone goals with 0 progress but keep the same endValues (which are already maxes)
         const clonedGoals = monthToClone.goals.map(g => ({ ...g, progress: 0, status: GoalStatus.NOT_STARTED }));
         
         // Calculate next month date
@@ -267,20 +312,44 @@ const App: React.FC = () => {
   };
 
   const handleCreateSpecificMonth = (year: number, monthIndex: number) => {
-    // Set date to the 15th to avoid timezone month shifting issues
-    const newDate = new Date(year, monthIndex, 15);
+    const now = new Date();
+    let newDate;
+
+    // Logic: 
+    // If it's the current month (Active) -> Set to Yesterday (Noon)
+    // If it's a past month (Ended) -> Set to End of Month (Noon)
+    // Future Month -> Default to 15th (Noon)
+    
+    if (year === now.getFullYear() && monthIndex === now.getMonth()) {
+        newDate = new Date(year, monthIndex, now.getDate() - 1, 12, 0, 0, 0);
+    } else if (year < now.getFullYear() || (year === now.getFullYear() && monthIndex < now.getMonth())) {
+        // Set to last day of that month (0th day of next month)
+        newDate = new Date(year, monthIndex + 1, 0, 12, 0, 0, 0); 
+    } else {
+        newDate = new Date(year, monthIndex, 15, 12, 0, 0, 0);
+    }
+
     const newMonthName = newDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
     
+    // Determine max values from existing data to initialize targets
+    const maxValues: Record<string, number> = {};
+    data.forEach(m => {
+        m.goals.forEach(g => {
+            const current = maxValues[g.id] || 0;
+            if (g.progress > current) maxValues[g.id] = g.progress;
+        });
+    });
+
     const newMonth: MonthData = {
         id: `month-${newDate.getTime()}`,
         name: newMonthName,
         date: newDate.toISOString(),
         goals: [
-          { id: 'g1', name: 'within 5 minutes', progress: 0, endValue: 41, status: GoalStatus.NOT_STARTED },
-          { id: 'g2', name: 'within 10 minutes', progress: 0, endValue: 21, status: GoalStatus.NOT_STARTED },
-          { id: 'g3', name: 'within 20 minutes', progress: 0, endValue: 20, status: GoalStatus.NOT_STARTED },
-          { id: 'g4', name: 'who rejected', progress: 0, endValue: 71, status: GoalStatus.NOT_STARTED },
-          { id: 'g5', name: 'created by sellers', progress: 0, endValue: 153, status: GoalStatus.NOT_STARTED },
+          { id: 'g1', name: 'within 5 minutes', progress: 0, endValue: maxValues['g1'] || 0, status: GoalStatus.NOT_STARTED },
+          { id: 'g2', name: 'within 10 minutes', progress: 0, endValue: maxValues['g2'] || 0, status: GoalStatus.NOT_STARTED },
+          { id: 'g3', name: 'within 20 minutes', progress: 0, endValue: maxValues['g3'] || 0, status: GoalStatus.NOT_STARTED },
+          { id: 'g4', name: 'who rejected', progress: 0, endValue: maxValues['g4'] || 0, status: GoalStatus.NOT_STARTED },
+          { id: 'g5', name: 'created by sellers', progress: 0, endValue: maxValues['g5'] || 0, status: GoalStatus.NOT_STARTED },
         ],
     };
     
@@ -610,7 +679,7 @@ const App: React.FC = () => {
         return (
           <>
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-              <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Dashboard</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Dashboard</h2>
               <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                 <button 
                   onClick={handleConnectFile}
@@ -649,14 +718,14 @@ const App: React.FC = () => {
                             onClick={() => toggleDashboardYear(year)}
                             className="flex items-center gap-3 w-full mb-4 group"
                         >
-                            <div className={`p-1 rounded-md transition-colors ${expandedDashboardYears[year] ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-white' : 'text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300'}`}>
+                            <div className={`p-1 rounded-md transition-colors ${expandedDashboardYears[year] ? 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white' : 'text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300'}`}>
                                 {expandedDashboardYears[year] ? <ChevronDownIcon /> : <ChevronRightIcon />}
                             </div>
-                            <h3 className="text-2xl font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                            <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                                 {year}
                             </h3>
-                            <div className="h-px flex-grow bg-zinc-200 dark:bg-zinc-700 group-hover:bg-zinc-300 dark:group-hover:bg-zinc-600 transition-colors"></div>
-                            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-full border border-zinc-200 dark:border-zinc-700">
+                            <div className="h-px flex-grow bg-gray-200 dark:bg-gray-700 group-hover:bg-gray-300 dark:group-hover:bg-gray-600 transition-colors"></div>
+                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full border border-gray-200 dark:border-gray-700">
                                 {dashboardGroupedData.groups[year].length} Months
                             </span>
                         </button>
@@ -684,7 +753,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-100 dark:bg-[#28282B] text-zinc-800 dark:text-zinc-200 font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans transition-colors duration-300">
       <TopNav 
         theme={theme}
         toggleTheme={toggleTheme}

@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { MonthData } from '../types';
 import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon, ChevronDownIcon, DownloadIcon } from './Icons';
@@ -13,7 +12,7 @@ const GOAL_COLORS: Record<string, string> = {
     'within 20 minutes': '#6366f1', // Indigo 500
     'who rejected': '#f43f5e', // Rose 500
     'created by sellers': '#f59e0b', // Amber 500
-    'default': '#71717a' // Zinc 500
+    'default': '#71717a' // Gray 500
 };
 
 const getGoalColor = (name: string) => {
@@ -45,8 +44,8 @@ const SingleGoalBarChart: React.FC<{ config: any, data: any[] }> = ({ config, da
     const step = (width - padding.left - padding.right) / data.length;
 
     return (
-        <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 p-4 shadow-sm h-full flex flex-col">
-            <h4 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3 pb-2 border-b border-zinc-100 dark:border-zinc-700/50 truncate">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm h-full flex flex-col">
+            <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 pb-2 border-b border-gray-100 dark:border-gray-700/50 truncate">
                 {config.label}
             </h4>
             <div className="w-full overflow-x-auto pb-2 custom-scrollbar">
@@ -56,7 +55,7 @@ const SingleGoalBarChart: React.FC<{ config: any, data: any[] }> = ({ config, da
                         {[0, 0.25, 0.5, 0.75, 1].map(tick => {
                             const y = height - padding.bottom - (tick * (height - padding.top - padding.bottom));
                             return (
-                                <line key={tick} x1={padding.left} y1={y} x2={width - padding.right} y2={y} stroke="currentColor" className="text-zinc-100 dark:text-zinc-700" strokeWidth="1" />
+                                <line key={tick} x1={padding.left} y1={y} x2={width - padding.right} y2={y} stroke="currentColor" className="text-gray-100 dark:text-gray-700" strokeWidth="1" />
                             )
                         })}
 
@@ -84,7 +83,7 @@ const SingleGoalBarChart: React.FC<{ config: any, data: any[] }> = ({ config, da
                                         fontSize="14" 
                                         fontWeight="bold" 
                                         fill="currentColor" 
-                                        className="text-zinc-600 dark:text-zinc-300"
+                                        className="text-gray-600 dark:text-gray-300"
                                     >
                                         {d.value > 0 ? d.value : ''}
                                     </text>
@@ -97,7 +96,7 @@ const SingleGoalBarChart: React.FC<{ config: any, data: any[] }> = ({ config, da
                                         fontSize="12" 
                                         fontWeight="500"
                                         fill="currentColor" 
-                                        className="text-zinc-400 dark:text-zinc-500"
+                                        className="text-gray-400 dark:text-gray-500"
                                     >
                                         {d.month}
                                     </text>
@@ -167,9 +166,23 @@ const MonthPicker: React.FC<{ selectedDate: Date, onChange: (date: Date) => void
     };
 
     const selectMonth = (monthIndex: number) => {
-        const newDate = new Date(selectedDate);
-        newDate.setFullYear(viewYear);
-        newDate.setMonth(monthIndex);
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        
+        let newDate;
+
+        if (viewYear === currentYear && monthIndex === currentMonth) {
+            // Active Month: Set to Yesterday (Noon to avoid timezone shift)
+            newDate = new Date(currentYear, currentMonth, now.getDate() - 1, 12, 0, 0, 0);
+        } else if (viewYear < currentYear || (viewYear === currentYear && monthIndex < currentMonth)) {
+             // Past Month: Set to End of Month (Last Day, Noon)
+             newDate = new Date(viewYear, monthIndex + 1, 0, 12, 0, 0, 0);
+        } else {
+             // Future: Default to 15th (Noon)
+             newDate = new Date(viewYear, monthIndex, 15, 12, 0, 0, 0);
+        }
+
         onChange(newDate);
         setIsOpen(false);
     };
@@ -181,18 +194,18 @@ const MonthPicker: React.FC<{ selectedDate: Date, onChange: (date: Date) => void
         <div className="relative" ref={containerRef}>
             <button 
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-700 rounded-lg text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors border border-zinc-200 dark:border-zinc-600"
+                className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-600"
             >
                 <CalendarIcon />
                 <span>{formattedDate}</span>
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-700 z-50 p-4">
-                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-zinc-100 dark:border-zinc-700/50">
-                        <button onClick={() => changeYear(-1)} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded text-zinc-600 dark:text-zinc-400"><ChevronLeftIcon /></button>
-                        <span className="font-bold text-zinc-900 dark:text-white">{viewYear}</span>
-                        <button onClick={() => changeYear(1)} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded text-zinc-600 dark:text-zinc-400"><ChevronRightIcon /></button>
+                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 p-4">
+                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100 dark:border-gray-700/50">
+                        <button onClick={() => changeYear(-1)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-400"><ChevronLeftIcon /></button>
+                        <span className="font-bold text-gray-900 dark:text-white">{viewYear}</span>
+                        <button onClick={() => changeYear(1)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-400"><ChevronRightIcon /></button>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                         {months.map((m, i) => (
@@ -202,7 +215,7 @@ const MonthPicker: React.FC<{ selectedDate: Date, onChange: (date: Date) => void
                                 className={`py-2 text-sm rounded-md transition-colors ${
                                     selectedDate.getMonth() === i && selectedDate.getFullYear() === viewYear
                                     ? 'bg-emerald-600 text-white font-medium shadow-md'
-                                    : 'hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300'
+                                    : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300'
                                 }`}
                             >
                                 {m}
@@ -217,7 +230,7 @@ const MonthPicker: React.FC<{ selectedDate: Date, onChange: (date: Date) => void
 
 // TrendChart Component
 const TrendChart: React.FC<{ data: { label: string; value: number }[]; color: string }> = ({ data, color }) => {
-    if (data.length === 0) return <div className="h-52 flex items-center justify-center text-zinc-400 text-sm">No data available</div>;
+    if (data.length === 0) return <div className="h-52 flex items-center justify-center text-gray-400 text-sm">No data available</div>;
     
     const height = 250;
     const width = Math.max(data.length * 50, 800); // Dynamic width for scroll
@@ -240,7 +253,7 @@ const TrendChart: React.FC<{ data: { label: string; value: number }[]; color: st
         : `${width/2},${height-paddingY-(data[0].value/maxVal)*chartH} L ${width/2 + 20},${height - paddingY} L ${width/2 - 20},${height - paddingY} Z`;
 
     return (
-        <div className="w-full h-64 select-none overflow-x-auto bg-zinc-50/50 dark:bg-zinc-900/30 rounded-lg border border-zinc-100 dark:border-zinc-700/50 custom-scrollbar">
+        <div className="w-full h-64 select-none overflow-x-auto bg-gray-50/50 dark:bg-gray-900/30 rounded-lg border border-gray-100 dark:border-gray-700/50 custom-scrollbar">
             <div style={{ minWidth: '100%', width: `${width}px`, height: '100%' }}>
                 <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="w-full h-full overflow-visible">
                     <defs>
@@ -250,8 +263,8 @@ const TrendChart: React.FC<{ data: { label: string; value: number }[]; color: st
                         </linearGradient>
                     </defs>
                     
-                    <line x1={paddingX} y1={height - paddingY} x2={width - paddingX} y2={height - paddingY} stroke="currentColor" className="text-zinc-200 dark:text-zinc-700" strokeWidth="1" />
-                    <line x1={paddingX} y1={paddingY} x2={width - paddingX} y2={paddingY} stroke="currentColor" className="text-zinc-200 dark:text-zinc-700" strokeWidth="1" strokeDasharray="4" />
+                    <line x1={paddingX} y1={height - paddingY} x2={width - paddingX} y2={height - paddingY} stroke="currentColor" className="text-gray-200 dark:text-gray-700" strokeWidth="1" />
+                    <line x1={paddingX} y1={paddingY} x2={width - paddingX} y2={paddingY} stroke="currentColor" className="text-gray-200 dark:text-gray-700" strokeWidth="1" strokeDasharray="4" />
                     
                     {data.length > 0 && (
                     <>
@@ -265,9 +278,9 @@ const TrendChart: React.FC<{ data: { label: string; value: number }[]; color: st
                         const y = height - paddingY - ((d.value - minVal) / (maxVal - minVal)) * chartH;
                         return (
                             <g key={i} className="group">
-                                <circle cx={x} cy={y} r="5" fill="white" stroke={color} strokeWidth="3" className="dark:fill-zinc-800 transition-all duration-200 group-hover:r-7 group-hover:stroke-white dark:group-hover:stroke-white group-hover:fill-emerald-500" />
+                                <circle cx={x} cy={y} r="5" fill="white" stroke={color} strokeWidth="3" className="dark:fill-gray-800 transition-all duration-200 group-hover:r-7 group-hover:stroke-white dark:group-hover:stroke-white group-hover:fill-emerald-500" />
                                 <foreignObject x={x - 50} y={y - 50} width="100" height="40" className="overflow-visible opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                    <div className="bg-zinc-900 text-white text-xs font-bold py-1 px-2 rounded shadow-lg text-center transform -translate-y-1">
+                                    <div className="bg-gray-900 text-white text-xs font-bold py-1 px-2 rounded shadow-lg text-center transform -translate-y-1">
                                         {new Intl.NumberFormat('en-US', { notation: "compact" }).format(d.value)}
                                     </div>
                                 </foreignObject>
@@ -278,7 +291,7 @@ const TrendChart: React.FC<{ data: { label: string; value: number }[]; color: st
                     {data.map((d, i) => {
                         const x = data.length === 1 ? width / 2 : paddingX + (i / (data.length - 1)) * chartW;
                         return (
-                            <text key={i} x={x} y={height - 10} textAnchor="middle" fontSize="11" fill="currentColor" className="text-zinc-500 dark:text-zinc-400 font-medium">
+                            <text key={i} x={x} y={height - 10} textAnchor="middle" fontSize="11" fill="currentColor" className="text-gray-500 dark:text-gray-400 font-medium">
                                 {d.label}
                             </text>
                         );
@@ -300,7 +313,7 @@ const DonutChart: React.FC<{ data: { name: string; value: number; color: string 
     let accumulatedOffset = 0;
     const sortedData = [...data].sort((a, b) => b.value - a.value);
 
-    if (total === 0) return <div className="h-48 flex items-center justify-center text-zinc-400 text-sm italic">No revenue data</div>;
+    if (total === 0) return <div className="h-48 flex items-center justify-center text-gray-400 text-sm italic">No revenue data</div>;
 
     return (
         <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
@@ -330,8 +343,8 @@ const DonutChart: React.FC<{ data: { name: string; value: number; color: string 
                 })}
             </svg>
              <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Total</span>
-                <span className="text-lg font-bold text-zinc-900 dark:text-white">
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total</span>
+                <span className="text-lg font-bold text-gray-900 dark:text-white">
                    {new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(total)}
                 </span>
            </div>
@@ -351,11 +364,11 @@ const MonthlyPostcard: React.FC<{
     const net = monthData?.net || 0;
 
     return (
-        <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm overflow-hidden flex flex-col h-full">
-            <div className="p-4 sm:p-6 border-b border-zinc-100 dark:border-zinc-700/50 flex justify-between items-center bg-zinc-50/50 dark:bg-zinc-800/50">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col h-full">
+            <div className="p-4 sm:p-6 border-b border-gray-100 dark:border-gray-700/50 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
                 <div>
-                    <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Monthly Summary</h3>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">Snapshot Report</p>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Monthly Summary</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Snapshot Report</p>
                 </div>
                 <MonthPicker selectedDate={selectedDate} onChange={onDateChange} />
             </div>
@@ -368,9 +381,9 @@ const MonthlyPostcard: React.FC<{
                             <div key={i} className="flex items-center justify-between gap-3 text-sm">
                                 <div className="flex items-center gap-2">
                                     <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }}></div>
-                                    <span className="text-zinc-600 dark:text-zinc-300 truncate max-w-[150px]">{d.name}</span>
+                                    <span className="text-gray-600 dark:text-gray-300 truncate max-w-[150px]">{d.name}</span>
                                 </div>
-                                <span className="font-medium text-zinc-900 dark:text-white">
+                                <span className="font-medium text-gray-900 dark:text-white">
                                     {new Intl.NumberFormat('en-US', { notation: "compact" }).format(d.value)}
                                 </span>
                             </div>
@@ -378,13 +391,13 @@ const MonthlyPostcard: React.FC<{
                     </div>
                 </div>
 
-                <div className="w-full space-y-4 border-t border-zinc-100 dark:border-zinc-700/50 pt-4">
+                <div className="w-full space-y-4 border-t border-gray-100 dark:border-gray-700/50 pt-4">
                     <div className="flex justify-between items-center text-sm">
-                        <span className="font-medium text-zinc-500 dark:text-zinc-400">Gross Income</span>
-                        <span className="font-bold text-zinc-900 dark:text-white">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalRevenue)}</span>
+                        <span className="font-medium text-gray-500 dark:text-gray-400">Gross Income</span>
+                        <span className="font-bold text-gray-900 dark:text-white">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalRevenue)}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
-                        <span className="font-medium text-zinc-500 dark:text-zinc-400">Tax (12%)</span>
+                        <span className="font-medium text-gray-500 dark:text-gray-400">Tax (12%)</span>
                         <span className="font-bold text-rose-500">-{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(tax)}</span>
                     </div>
 
@@ -409,7 +422,12 @@ const MonthlyPostcard: React.FC<{
 
 // Main Component
 const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) => {
-  const [selectedRevenueDate, setSelectedRevenueDate] = useState(new Date());
+  const [selectedRevenueDate, setSelectedRevenueDate] = useState(() => {
+    const date = new Date();
+    date.setDate(date.getDate() - 1);
+    date.setHours(12, 0, 0, 0); // Initialize with Noon to avoid TZ shifts
+    return date;
+  });
   
   const [expandedYears, setExpandedYears] = useState<Record<number, boolean>>(() => {
       try {
@@ -565,45 +583,45 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
     <div className="space-y-8 pb-12">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex flex-col gap-2">
-            <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Analytics Dashboard</h2>
-            <p className="text-zinc-500 dark:text-zinc-400">Deep dive into your performance metrics.</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Analytics Dashboard</h2>
+            <p className="text-gray-500 dark:text-gray-400">Deep dive into your performance metrics.</p>
         </div>
-        <button onClick={handleExportReport} className="flex items-center justify-center gap-2 px-4 py-2 bg-zinc-100 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors text-sm font-medium">
+        <button onClick={handleExportReport} className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium">
             <DownloadIcon />
             <span>Export CSV</span>
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-         <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm relative overflow-hidden h-full">
+         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden h-full">
              <div className="relative z-10">
-                 <h3 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Lifetime Net Earnings</h3>
+                 <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lifetime Net Earnings</h3>
                  <p className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-2">{formatCurrency(analytics.totalLifetimeNet)}</p>
              </div>
              <div className="absolute right-0 top-0 h-full w-24 bg-gradient-to-l from-emerald-500/10 to-transparent"></div>
          </div>
-         <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm h-full">
-             <h3 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Monthly Average</h3>
-             <p className="text-3xl font-extrabold text-zinc-900 dark:text-white mt-2">{formatCurrency(analytics.averageMonthlyNet)}</p>
+         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm h-full">
+             <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Monthly Average</h3>
+             <p className="text-3xl font-extrabold text-gray-900 dark:text-white mt-2">{formatCurrency(analytics.averageMonthlyNet)}</p>
          </div>
-         <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm h-full">
-             <h3 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Best Month</h3>
+         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm h-full">
+             <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Best Month</h3>
              <p className="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-2 truncate">{analytics.bestMonth.name}</p>
-             <p className="text-sm text-zinc-500 dark:text-zinc-400">{formatCurrency(analytics.bestMonth.net)}</p>
+             <p className="text-sm text-gray-500 dark:text-gray-400">{formatCurrency(analytics.bestMonth.net)}</p>
          </div>
       </div>
 
       {/* Goal Volume Charts Section */}
       <div className="mb-8">
-        <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-4">Goal Activity Volume</h3>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Goal Activity Volume</h3>
         <GoalVolumeCharts months={ascendingMonths} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        <div className="lg:col-span-2 bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm">
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
             <div className="mb-6">
-                <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Net Salary Trend</h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">Monthly net income growth over time.</p>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Net Salary Trend</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Monthly net income growth over time.</p>
             </div>
             <TrendChart data={trendData} color="#10b981" />
         </div>
@@ -616,20 +634,20 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
         />
       </div>
 
-      <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-zinc-200 dark:border-zinc-700">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Goal Performance Matrix</h3>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">Raw volume of tasks completed per month.</p>
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Goal Performance Matrix</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Raw volume of tasks completed per month.</p>
           </div>
           <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
-                  <thead className="text-xs text-zinc-500 dark:text-zinc-400 uppercase bg-zinc-50 dark:bg-zinc-700/50">
+                  <thead className="text-xs text-gray-500 dark:text-gray-400 uppercase bg-gray-50 dark:bg-gray-700/50">
                       <tr>
-                          <th className="px-4 py-3 sm:px-6 sm:py-4 font-medium border-r border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 sticky left-0 z-10 whitespace-nowrap">Goal Name</th>
+                          <th className="px-4 py-3 sm:px-6 sm:py-4 font-medium border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 sticky left-0 z-10 whitespace-nowrap">Goal Name</th>
                           {analytics.months.map(m => (
                               <th key={m.id} className="px-4 py-3 sm:py-4 text-center font-medium min-w-[80px]">{m.shortName}</th>
                           ))}
-                          <th className="px-4 py-3 sm:py-4 text-center font-bold text-zinc-700 dark:text-zinc-200">Total</th>
+                          <th className="px-4 py-3 sm:py-4 text-center font-bold text-gray-700 dark:text-gray-200">Total</th>
                       </tr>
                   </thead>
                   <tbody>
@@ -644,9 +662,9 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
                           }));
 
                           return (
-                              <tr key={goalName} className="border-b border-zinc-100 dark:border-zinc-700/50 last:border-none hover:bg-zinc-50/80 dark:hover:bg-zinc-700/30 transition-colors">
-                                  <td className="px-3 py-3 sm:px-6 border-r border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 sticky left-0 z-10">
-                                      <div className="flex items-center gap-2 font-medium text-zinc-900 dark:text-white whitespace-nowrap h-full">
+                              <tr key={goalName} className="border-b border-gray-100 dark:border-gray-700/50 last:border-none hover:bg-gray-50/80 dark:hover:bg-gray-700/30 transition-colors">
+                                  <td className="px-3 py-3 sm:px-6 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky left-0 z-10">
+                                      <div className="flex items-center gap-2 font-medium text-gray-900 dark:text-white whitespace-nowrap h-full">
                                           <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: getGoalColor(goalName) }}></div>
                                           {goalName}
                                       </div>
@@ -667,15 +685,15 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
                                                                 opacity: opacity * 0.2
                                                             }}
                                                        ></div>
-                                                       <span className="relative font-semibold z-10 text-zinc-700 dark:text-zinc-200">{count}</span>
+                                                       <span className="relative font-semibold z-10 text-gray-700 dark:text-gray-200">{count}</span>
                                                   </div>
                                               ) : (
-                                                  <span className="text-zinc-300 dark:text-zinc-600">-</span>
+                                                  <span className="text-gray-300 dark:text-gray-600">-</span>
                                               )}
                                           </td>
                                       );
                                   })}
-                                  <td className="px-4 py-3 text-center font-bold text-zinc-900 dark:text-white bg-zinc-50/50 dark:bg-zinc-800">{rowTotal}</td>
+                                  <td className="px-4 py-3 text-center font-bold text-gray-900 dark:text-white bg-gray-50/50 dark:bg-gray-800">{rowTotal}</td>
                               </tr>
                           );
                       })}
@@ -684,14 +702,14 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
           </div>
       </div>
       
-      <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-zinc-200 dark:border-zinc-700">
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Financial Summary</h3>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">Gross, Tax, and Net Salary breakdown by year.</p>
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Financial Summary</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Gross, Tax, and Net Salary breakdown by year.</p>
         </div>
         <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-                <thead className="text-xs text-zinc-500 dark:text-zinc-400 uppercase bg-zinc-50 dark:bg-zinc-700/50">
+                <thead className="text-xs text-gray-500 dark:text-gray-400 uppercase bg-gray-50 dark:bg-gray-700/50">
                     <tr>
                         <th className="px-3 py-3 sm:px-6 sm:py-4 font-medium">Month</th>
                         <th className="px-3 py-3 sm:px-6 sm:py-4 font-medium text-right">Gross Salary</th>
@@ -707,26 +725,26 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
                      const isExpanded = expandedYears[year];
 
                      return (
-                        <tbody key={year} className="border-b border-zinc-200 dark:border-zinc-700 last:border-none">
+                        <tbody key={year} className="border-b border-gray-200 dark:border-gray-700 last:border-none">
                             <tr 
                                 onClick={() => toggleYear(year)}
-                                className="bg-zinc-100 dark:bg-zinc-700/50 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors select-none"
+                                className="bg-gray-100 dark:bg-gray-700/50 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors select-none"
                             >
-                                <td className="px-3 py-3 sm:px-6 font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                                <td className="px-3 py-3 sm:px-6 font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                     {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
                                     {year}
-                                    <span className="ml-2 text-xs font-normal text-zinc-500 dark:text-zinc-400 bg-zinc-200 dark:bg-zinc-600 px-2 py-0.5 rounded-full">
+                                    <span className="ml-2 text-xs font-normal text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded-full">
                                         {yearMonths.length} Months
                                     </span>
                                 </td>
-                                <td className="px-3 py-3 sm:px-6 text-right font-mono font-semibold text-zinc-700 dark:text-zinc-300 text-xs">{formatCurrency(yearGross)}</td>
+                                <td className="px-3 py-3 sm:px-6 text-right font-mono font-semibold text-gray-700 dark:text-gray-300 text-xs">{formatCurrency(yearGross)}</td>
                                 <td className="px-3 py-3 sm:px-6 text-right font-mono font-semibold text-rose-500 text-xs">-{formatCurrency(yearTax)}</td>
                                 <td className="px-3 py-3 sm:px-6 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 text-xs">{formatCurrency(yearNet)}</td>
                             </tr>
                             {isExpanded && yearMonths.map(m => (
-                                <tr key={m.id} className="border-b border-zinc-100 dark:border-zinc-700/50 hover:bg-zinc-50 dark:hover:bg-zinc-700/30">
-                                    <td className="px-3 py-3 sm:px-6 pl-8 sm:pl-12 font-medium text-zinc-900 dark:text-white border-l-4 border-transparent hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors">{m.name}</td>
-                                    <td className="px-3 py-3 sm:px-6 text-right font-mono text-zinc-600 dark:text-zinc-300">{formatCurrency(m.grossTotal)}</td>
+                                <tr key={m.id} className="border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                                    <td className="px-3 py-3 sm:px-6 pl-8 sm:pl-12 font-medium text-gray-900 dark:text-white border-l-4 border-transparent hover:border-gray-300 dark:hover:border-gray-600 transition-colors">{m.name}</td>
+                                    <td className="px-3 py-3 sm:px-6 text-right font-mono text-gray-600 dark:text-gray-300">{formatCurrency(m.grossTotal)}</td>
                                     <td className="px-3 py-3 sm:px-6 text-right font-mono text-rose-500">-{formatCurrency(m.tax)}</td>
                                     <td className="px-3 py-3 sm:px-6 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 text-base">{formatCurrency(m.net)}</td>
                                 </tr>

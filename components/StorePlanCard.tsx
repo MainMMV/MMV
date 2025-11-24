@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { StorePlan } from '../types';
 import PieChart from './PieChart';
@@ -93,7 +92,7 @@ const StorePlanCard: React.FC<StorePlanCardProps> = ({ planData, onUpdate, curre
     const daily = dateInfo.daysRemaining > 0 ? remainder / dateInfo.daysRemaining : 0;
 
     return (
-      <tr className="border-b border-zinc-200 dark:border-zinc-700">
+      <tr className="border-b border-gray-200 dark:border-gray-700">
         <td className="px-1 sm:px-2 py-2 whitespace-nowrap">{label}</td>
         <td className="px-1 sm:px-2 py-2 whitespace-nowrap text-red-500 font-bold text-right">
           {isPlanEditable ? (
@@ -139,11 +138,11 @@ const StorePlanCard: React.FC<StorePlanCardProps> = ({ planData, onUpdate, curre
   const plan80 = planData.plan100 * 0.8;
 
   return (
-    <div className="bg-white dark:bg-zinc-800/50 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-700/50 overflow-hidden">
+    <div className="bg-white dark:bg-gray-800/50 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700/50 overflow-hidden">
         <div className="overflow-x-auto -mx-4 sm:mx-0">
             <div className="min-w-[600px] px-4 sm:px-0">
-                <table className="w-full text-sm text-left text-zinc-600 dark:text-zinc-300 table-fixed">
-                    <thead className="text-xs text-white uppercase bg-zinc-600 dark:bg-zinc-700">
+                <table className="w-full text-sm text-left text-gray-600 dark:text-gray-300 table-fixed">
+                    <thead className="text-xs text-white uppercase bg-gray-600 dark:bg-gray-700">
                         <tr>
                             <th scope="col" className="px-1 sm:px-2 py-2 w-32 sm:w-48">{planData.name}</th>
                             <th scope="col" className="px-1 sm:px-2 py-2 text-right w-28 sm:w-44">Plan</th>

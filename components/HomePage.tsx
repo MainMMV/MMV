@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import WelcomeHeader from './WelcomeHeader';
 import { MonthData, SpendingItem } from '../types';
@@ -60,53 +59,53 @@ const HomePage: React.FC<HomePageProps> = ({ monthData, spendingData, onNavigate
 
       {/* 2. Quick Actions Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <button onClick={() => onNavigate('spending')} className="bg-white dark:bg-zinc-800 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all flex flex-col items-center gap-2 group">
+          <button onClick={() => onNavigate('spending')} className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all flex flex-col items-center gap-2 group">
               <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full group-hover:scale-110 transition-transform">
                   <WalletIcon />
               </div>
-              <span className="font-semibold text-zinc-700 dark:text-zinc-200 text-sm">Add Expense</span>
+              <span className="font-semibold text-gray-700 dark:text-gray-200 text-sm">Add Expense</span>
           </button>
-          <button onClick={() => onNavigate('mmv')} className="bg-white dark:bg-zinc-800 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all flex flex-col items-center gap-2 group">
+          <button onClick={() => onNavigate('mmv')} className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all flex flex-col items-center gap-2 group">
               <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full group-hover:scale-110 transition-transform">
                   <CheckCircleIcon />
               </div>
-              <span className="font-semibold text-zinc-700 dark:text-zinc-200 text-sm">Check Goals</span>
+              <span className="font-semibold text-gray-700 dark:text-gray-200 text-sm">Check Goals</span>
           </button>
-           <button onClick={() => onNavigate('comparison')} className="bg-white dark:bg-zinc-800 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all flex flex-col items-center gap-2 group">
+           <button onClick={() => onNavigate('comparison')} className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all flex flex-col items-center gap-2 group">
               <div className="p-3 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full group-hover:scale-110 transition-transform">
                   <ChartBarIcon />
               </div>
-              <span className="font-semibold text-zinc-700 dark:text-zinc-200 text-sm">Analytics</span>
+              <span className="font-semibold text-gray-700 dark:text-gray-200 text-sm">Analytics</span>
           </button>
-          <button onClick={() => onNavigate('qr_generator')} className="bg-white dark:bg-zinc-800 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all flex flex-col items-center gap-2 group">
+          <button onClick={() => onNavigate('qr_generator')} className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all flex flex-col items-center gap-2 group">
               <div className="p-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full group-hover:scale-110 transition-transform">
                   <QrCodeIcon />
               </div>
-              <span className="font-semibold text-zinc-700 dark:text-zinc-200 text-sm">QR Tools</span>
+              <span className="font-semibold text-gray-700 dark:text-gray-200 text-sm">QR Tools</span>
           </button>
       </div>
 
       {/* 3. Monthly Snapshot */}
-      <div className="bg-white dark:bg-zinc-800 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm">
-          <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-6 flex items-center gap-2">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
               <span className="w-2 h-6 bg-emerald-500 rounded-full"></span>
               Current Month Snapshot ({monthData ? monthData.name : 'No Data'})
           </h3>
           
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-700/30 rounded-xl border border-zinc-100 dark:border-zinc-700/50">
-                  <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Net Salary</p>
+              <div className="p-6 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700/50">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Net Salary</p>
                   <p className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-2">{formatCurrency(snapshot.netSalary)}</p>
               </div>
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-700/30 rounded-xl border border-zinc-100 dark:border-zinc-700/50">
-                  <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Spending</p>
+              <div className="p-6 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700/50">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Spending</p>
                   <p className="text-3xl font-extrabold text-rose-500 mt-2">{formatCurrency(snapshot.currentMonthSpend)}</p>
               </div>
-               <div className="p-6 bg-zinc-50 dark:bg-zinc-700/30 rounded-xl border border-zinc-100 dark:border-zinc-700/50">
-                  <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Goal Completion</p>
+               <div className="p-6 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700/50">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Goal Completion</p>
                   <div className="flex flex-col gap-2 mt-2">
                       <p className="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 leading-none">{snapshot.goalProgress.toFixed(0)}%</p>
-                      <div className="w-full h-2 bg-zinc-200 dark:bg-zinc-600 rounded-full">
+                      <div className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-full">
                           <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${snapshot.goalProgress}%` }}></div>
                       </div>
                   </div>

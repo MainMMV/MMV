@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StorePlan } from '../types';
 import StorePlanCard from './StorePlanCard';
-import Calendar from './Calendar';
-import { CalendarIcon, DownloadIcon } from './Icons';
+import { CalendarIcon, DownloadIcon, ChevronLeftIcon, ChevronRightIcon } from './Icons';
 
 interface StorePlanViewProps {
   plans: StorePlan[];
@@ -10,15 +9,70 @@ interface StorePlanViewProps {
 }
 
 const StorePlanView: React.FC<StorePlanViewProps> = ({ plans, onPlanUpdate }) => {
-  const [selectedDate, setSelectedDate] = useState(new Date('2025-11-16T00:00:00Z'));
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  // Default to Yesterday's date (Active logic)
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const date = new Date();
+    date.setDate(date.getDate() - 1);
+    date.setHours(12, 0, 0, 0); // Initialize at noon to prevent TZ shifts
+    return date;
+  });
   
-  // Format date for the button, using English locale.
+  // Smart Picker State
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [viewYear, setViewYear] = useState(selectedDate.getFullYear());
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  // Sync viewYear when selectedDate changes externally
+  useEffect(() => {
+    setViewYear(selectedDate.getFullYear());
+  }, [selectedDate]);
+
+  // Click Outside Handler
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
+        setIsPickerOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Logic: "if month ends it will be end of month if active it will be yesterdays date"
+  const handleMonthSelect = (monthIndex: number) => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    
+    let newDate;
+
+    if (viewYear === currentYear && monthIndex === currentMonth) {
+        // Active Month: Set to Yesterday (Noon)
+        newDate = new Date(currentYear, currentMonth, now.getDate() - 1, 12, 0, 0, 0);
+    } else if (viewYear < currentYear || (viewYear === currentYear && monthIndex < currentMonth)) {
+        // Past Month: Set to End of Month (Last Day, Noon)
+        newDate = new Date(viewYear, monthIndex + 1, 0, 12, 0, 0, 0);
+    } else {
+        // Future Month: Default to 15th (Noon)
+        newDate = new Date(viewYear, monthIndex, 15, 12, 0, 0, 0);
+    }
+
+    setSelectedDate(newDate);
+    setIsPickerOpen(false);
+  };
+
+  const changeYear = (delta: number) => {
+    setViewYear(prev => prev + delta);
+  };
+  
+  // Format date for the button
   const formattedDate = new Intl.DateTimeFormat('en-US', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
   }).format(selectedDate);
+
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   
   const handleExport = () => {
     const escapeCsvCell = (cell: any): string => {
@@ -82,7 +136,6 @@ const StorePlanView: React.FC<StorePlanViewProps> = ({ plans, onPlanUpdate }) =>
 
     const formatNumber = (value: number, decimals = 0) => {
         if (isNaN(value) || !isFinite(value)) return '0';
-        // Export raw numbers for better compatibility with spreadsheet software
         return new Intl.NumberFormat('en-US', {
             minimumFractionDigits: decimals,
             maximumFractionDigits: decimals,
@@ -167,37 +220,50 @@ const StorePlanView: React.FC<StorePlanViewProps> = ({ plans, onPlanUpdate }) =>
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-        <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Branch Plans</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Branch Plans</h2>
         
         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
           <button
             onClick={handleExport}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-zinc-200 dark:bg-zinc-700/80 rounded-lg text-zinc-800 dark:text-zinc-100 shadow-sm hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-700/80 rounded-lg text-gray-800 dark:text-gray-100 shadow-sm hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors text-sm font-medium"
           >
             <DownloadIcon />
             <span>Export</span>
           </button>
           
-          <div className="relative w-full sm:w-auto">
+          <div className="relative w-full sm:w-auto" ref={pickerRef}>
             <button
-              onClick={() => setIsCalendarOpen(true)}
-              className="w-full sm:w-auto flex items-center justify-center gap-3 px-4 py-2 bg-zinc-200 dark:bg-zinc-700/80 rounded-lg text-zinc-800 dark:text-zinc-100 shadow-sm hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
+              onClick={() => setIsPickerOpen(!isPickerOpen)}
+              className="w-full sm:w-auto flex items-center justify-center gap-3 px-4 py-2 bg-gray-200 dark:bg-gray-700/80 rounded-lg text-gray-800 dark:text-gray-100 shadow-sm hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors text-sm font-medium"
               aria-haspopup="true"
-              aria-expanded={isCalendarOpen}
+              aria-expanded={isPickerOpen}
             >
               <span>{formattedDate}</span>
               <CalendarIcon />
             </button>
-            {isCalendarOpen && (
-              <Calendar
-                selectedDate={selectedDate}
-                onDateChange={(newDate) => {
-                  setSelectedDate(newDate);
-                  setIsCalendarOpen(false);
-                }}
-                onClose={() => setIsCalendarOpen(false)}
-                align="right"
-              />
+            {isPickerOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 p-4">
+                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100 dark:border-gray-700/50">
+                        <button onClick={() => changeYear(-1)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-400"><ChevronLeftIcon /></button>
+                        <span className="font-bold text-gray-900 dark:text-white">{viewYear}</span>
+                        <button onClick={() => changeYear(1)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-400"><ChevronRightIcon /></button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                        {months.map((m, i) => (
+                            <button
+                                key={m}
+                                onClick={() => handleMonthSelect(i)}
+                                className={`py-2 text-sm rounded-md transition-colors ${
+                                    selectedDate.getMonth() === i && selectedDate.getFullYear() === viewYear
+                                    ? 'bg-emerald-600 text-white font-medium shadow-md'
+                                    : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300'
+                                }`}
+                            >
+                                {m}
+                            </button>
+                        ))}
+                    </div>
+                </div>
             )}
           </div>
         </div>

@@ -49,9 +49,9 @@ const WelcomeHeader: React.FC = () => {
   const name = "FOZILBEK";
 
   return (
-    <div className="bg-white dark:bg-zinc-800/50 rounded-2xl shadow-lg p-8 w-full text-center border border-zinc-200 dark:border-zinc-700/50">
-      <p className="text-lg sm:text-xl text-zinc-600 dark:text-zinc-300">{formatDateTime(currentDateTime)}</p>
-      <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white mt-2 tracking-wide">{getGreeting(currentDateTime)}, {name}</h1>
+    <div className="bg-white dark:bg-gray-800/50 rounded-2xl shadow-lg p-8 w-full text-center border border-gray-200 dark:border-gray-700/50">
+      <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300">{formatDateTime(currentDateTime)}</p>
+      <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mt-2 tracking-wide">{getGreeting(currentDateTime)}, {name}</h1>
     </div>
   );
 };

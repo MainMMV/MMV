@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { MonthData, Goal } from '../types';
 import GoalsTable from './GoalsTable';
@@ -198,21 +197,26 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
   };
 
   return (
-    <div className="bg-white dark:bg-zinc-800/50 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-700/50 overflow-hidden backdrop-blur-sm transition-all duration-300 ease-in-out">
-      <div className="p-4 sm:p-6">
-        <div className="flex flex-col gap-4 mb-6 relative">
+    <div className="relative overflow-hidden rounded-3xl bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-gray-700/30 shadow-xl transition-all duration-300 hover:shadow-2xl hover:bg-white/70 dark:hover:bg-gray-900/70 group">
+      {/* Decorative gradient blobs for glass effect enhancement */}
+      <div className="absolute -top-20 -right-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none transition-opacity duration-500 opacity-60 group-hover:opacity-80"></div>
+      <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none transition-opacity duration-500 opacity-60 group-hover:opacity-80"></div>
+
+      <div className="p-6 relative z-10">
+        <div className="flex flex-col gap-6 mb-8 relative">
             <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-3 sm:gap-4 flex-grow min-w-0">
+                <div className="flex items-center gap-5 flex-grow min-w-0">
                     <div className="relative flex-shrink-0">
                       <button
                         onClick={() => setIsCalendarOpen(prev => !prev)}
-                        className="bg-zinc-200 dark:bg-zinc-700/80 rounded-xl text-zinc-800 dark:text-zinc-100 font-bold text-center w-14 h-14 sm:w-16 sm:h-16 flex flex-col items-center justify-center p-2 shadow-md hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-zinc-800 focus:ring-slate-600"
+                        className="relative bg-white/50 dark:bg-gray-800/50 backdrop-blur-md border border-white/50 dark:border-gray-700/50 rounded-2xl text-gray-800 dark:text-gray-100 font-bold text-center w-16 h-16 sm:w-20 sm:h-20 flex flex-col items-center justify-center p-2 shadow-sm hover:shadow-md hover:scale-105 transition-all duration-300 group/cal"
                         aria-haspopup="true"
                         aria-expanded={isCalendarOpen}
                         aria-label="Change month date"
                       >
-                        <span className="text-[10px] sm:text-xs uppercase tracking-wider">{monthShort}</span>
-                        <span className="text-2xl sm:text-3xl font-extrabold">{day}</span>
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/10 rounded-2xl opacity-0 group-hover/cal:opacity-100 transition-opacity"></div>
+                        <span className="text-[10px] sm:text-xs uppercase tracking-widest font-semibold opacity-70">{monthShort}</span>
+                        <span className="text-3xl sm:text-4xl font-black tracking-tighter">{day}</span>
                       </button>
                       {isCalendarOpen && (
                         <Calendar
@@ -227,18 +231,18 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
                     </div>
                     <div className="flex-grow min-w-0">
                       {!isEditing ? (
-                          <h2 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-white truncate">{monthData.name}</h2>
+                          <h2 className="text-2xl sm:text-3xl font-black text-gray-800 dark:text-white tracking-tight truncate drop-shadow-sm">{monthData.name}</h2>
                       ) : (
                           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full">
                               <input 
                                 type="text"
                                 value={editingName}
                                 onChange={(e) => setEditingName(e.target.value)}
-                                className="bg-zinc-100 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white text-lg sm:text-xl font-bold rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-600 w-full sm:w-auto"
+                                className="bg-white/50 dark:bg-gray-700/50 border border-white/30 dark:border-gray-600 text-gray-900 dark:text-white text-lg sm:text-xl font-bold rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 w-full sm:w-auto backdrop-blur-sm shadow-inner"
                               />
                               <div className="flex gap-2">
-                                  <button onClick={handleSave} className="px-3 py-1 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm font-semibold">Save</button>
-                                  <button onClick={handleCancel} className="px-3 py-1 bg-zinc-500 dark:bg-zinc-600 text-white rounded-md hover:bg-zinc-600 dark:hover:bg-zinc-700 text-sm">Cancel</button>
+                                  <button onClick={handleSave} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-500/20 text-sm font-bold transition-all transform hover:scale-105">Save</button>
+                                  <button onClick={handleCancel} className="px-4 py-2 bg-gray-500/20 hover:bg-gray-500/30 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded-xl backdrop-blur-md text-sm font-semibold transition-all">Cancel</button>
                               </div>
                           </div>
                       )}
@@ -246,14 +250,14 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
                 </div>
             </div>
             
-            <div className="flex items-center justify-end gap-2">
+            <div className="flex items-center justify-end gap-3">
                 {/* View Toggle Button */}
                  <button
                     onClick={toggleViewMode}
-                    className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex-grow sm:flex-grow-0 ${
+                    className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all backdrop-blur-md border shadow-sm ${
                         viewMode === 'current' 
-                        ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600' 
-                        : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50'
+                        ? 'bg-white/50 dark:bg-gray-800/50 border-white/40 dark:border-gray-700/50 text-gray-600 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-800' 
+                        : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20'
                     }`}
                 >
                     <ArrowsRightLeftIcon />
@@ -264,7 +268,7 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
                 <div className="relative" ref={menuRef}>
                     <button 
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="p-2 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700/50 hover:text-zinc-800 dark:hover:text-white transition-colors text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-700/30"
+                        className="p-2.5 rounded-xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-md border border-white/40 dark:border-gray-700/50 text-gray-500 dark:text-gray-400 hover:bg-white/80 dark:hover:bg-gray-800 hover:text-gray-800 dark:hover:text-white transition-all shadow-sm"
                         aria-label="Options"
                         aria-expanded={isMenuOpen}
                     >
@@ -272,11 +276,11 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
                     </button>
                     
                     {isMenuOpen && (
-                        <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-700 z-20 overflow-hidden">
+                        <div className="absolute right-0 top-full mt-2 w-64 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700 z-50 overflow-hidden ring-1 ring-black/5">
                             <div className="py-1">
                                 <button 
                                     onClick={startEditing}
-                                    className="flex items-center gap-3 w-full px-4 py-3 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700/50 transition-colors"
+                                    className="flex items-center gap-3 w-full px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-colors"
                                 >
                                     <PencilIcon />
                                     Rename
@@ -286,14 +290,14 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
                                         setIsSalaryVisible(!isSalaryVisible);
                                         setIsMenuOpen(false);
                                     }}
-                                    className="flex items-center gap-3 w-full px-4 py-3 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700/50 transition-colors"
+                                    className="flex items-center gap-3 w-full px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-colors"
                                 >
                                     {isSalaryVisible ? <EyeOffIcon /> : <EyeIcon />}
                                     {isSalaryVisible ? 'Hide Overall Salary' : 'Show Overall Salary'}
                                 </button>
                                 <button 
                                     onClick={handleExport}
-                                    className="flex items-center gap-3 w-full px-4 py-3 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700/50 transition-colors"
+                                    className="flex items-center gap-3 w-full px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-colors"
                                 >
                                     <DownloadIcon />
                                     Export as Excel
@@ -304,13 +308,13 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
                                             onCloneCard();
                                             setIsMenuOpen(false);
                                         }}
-                                        className="flex items-center gap-3 w-full px-4 py-3 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700/50 transition-colors"
+                                        className="flex items-center gap-3 w-full px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-colors"
                                     >
                                         <DuplicateIcon />
                                         Clone / Duplicate
                                     </button>
                                 )}
-                                <div className="border-t border-zinc-200 dark:border-zinc-700 my-1"></div>
+                                <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
                                 <button 
                                     onClick={() => {
                                         if (window.confirm('Are you sure you want to delete this month card? This action cannot be undone.')) {
@@ -318,7 +322,7 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
                                         }
                                         setIsMenuOpen(false);
                                     }}
-                                    className="flex items-center gap-3 w-full px-4 py-3 text-left text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors font-semibold"
+                                    className="flex items-center gap-3 w-full px-4 py-3 text-left text-sm font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
                                 >
                                     <TrashIcon />
                                     Delete
@@ -331,11 +335,11 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
         </div>
 
         {monthData.goals.length > 0 && (
-          <div>
-            <h3 className="text-md sm:text-lg font-semibold text-zinc-600 dark:text-zinc-300 mb-3 flex items-center justify-between">
+          <div className="relative z-10">
+            <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-4 flex items-center justify-between uppercase tracking-wider px-1">
                 <span>{viewMode === 'current' ? 'Current Stats' : 'End Project Stats'}</span>
-                <span className="text-[10px] sm:text-xs font-normal text-zinc-400">
-                    {viewMode === 'current' ? 'Real-Time' : 'Projection'}
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50">
+                    {viewMode === 'current' ? 'Live' : 'Forecast'}
                 </span>
             </h3>
             <GoalsTable 
