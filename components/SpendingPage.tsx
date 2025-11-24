@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { SpendingItem } from '../types';
 import { WalletIcon, PlusIcon, TrashIcon, TagIcon, CalendarIcon, ArrowDownTrayIcon, FunnelIcon, ArrowPathIcon, ChartBarIcon } from './Icons';
+import SpendingChart from './SpendingChart';
 
 interface SpendingPageProps {
   items: SpendingItem[];
@@ -300,7 +301,7 @@ const SpendingPage: React.FC<SpendingPageProps> = ({ items, onAdd, onDelete }) =
                 </form>
             </div>
 
-            {/* Visual Breakdown */}
+            {/* Visual Breakdown (Table/Bars) */}
             <div className="bg-white dark:bg-zinc-800 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-700">
                  <h3 className="font-bold text-zinc-900 dark:text-white mb-4 flex items-center gap-2">
                      <ChartBarIcon /> Top Categories
@@ -332,8 +333,12 @@ const SpendingPage: React.FC<SpendingPageProps> = ({ items, onAdd, onDelete }) =
             </div>
         </div>
 
-        {/* Right Column: Transaction List */}
+        {/* Right Column: Chart & Transaction List */}
         <div className="lg:col-span-2 flex flex-col h-full">
+            
+            {/* New Spending Chart */}
+            <SpendingChart items={items} />
+
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sticky top-0 bg-zinc-100 dark:bg-[#28282B] z-10 py-2">
                 <h3 className="font-bold text-xl text-zinc-900 dark:text-white">Transactions</h3>
                 

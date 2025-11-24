@@ -5,7 +5,7 @@ import MonthCard from './components/MonthCard';
 import TopNav from './components/TopNav';
 import Dashboard from './components/Dashboard';
 import StorePlanView from './components/StorePlanView';
-import { PlusIcon, GoogleSheetsIcon, ChevronDownIcon, ChevronRightIcon } from './components/Icons';
+import { PlusIcon, GoogleSheetsIcon, ChevronDownIcon, ChevronRightIcon, FolderIcon } from './components/Icons';
 import HomePage from './components/HomePage';
 import PowerfulWebSitesPage from './components/WelcomePage';
 import SpendingPage from './components/SpendingPage';
@@ -907,12 +907,21 @@ const App: React.FC = () => {
               <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Dashboard</h2>
               <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                 <button 
+                  onClick={handleConnectFile}
+                  className={`w-full sm:w-auto flex justify-center items-center gap-2 px-4 py-2 ${fileHandle ? 'bg-green-600' : 'bg-blue-600'} text-white rounded-lg shadow-md hover:opacity-90 transition-colors text-sm font-semibold`}
+                  aria-label="Connect Drive"
+                  title={fileHandle ? "Sync Active" : "Connect to Google Drive"}
+                >
+                  <FolderIcon />
+                  <span>{fileHandle ? 'Drive Connected' : 'Connect Drive'}</span>
+                </button>
+                <button 
                   onClick={handleSyncWithSheets}
                   className="w-full sm:w-auto flex justify-center items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg shadow-md hover:bg-emerald-700 transition-colors text-sm font-semibold"
                   aria-label="Sync with Google Sheets"
                 >
                   <GoogleSheetsIcon />
-                  <span>Sync with Sheets</span>
+                  <span>Export Excel</span>
                 </button>
                 <button 
                   onClick={handleNewMonth}
