@@ -110,41 +110,10 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
     const tax = totalSalary * 0.12;
     const netSalary = totalSalary - tax;
 
-    // 2. Create HTML Content with Styles to mimic the card style
-    const styles = `
-      <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .title { font-size: 22px; font-weight: bold; margin-bottom: 5px; color: #18181b; }
-        .subtitle { font-size: 12px; color: #71717a; margin-bottom: 15px; }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th { background-color: #f4f4f5; color: #3f3f46; border: 1px solid #e4e4e7; padding: 12px 8px; text-align: center; font-weight: bold; }
-        td { border: 1px solid #e4e4e7; padding: 10px 8px; color: #18181b; vertical-align: middle; }
-        .text-left { text-align: left; }
-        .text-center { text-align: center; }
-        .text-right { text-align: right; }
-        .font-bold { font-weight: bold; }
-        .font-medium { font-weight: 500; }
-        .text-emerald { color: #059669; }
-        .text-rose { color: #e11d48; }
-        .text-zinc { color: #71717a; }
-        .bg-gray { background-color: #f4f4f5; }
-        .border-top { border-top: 2px solid #d4d4d8; }
-        .salary-cell { font-family: monospace; font-weight: bold; }
-      </style>
-    `;
-
-    const tableRows = rows.map(row => `
-      <tr>
-        <td class="text-left font-bold">${row.name}</td>
-        <td class="text-center font-bold">${row.value}</td>
-        <td class="text-center">${row.target}</td>
-        <td class="text-center">${row.percentage}</td>
-        <td class="text-right text-emerald salary-cell">${row.salary.toLocaleString('en-US')}</td>
-      </tr>
-    `).join('');
-
     const headerLabel = viewMode === 'current' ? 'Current' : 'End Stats';
 
+    // 2. Create Simplified HTML Table for Excel
+    // This ensures "normal cells" and rows, avoiding merged footers for clarity in data processing
     const htmlContent = `
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
       <head>
@@ -163,38 +132,54 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
           </x:ExcelWorkbook>
         </xml>
         <![endif]-->
-        ${styles}
+        <style>
+            body { font-family: Arial, sans-serif; }
+            table { border-collapse: collapse; width: 100%; }
+            th { border: 1px solid #000; background-color: #f0f0f0; font-weight: bold; padding: 5px; }
+            td { border: 1px solid #ccc; padding: 5px; }
+            .num { mso-number-format:"0"; }
+            .currency { mso-number-format:"#,##0"; }
+        </style>
       </head>
       <body>
-        <div class="title">${monthData.name}</div>
-        <div class="subtitle">View Mode: ${viewMode === 'current' ? 'Current Stats (Real-Time)' : 'Projected Stats'}</div>
+        <h3>${monthData.name} - ${viewMode === 'current' ? 'Real-Time Report' : 'Projected Report'}</h3>
         <table>
           <thead>
             <tr>
-              <th class="text-left">Goal Name</th>
+              <th>Goal Name</th>
               <th>${headerLabel}</th>
               <th>Target</th>
-              <th>Progress</th>
-              <th class="text-right">Salary</th>
+              <th>Progress %</th>
+              <th>Salary</th>
             </tr>
           </thead>
           <tbody>
-            ${tableRows}
+            ${rows.map(row => `
+              <tr>
+                <td>${row.name}</td>
+                <td class="num">${row.value}</td>
+                <td class="num">${row.target}</td>
+                <td>${row.percentage}</td>
+                <td class="currency">${row.salary}</td>
+              </tr>
+            `).join('')}
+            <tr><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr>
+               <td></td><td></td><td></td>
+               <td style="font-weight:bold; text-align:right;">Total Gross</td>
+               <td class="currency" style="font-weight:bold;">${totalSalary}</td>
+            </tr>
+             <tr>
+               <td></td><td></td><td></td>
+               <td style="text-align:right;">Tax (12%)</td>
+               <td class="currency" style="color:red;">-${tax}</td>
+            </tr>
+            <tr>
+               <td></td><td></td><td></td>
+               <td style="font-weight:bold; text-align:right;">Net Salary</td>
+               <td class="currency" style="font-weight:bold; color:green;">${netSalary}</td>
+            </tr>
           </tbody>
-          <tfoot>
-             <tr>
-               <td colspan="4" class="text-right bg-gray font-bold">Total Gross:</td>
-               <td class="text-right bg-gray font-bold salary-cell">${totalSalary.toLocaleString('en-US')}</td>
-             </tr>
-             <tr>
-               <td colspan="4" class="text-right bg-gray text-zinc" style="font-size: 0.9em;">Tax (12%):</td>
-               <td class="text-right bg-gray text-rose salary-cell" style="font-size: 0.9em;">-${tax.toLocaleString('en-US')}</td>
-             </tr>
-             <tr>
-               <td colspan="4" class="text-right border-top font-bold" style="font-size: 1.1em;">Net Salary:</td>
-               <td class="text-right border-top text-emerald font-bold salary-cell" style="font-size: 1.1em;">${netSalary.toLocaleString('en-US')}</td>
-             </tr>
-          </tfoot>
         </table>
       </body>
       </html>
@@ -259,8 +244,6 @@ const MonthCard: React.FC<MonthCardProps> = ({ monthData, onGoalUpdate, onUpdate
                       )}
                     </div>
                 </div>
-                
-                {/* Desktop Action Buttons Group - Hidden on Mobile/Small screens if desired, or kept minimal */}
             </div>
             
             <div className="flex items-center justify-end gap-2">

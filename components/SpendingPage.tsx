@@ -155,7 +155,7 @@ const SpendingPage: React.FC<SpendingPageProps> = ({ items, onAdd, onDelete }) =
   const budgetColor = budgetProgress > 90 ? 'bg-rose-500' : budgetProgress > 75 ? 'bg-orange-500' : 'bg-emerald-500';
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
             <div className="p-3 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-500/20">
@@ -234,11 +234,11 @@ const SpendingPage: React.FC<SpendingPageProps> = ({ items, onAdd, onDelete }) =
            </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Left Column: Form & Breakdown */}
-        <div className="space-y-8">
+        <div className="space-y-8 lg:sticky lg:top-24">
             {/* Add Expense */}
-            <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-lg border border-zinc-200 dark:border-zinc-700/50 overflow-hidden sticky top-24">
+            <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-lg border border-zinc-200 dark:border-zinc-700/50 overflow-hidden">
                 <div className="p-5 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50">
                     <h3 className="font-bold text-lg text-zinc-900 dark:text-white flex items-center gap-2">
                         <PlusIcon /> New Transaction
@@ -333,27 +333,27 @@ const SpendingPage: React.FC<SpendingPageProps> = ({ items, onAdd, onDelete }) =
         </div>
 
         {/* Right Column: Transaction List */}
-        <div className="lg:col-span-2">
-            <div className="flex items-center justify-between mb-4">
+        <div className="lg:col-span-2 flex flex-col h-full">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sticky top-0 bg-zinc-100 dark:bg-[#28282B] z-10 py-2">
                 <h3 className="font-bold text-xl text-zinc-900 dark:text-white">Transactions</h3>
                 
-                <div className="flex gap-2">
-                    <div className="relative">
+                <div className="flex gap-2 w-full sm:w-auto">
+                    <div className="relative flex-grow sm:flex-grow-0">
                         <select 
                             value={filterCategory}
                             onChange={(e) => setFilterCategory(e.target.value)}
-                            className="pl-8 pr-4 py-1.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none appearance-none"
+                            className="w-full pl-8 pr-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none appearance-none"
                         >
                             <option value="All">All Categories</option>
                             {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                         <FunnelIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
                     </div>
-                    <div className="relative">
+                    <div className="relative flex-grow sm:flex-grow-0">
                          <select 
                             value={dateRange}
                             onChange={(e) => setDateRange(e.target.value as any)}
-                            className="pl-8 pr-4 py-1.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none appearance-none"
+                            className="w-full pl-8 pr-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none appearance-none"
                         >
                             <option value="all">All Time</option>
                             <option value="month">This Month</option>
@@ -364,20 +364,20 @@ const SpendingPage: React.FC<SpendingPageProps> = ({ items, onAdd, onDelete }) =
                 </div>
             </div>
             
-            {filteredItems.length === 0 ? (
-                <div className="bg-white dark:bg-zinc-800 rounded-2xl p-10 text-center border border-zinc-200 dark:border-zinc-700 border-dashed">
-                    <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-700 rounded-full flex items-center justify-center mx-auto mb-4 text-zinc-400">
-                        <FunnelIcon className="h-8 w-8" />
+            <div className="flex-grow overflow-y-auto max-h-[800px] pr-2 space-y-3 custom-scrollbar">
+                {filteredItems.length === 0 ? (
+                    <div className="bg-white dark:bg-zinc-800 rounded-2xl p-10 text-center border border-zinc-200 dark:border-zinc-700 border-dashed">
+                        <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-700 rounded-full flex items-center justify-center mx-auto mb-4 text-zinc-400">
+                            <FunnelIcon className="h-8 w-8" />
+                        </div>
+                        <h4 className="text-lg font-medium text-zinc-900 dark:text-white">No transactions found</h4>
+                        <p className="text-zinc-500 dark:text-zinc-400 mt-1">Try adjusting your filters or add a new expense.</p>
+                        <button onClick={() => {setFilterCategory('All'); setDateRange('all')}} className="mt-4 text-indigo-500 font-medium hover:underline flex items-center justify-center gap-1 mx-auto">
+                            <ArrowPathIcon className="h-4 w-4"/> Clear Filters
+                        </button>
                     </div>
-                    <h4 className="text-lg font-medium text-zinc-900 dark:text-white">No transactions found</h4>
-                    <p className="text-zinc-500 dark:text-zinc-400 mt-1">Try adjusting your filters or add a new expense.</p>
-                    <button onClick={() => {setFilterCategory('All'); setDateRange('all')}} className="mt-4 text-indigo-500 font-medium hover:underline flex items-center justify-center gap-1 mx-auto">
-                        <ArrowPathIcon className="h-4 w-4"/> Clear Filters
-                    </button>
-                </div>
-            ) : (
-                <div className="space-y-3">
-                    {filteredItems.map(item => (
+                ) : (
+                    filteredItems.map(item => (
                         <div key={item.id} className="bg-white dark:bg-zinc-800 p-4 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-zinc-50 dark:hover:bg-zinc-700/30 transition-colors group">
                             <div className="flex items-center gap-4">
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 
@@ -412,9 +412,9 @@ const SpendingPage: React.FC<SpendingPageProps> = ({ items, onAdd, onDelete }) =
                                 </button>
                             </div>
                         </div>
-                    ))}
-                </div>
-            )}
+                    ))
+                )}
+            </div>
         </div>
       </div>
     </div>

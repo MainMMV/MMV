@@ -32,24 +32,25 @@ const getGoalColor = (name: string) => {
 const SingleGoalBarChart: React.FC<{ config: any, data: any[] }> = ({ config, data }) => {
     if (data.length === 0) return null;
     
-    const height = 150;
-    // Dynamic width based on data points to prevent cramping
-    const width = Math.max(data.length * 60, 800); 
-    const padding = { top: 30, right: 20, bottom: 25, left: 20 };
+    // Increased height to give more room for bars and labels
+    const height = 220; 
+    // Increased multiplier to 80 for wider bars, ensured min width is adequate
+    const width = Math.max(data.length * 80, 600); 
+    const padding = { top: 20, right: 10, bottom: 40, left: 10 }; // Increased bottom padding for labels
     
     const maxValue = Math.max(...data.map(d => d.value));
     const yMax = maxValue > 0 ? maxValue * 1.2 : 10;
     
-    const barWidth = (width - padding.left - padding.right) / data.length * 0.6;
+    const barWidth = (width - padding.left - padding.right) / data.length * 0.6; // Slightly wider bars (0.6)
     const step = (width - padding.left - padding.right) / data.length;
 
     return (
-        <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 p-4 shadow-sm">
-            <h4 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3 pb-2 border-b border-zinc-100 dark:border-zinc-700/50">
+        <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 p-4 shadow-sm h-full flex flex-col">
+            <h4 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3 pb-2 border-b border-zinc-100 dark:border-zinc-700/50 truncate">
                 {config.label}
             </h4>
-            <div className="w-full h-40 overflow-x-auto no-scrollbar">
-                 <div style={{ minWidth: '100%', width: '100%', height: '100%' }}>
+            <div className="w-full overflow-x-auto pb-2 custom-scrollbar">
+                 <div style={{ minWidth: '100%', width: `${width}px`, height: `${height}px` }}>
                     <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="w-full h-full overflow-visible">
                         {/* Grid Lines */}
                         {[0, 0.25, 0.5, 0.75, 1].map(tick => {
@@ -73,14 +74,14 @@ const SingleGoalBarChart: React.FC<{ config: any, data: any[] }> = ({ config, da
                                         height={barHeight} 
                                         fill={config.barColor} 
                                         className="transition-opacity duration-300 group-hover:opacity-80"
-                                        rx="2"
+                                        rx="4"
                                     />
                                     {/* Value Label */}
                                     <text 
                                         x={x} 
                                         y={y - 8} 
                                         textAnchor="middle" 
-                                        fontSize="12" 
+                                        fontSize="14" 
                                         fontWeight="bold" 
                                         fill="currentColor" 
                                         className="text-zinc-600 dark:text-zinc-300"
@@ -91,9 +92,9 @@ const SingleGoalBarChart: React.FC<{ config: any, data: any[] }> = ({ config, da
                                     {/* X Axis Label */}
                                     <text 
                                         x={x} 
-                                        y={height} 
+                                        y={height - 10} 
                                         textAnchor="middle" 
-                                        fontSize="11" 
+                                        fontSize="12" 
                                         fontWeight="500"
                                         fill="currentColor" 
                                         className="text-zinc-400 dark:text-zinc-500"
@@ -132,7 +133,7 @@ const GoalVolumeCharts: React.FC<{ months: any[] }> = ({ months }) => {
     });
 
     return (
-        <div className="grid grid-cols-1 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 items-start">
             {preparedData.map((item, index) => (
                 <SingleGoalBarChart key={index} config={item.config} data={item.data} />
             ))}
@@ -216,10 +217,10 @@ const MonthPicker: React.FC<{ selectedDate: Date, onChange: (date: Date) => void
 
 // TrendChart Component
 const TrendChart: React.FC<{ data: { label: string; value: number }[]; color: string }> = ({ data, color }) => {
-    if (data.length === 0) return <div className="h-64 flex items-center justify-center text-zinc-400 text-sm">No data available</div>;
+    if (data.length === 0) return <div className="h-52 flex items-center justify-center text-zinc-400 text-sm">No data available</div>;
     
     const height = 250;
-    const width = 800;
+    const width = Math.max(data.length * 50, 800); // Dynamic width for scroll
     const paddingX = 40;
     const paddingY = 30;
     const chartW = width - paddingX * 2;
@@ -239,8 +240,8 @@ const TrendChart: React.FC<{ data: { label: string; value: number }[]; color: st
         : `${width/2},${height-paddingY-(data[0].value/maxVal)*chartH} L ${width/2 + 20},${height - paddingY} L ${width/2 - 20},${height - paddingY} Z`;
 
     return (
-        <div className="w-full h-64 select-none overflow-x-auto no-scrollbar">
-            <div className="min-w-[600px] h-full">
+        <div className="w-full h-64 select-none overflow-x-auto bg-zinc-50/50 dark:bg-zinc-900/30 rounded-lg border border-zinc-100 dark:border-zinc-700/50 custom-scrollbar">
+            <div style={{ minWidth: '100%', width: `${width}px`, height: '100%' }}>
                 <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="w-full h-full overflow-visible">
                     <defs>
                         <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
@@ -290,8 +291,8 @@ const TrendChart: React.FC<{ data: { label: string; value: number }[]; color: st
 
 // DonutChart Component
 const DonutChart: React.FC<{ data: { name: string; value: number; color: string }[] }> = ({ data }) => {
-    const size = 180;
-    const strokeWidth = 20;
+    const size = 160;
+    const strokeWidth = 18;
     const radius = (size - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;
     const total = data.reduce((sum, d) => sum + d.value, 0);
@@ -359,15 +360,15 @@ const MonthlyPostcard: React.FC<{
                 <MonthPicker selectedDate={selectedDate} onChange={onDateChange} />
             </div>
 
-            <div className="flex-grow p-4 sm:p-6 flex flex-col lg:flex-row gap-8 items-center lg:items-start justify-center">
-                <div className="flex flex-col items-center flex-shrink-0">
+            <div className="flex-grow p-4 sm:p-6 flex flex-col gap-8 items-center justify-center">
+                <div className="flex flex-col items-center w-full">
                     <DonutChart data={donutData} />
                     <div className="mt-6 w-full space-y-2">
                          {donutData.slice(0, 3).map((d, i) => (
                             <div key={i} className="flex items-center justify-between gap-3 text-sm">
                                 <div className="flex items-center gap-2">
                                     <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }}></div>
-                                    <span className="text-zinc-600 dark:text-zinc-300 truncate max-w-[120px]">{d.name}</span>
+                                    <span className="text-zinc-600 dark:text-zinc-300 truncate max-w-[150px]">{d.name}</span>
                                 </div>
                                 <span className="font-medium text-zinc-900 dark:text-white">
                                     {new Intl.NumberFormat('en-US', { notation: "compact" }).format(d.value)}
@@ -377,27 +378,24 @@ const MonthlyPostcard: React.FC<{
                     </div>
                 </div>
 
-                <div className="flex-grow w-full space-y-4">
-                    <div className="p-4 rounded-lg bg-zinc-50 dark:bg-zinc-700/20 border border-zinc-100 dark:border-zinc-700/50 flex justify-between items-center">
-                        <div>
-                            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase">Gross Income</p>
-                            <p className="text-xl font-bold text-zinc-900 dark:text-white">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalRevenue)}</p>
-                        </div>
-                        <div className="h-8 w-1 bg-zinc-200 dark:bg-zinc-600 rounded-full"></div>
-                         <div className="text-right">
-                            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase">Tax (12%)</p>
-                            <p className="text-xl font-bold text-rose-500">-{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(tax)}</p>
-                        </div>
+                <div className="w-full space-y-4 border-t border-zinc-100 dark:border-zinc-700/50 pt-4">
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="font-medium text-zinc-500 dark:text-zinc-400">Gross Income</span>
+                        <span className="font-bold text-zinc-900 dark:text-white">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalRevenue)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="font-medium text-zinc-500 dark:text-zinc-400">Tax (12%)</span>
+                        <span className="font-bold text-rose-500">-{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(tax)}</span>
                     </div>
 
-                   <div className="p-5 rounded-lg bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/10 border border-emerald-100 dark:border-emerald-900/30">
-                       <p className="text-sm font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wide mb-1">Net Earnings</p>
-                       <div className="flex items-baseline gap-2">
-                           <p className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                   <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 flex justify-between items-center">
+                       <span className="text-sm font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wide">Net</span>
+                       <div className="flex flex-col items-end">
+                           <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">
                                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(net)}
-                           </p>
+                           </span>
                            {monthData && (
-                               <span className="text-sm font-medium text-emerald-600/70 dark:text-emerald-400/60">
+                               <span className="text-xs font-medium text-emerald-600/70 dark:text-emerald-400/60">
                                    {monthData.name}
                                </span>
                            )}
@@ -577,26 +575,29 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-         <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm relative overflow-hidden">
+         <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm relative overflow-hidden h-full">
              <div className="relative z-10">
-                 <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Lifetime Net Earnings</h3>
-                 <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400 mt-2">{formatCurrency(analytics.totalLifetimeNet)}</p>
+                 <h3 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Lifetime Net Earnings</h3>
+                 <p className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-2">{formatCurrency(analytics.totalLifetimeNet)}</p>
              </div>
              <div className="absolute right-0 top-0 h-full w-24 bg-gradient-to-l from-emerald-500/10 to-transparent"></div>
          </div>
-         <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm">
-             <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Monthly Average</h3>
-             <p className="text-3xl font-bold text-zinc-900 dark:text-white mt-2">{formatCurrency(analytics.averageMonthlyNet)}</p>
+         <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm h-full">
+             <h3 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Monthly Average</h3>
+             <p className="text-3xl font-extrabold text-zinc-900 dark:text-white mt-2">{formatCurrency(analytics.averageMonthlyNet)}</p>
          </div>
-         <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm">
-             <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Best Month</h3>
-             <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mt-2 truncate">{analytics.bestMonth.name}</p>
+         <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm h-full">
+             <h3 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Best Month</h3>
+             <p className="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-2 truncate">{analytics.bestMonth.name}</p>
              <p className="text-sm text-zinc-500 dark:text-zinc-400">{formatCurrency(analytics.bestMonth.net)}</p>
          </div>
       </div>
 
-      {/* New Goal Volume Charts Section */}
-      <GoalVolumeCharts months={ascendingMonths} />
+      {/* Goal Volume Charts Section */}
+      <div className="mb-8">
+        <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-4">Goal Activity Volume</h3>
+        <GoalVolumeCharts months={ascendingMonths} />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         <div className="lg:col-span-2 bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm">
@@ -618,7 +619,7 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
       <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-zinc-200 dark:border-zinc-700">
               <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Goal Performance Matrix</h3>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">Raw volume of tasks completed per month. Darker cells indicate higher volume.</p>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Raw volume of tasks completed per month.</p>
           </div>
           <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
@@ -686,7 +687,7 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
       <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-zinc-200 dark:border-zinc-700">
             <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Financial Summary</h3>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">Gross, Tax, and Net Salary breakdown by year (Newest First).</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Gross, Tax, and Net Salary breakdown by year.</p>
         </div>
         <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
