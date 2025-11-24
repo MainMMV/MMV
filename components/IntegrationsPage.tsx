@@ -14,9 +14,10 @@ interface Integration {
 
 interface IntegrationsPageProps {
     onConnectDrive?: () => void;
+    isConnected: boolean;
 }
 
-const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ onConnectDrive }) => {
+const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ onConnectDrive, isConnected }) => {
     const [integrations, setIntegrations] = useState<Integration[]>([
         {
             id: 'google-sheets',
@@ -52,15 +53,21 @@ const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ onConnectDrive }) =
         }
     ]);
 
+    useEffect(() => {
+        setIntegrations(prev => prev.map(i => {
+            if (i.id === 'google-drive') {
+                return { ...i, connected: isConnected };
+            }
+            return i;
+        }));
+    }, [isConnected]);
+
     const handleDriveConnection = () => {
         // If drive is not connected, we try to connect it via file system
         const driveIntegration = integrations.find(i => i.id === 'google-drive');
         if (driveIntegration && !driveIntegration.connected && onConnectDrive) {
             // Trigger the file picker in App.tsx
             onConnectDrive();
-            // Ideally we wait for success, but for UI feedback we can toggle if user completes action
-            // For now, we let App.tsx handle the "connected" state via fileHandle, but here we just visual toggle for demo
-            // In a real app, props would drive the 'connected' state
         } else {
             // Disconnect logic if needed
             toggleConnection('google-drive');

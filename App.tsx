@@ -13,6 +13,7 @@ import ComparisonDashboard from './components/ComparisonDashboard';
 import SettingsModal from './components/SettingsModal';
 import NewMonthModal from './components/NewMonthModal';
 import QRCodePage from './components/QRCodePage';
+import IntegrationsPage from './components/IntegrationsPage';
 
 // Initial sample data for the application, imported from Incone 2.0.xlsx
 const initialData: MonthData[] = [
@@ -386,25 +387,50 @@ const App: React.FC = () => {
           const [handle] = await window.showOpenFilePicker({
               types: [{
                   description: 'JSON Data Files',
-                  accept: { 'application/json': ['.json'] }
+                  accept: { 'application/json': ['.json', '.txt'] }
               }],
               multiple: false
           });
 
           const file = await handle.getFile();
           const text = await file.text();
-          const backup = JSON.parse(text);
+          
+          // Handle empty or new files
+          if (!text.trim()) {
+              if (window.confirm("You selected an empty file. Do you want to start syncing your current data to this file?")) {
+                  setFileHandle(handle);
+                  alert("File connected successfully! Your data will now auto-sync.");
+              }
+              setIsSettingsOpen(false);
+              return;
+          }
+
+          let backup;
+          try {
+             backup = JSON.parse(text);
+          } catch (e) {
+             if (window.confirm("The selected file contains invalid data. Do you want to overwrite it with your current app data?")) {
+                 setFileHandle(handle);
+                 alert("File connected! It will be overwritten with current data on next save.");
+             }
+             setIsSettingsOpen(false);
+             return;
+          }
 
           if (backup && backup.data) {
-              if (backup.data.salaryGoalTrackerData) setData(backup.data.salaryGoalTrackerData);
-              if (backup.data.storePlansData) setStorePlans(backup.data.storePlansData);
-              if (backup.data.favouriteLinks) setLinks(backup.data.favouriteLinks);
-              if (backup.data.favouriteFolders) setFolders(backup.data.favouriteFolders);
-              if (backup.data.spendingData) setSpendingData(backup.data.spendingData);
-              if (backup.data.theme) setTheme(backup.data.theme);
+              if (window.confirm("Do you want to LOAD data from this file? Cancel to overwrite file with current App data.")) {
+                if (backup.data.salaryGoalTrackerData) setData(backup.data.salaryGoalTrackerData);
+                if (backup.data.storePlansData) setStorePlans(backup.data.storePlansData);
+                if (backup.data.favouriteLinks) setLinks(backup.data.favouriteLinks);
+                if (backup.data.favouriteFolders) setFolders(backup.data.favouriteFolders);
+                if (backup.data.spendingData) setSpendingData(backup.data.spendingData);
+                if (backup.data.theme) setTheme(backup.data.theme);
+                alert("Data loaded successfully! Sync active.");
+              } else {
+                alert("Keeping current data. Sync active (file will be overwritten).");
+              }
               
               setFileHandle(handle);
-              alert("File connected successfully! Changes will now auto-sync to this file.");
               setIsSettingsOpen(false);
           } else {
               alert("Invalid file format.");
@@ -871,6 +897,8 @@ const App: React.FC = () => {
         return <ComparisonDashboard allMonths={data} />;
       case 'qr_generator':
         return <QRCodePage />;
+      case 'integrations':
+        return <IntegrationsPage onConnectDrive={handleConnectFile} isConnected={!!fileHandle} />;
       case 'mmv':
       default:
         return (
