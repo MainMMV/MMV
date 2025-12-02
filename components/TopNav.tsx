@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { 
   SunIcon, MoonIcon, MenuIcon, ChartBarIcon, CogIcon, CheckCircleIcon,
-  HomeIcon, Squares2X2Icon, BuildingStoreIcon, UserGroupIcon, WalletIcon, GlobeAltIcon, QrCodeIcon, PuzzlePieceIcon 
+  HomeIcon, Squares2X2Icon, BuildingStoreIcon, UserGroupIcon, PuzzlePieceIcon 
 } from './Icons';
 
 /**
@@ -10,8 +11,8 @@ import {
 interface TopNavProps {
   theme: 'light' | 'dark';
   toggleTheme: () => void;
-  activeView: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison' | 'integrations' | 'qr_generator';
-  onViewChange: (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison' | 'integrations' | 'qr_generator') => void;
+  activeView: 'welcome' | 'mmv' | 'branch' | 'seller' | 'comparison' | 'integrations';
+  onViewChange: (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'comparison' | 'integrations') => void;
   onOpenSettings: () => void;
   isCloudSyncActive?: boolean;
 }
@@ -22,12 +23,12 @@ interface TopNavProps {
 const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewChange, onOpenSettings, isCloudSyncActive }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleViewClick = (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison' | 'integrations' | 'qr_generator') => {
+  const handleViewClick = (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'comparison' | 'integrations') => {
     onViewChange(view);
     setIsMenuOpen(false);
   };
 
-  const getButtonClass = (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison' | 'integrations' | 'qr_generator') => {
+  const getButtonClass = (view: 'welcome' | 'mmv' | 'branch' | 'seller' | 'comparison' | 'integrations') => {
     const baseClass = "text-left p-2 rounded-md transition-colors w-full font-medium flex items-center gap-2";
     if (activeView === view) {
       return `${baseClass} bg-gray-300 dark:bg-gray-700 font-semibold text-gray-900 dark:text-white`;
@@ -116,22 +117,13 @@ const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewC
                 <Squares2X2Icon /> Dashboard
               </button>
               <button className={getButtonClass('comparison')} onClick={() => handleViewClick('comparison')}>
-                  <ChartBarIcon /> Comparison
+                  <ChartBarIcon /> Analytics
               </button>
               <button className={getButtonClass('branch')} onClick={() => handleViewClick('branch')}>
                 <BuildingStoreIcon /> Branch Plan
               </button>
               <button className={getButtonClass('seller')} onClick={() => handleViewClick('seller')}>
                 <UserGroupIcon /> Seller View
-              </button>
-              <button className={getButtonClass('spending')} onClick={() => handleViewClick('spending')}>
-                <WalletIcon /> Spending Page
-              </button>
-              <button className={getButtonClass('powerful_sites')} onClick={() => handleViewClick('powerful_sites')}>
-                <GlobeAltIcon /> Powerful Web Sites
-              </button>
-              <button className={getButtonClass('qr_generator')} onClick={() => handleViewClick('qr_generator')}>
-                <QrCodeIcon /> QR Generator
               </button>
               <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
               <button className={getButtonClass('integrations')} onClick={() => handleViewClick('integrations')}>

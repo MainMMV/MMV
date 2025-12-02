@@ -24,7 +24,7 @@ export const EyeIcon: React.FC<IconProps> = ({className}) => (
 
 export const EyeOffIcon: React.FC<IconProps> = ({className}) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${className || ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 .525-1.666 1.34-3.14 2.342-4.375m2.358-2.358A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.05 10.05 0 01-4.125 5.825M17 17l-1-1m-4-4l-1-1m-4-4l-1-1" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 .525-1.666 1.34-3.14 2.342-4.375m2.358-2.358A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.05 10.05 0 01-4.125 5.825M17 17l-1-1m-4-4l-1-1m-4-4l-1-1m-4-4l-1-1" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M1 1l22 22" />
     </svg>
 );
@@ -276,5 +276,17 @@ export const DuplicateIcon: React.FC<IconProps> = ({className}) => (
 export const ArrowsRightLeftIcon: React.FC<IconProps> = ({className}) => (
   <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${className || ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+  </svg>
+);
+
+export const TrophyIcon: React.FC<IconProps> = ({className}) => (
+  <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${className || ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0V5.625a2.625 2.625 0 10-5.25 0v8.625" />
+  </svg>
+);
+
+export const ClockIcon: React.FC<IconProps> = ({className}) => (
+  <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${className || ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
 );

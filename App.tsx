@@ -1,18 +1,17 @@
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { MonthData, GoalStatus, Goal, StorePlan, FavouriteLink, FavouriteFolder, SpendingItem } from './types';
+import { MonthData, GoalStatus, Goal, StorePlan, Seller } from './types';
 import MonthCard from './components/MonthCard';
 import TopNav from './components/TopNav';
 import Dashboard from './components/Dashboard';
 import StorePlanView from './components/StorePlanView';
 import { PlusIcon, GoogleSheetsIcon, ChevronDownIcon, ChevronRightIcon, FolderIcon } from './components/Icons';
 import HomePage from './components/HomePage';
-import PowerfulWebSitesPage from './components/WelcomePage';
-import SpendingPage from './components/SpendingPage';
 import ComparisonDashboard from './components/ComparisonDashboard';
 import SettingsModal from './components/SettingsModal';
 import NewMonthModal from './components/NewMonthModal';
-import QRCodePage from './components/QRCodePage';
 import IntegrationsPage from './components/IntegrationsPage';
+import SellerView from './components/SellerView';
 
 // Initial sample data for the application
 const initialData: MonthData[] = [
@@ -49,14 +48,32 @@ const initialStorePlans: StorePlan[] = [
   { id: 'sp4', name: '3rd Decade', plan100: 1033333333, actualSum: 0 },
 ];
 
-const initialLinks: FavouriteLink[] = [
-  { id: 'l1', title: 'MMV Clock', url: 'https://mmvclock.netlify.app/', description: 'A real-time clock application.', folderId: null },
-  { id: 'l2', title: 'MMV JSON', url: 'https://mmvjson.netlify.app/', description: 'A tool for JSON data management.', folderId: null },
+const initialSellers: Seller[] = [
+    {
+        id: 's1',
+        name: 'John Doe',
+        totalFact: 845572497,
+        totalPlan: 500000000,
+        totalCount: 221,
+        bonus: 4594566,
+        ceFact: 210345970,
+        cePlan: 300000000,
+        tcFact: 535093390,
+        tcPlan: 200000000
+    },
+    {
+        id: 's2',
+        name: 'Jane Smith',
+        totalFact: 800850752,
+        totalPlan: 500000000,
+        totalCount: 228,
+        bonus: 2915008,
+        ceFact: 330926135,
+        cePlan: 300000000,
+        tcFact: 441727026,
+        tcPlan: 200000000
+    }
 ];
-
-const initialFolders: FavouriteFolder[] = [];
-
-const initialSpending: SpendingItem[] = [];
 
 
 /**
@@ -64,7 +81,7 @@ const initialSpending: SpendingItem[] = [];
  * Manages the state for all month data and handles CRUD operations.
  */
 const App: React.FC = () => {
-  const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'branch' | 'seller' | 'spending' | 'powerful_sites' | 'comparison' | 'integrations' | 'qr_generator'>('welcome');
+  const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'branch' | 'seller' | 'comparison' | 'integrations'>('welcome');
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNewMonthModalOpen, setIsNewMonthModalOpen] = useState(false);
@@ -75,9 +92,7 @@ const App: React.FC = () => {
 
   const [data, setData] = useState<MonthData[]>(initialData);
   const [storePlans, setStorePlans] = useState<StorePlan[]>(initialStorePlans);
-  const [links, setLinks] = useState<FavouriteLink[]>(initialLinks);
-  const [folders, setFolders] = useState<FavouriteFolder[]>(initialFolders);
-  const [spendingData, setSpendingData] = useState<SpendingItem[]>(initialSpending);
+  const [sellers, setSellers] = useState<Seller[]>(initialSellers);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -103,13 +118,11 @@ const App: React.FC = () => {
         data: {
             salaryGoalTrackerData: data,
             storePlansData: storePlans,
-            favouriteLinks: links,
-            favouriteFolders: folders,
-            spendingData: spendingData,
+            sellersData: sellers,
             theme: theme
         }
     }, null, 2);
-  }, [data, storePlans, links, folders, spendingData, theme]);
+  }, [data, storePlans, sellers, theme]);
 
   // Auto-save to file handle if connected
   useEffect(() => {
@@ -134,7 +147,7 @@ const App: React.FC = () => {
     return () => {
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
-  }, [data, storePlans, links, folders, spendingData, theme, fileHandle, generateBackupJSON]);
+  }, [data, storePlans, sellers, theme, fileHandle, generateBackupJSON]);
 
   const handleConnectFile = async () => {
       try {
@@ -182,9 +195,7 @@ const App: React.FC = () => {
               if (window.confirm("Do you want to LOAD data from this file? Cancel to overwrite file with current App data.")) {
                 if (backup.data.salaryGoalTrackerData) setData(backup.data.salaryGoalTrackerData);
                 if (backup.data.storePlansData) setStorePlans(backup.data.storePlansData);
-                if (backup.data.favouriteLinks) setLinks(backup.data.favouriteLinks);
-                if (backup.data.favouriteFolders) setFolders(backup.data.favouriteFolders);
-                if (backup.data.spendingData) setSpendingData(backup.data.spendingData);
+                if (backup.data.sellersData) setSellers(backup.data.sellersData);
                 if (backup.data.theme) setTheme(backup.data.theme);
                 alert("Data loaded successfully! Sync active.");
               } else {
@@ -591,47 +602,29 @@ const App: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  // --- Favourite Links and Folders Handlers ---
-
-  const handleAddOrUpdateLink = (link: Omit<FavouriteLink, 'id'> & { id?: string }) => {
-    setLinks(currentLinks => {
-      if (link.id) {
-        return currentLinks.map(l => l.id === link.id ? { ...l, ...link } : l);
-      } else {
-        return [...currentLinks, { ...link, id: `l-${Date.now()}` }];
-      }
-    });
+  // --- Seller Handlers ---
+  const handleSellerUpdate = (id: string, updatedValues: Partial<Seller>) => {
+      setSellers(prev => prev.map(s => s.id === id ? { ...s, ...updatedValues } : s));
   };
 
-  const handleRemoveLink = (linkId: string) => {
-    setLinks(currentLinks => currentLinks.filter(l => l.id !== linkId));
+  const handleAddSeller = () => {
+      const newSeller: Seller = {
+          id: `s-${Date.now()}`,
+          name: 'New Consultant',
+          totalFact: 0,
+          totalPlan: 500000000,
+          totalCount: 0,
+          bonus: 0,
+          ceFact: 0,
+          cePlan: 300000000,
+          tcFact: 0,
+          tcPlan: 200000000
+      };
+      setSellers(prev => [...prev, newSeller]);
   };
 
-  const handleAddFolder = (name: string) => {
-    const newFolder: FavouriteFolder = { id: `f-${Date.now()}`, name };
-    setFolders(currentFolders => [...currentFolders, newFolder]);
-  };
-
-  const handleUpdateFolder = (folderId: string, updatedValues: Partial<FavouriteFolder>) => {
-    setFolders(currentFolders =>
-      currentFolders.map(f => (f.id === folderId ? { ...f, ...updatedValues } : f))
-    );
-  };
-
-  const handleRemoveFolder = (folderId: string) => {
-    setFolders(currentFolders => currentFolders.filter(f => f.id !== folderId));
-    // Also set links in this folder to be ungrouped
-    setLinks(currentLinks => currentLinks.map(l => l.folderId === folderId ? { ...l, folderId: null } : l));
-  };
-
-  // --- Spending Handlers ---
-  const handleAddSpending = (item: Omit<SpendingItem, 'id'>) => {
-    const newItem = { ...item, id: `spend-${Date.now()}` };
-    setSpendingData(prev => [newItem, ...prev]);
-  };
-
-  const handleDeleteSpending = (id: string) => {
-    setSpendingData(prev => prev.filter(item => item.id !== id));
+  const handleDeleteSeller = (id: string) => {
+      setSellers(prev => prev.filter(s => s.id !== id));
   };
 
 
@@ -648,30 +641,22 @@ const App: React.FC = () => {
         return (
           <HomePage 
             monthData={currentMonthData}
-            spendingData={spendingData}
             onNavigate={setActiveView}
           />
         );
-      case 'powerful_sites':
-        return <PowerfulWebSitesPage 
-          links={links}
-          folders={folders}
-          onAddOrUpdateLink={handleAddOrUpdateLink}
-          onRemoveLink={handleRemoveLink}
-          onAddFolder={handleAddFolder}
-          onUpdateFolder={handleUpdateFolder}
-          onRemoveFolder={handleRemoveFolder}
-        />;
       case 'branch':
         return <StorePlanView plans={storePlans} onPlanUpdate={handleStorePlanUpdate} />;
       case 'seller':
-        return <div className="text-center p-8"><h2 className="text-2xl font-bold">Seller View Coming Soon</h2></div>;
-      case 'spending':
-        return <SpendingPage items={spendingData} onAdd={handleAddSpending} onDelete={handleDeleteSpending} />;
+        return (
+            <SellerView 
+                sellers={sellers} 
+                onUpdate={handleSellerUpdate} 
+                onAdd={handleAddSeller}
+                onDelete={handleDeleteSeller}
+            />
+        );
       case 'comparison':
         return <ComparisonDashboard allMonths={data} />;
-      case 'qr_generator':
-        return <QRCodePage />;
       case 'integrations':
         return <IntegrationsPage onConnectDrive={handleConnectFile} isConnected={!!fileHandle} />;
       case 'mmv':

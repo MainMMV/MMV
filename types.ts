@@ -97,3 +97,22 @@ export interface SpendingItem {
   category: string;
   note: string;
 }
+
+/**
+ * Interface representing a Seller's performance data.
+ */
+export interface Seller {
+  id: string;
+  name: string;
+  // Total Stats
+  totalFact: number;
+  totalPlan: number;
+  totalCount: number;
+  bonus: number;
+  // Category 1: CE (Consumer Electronics)
+  ceFact: number;
+  cePlan: number;
+  // Category 2: TC (Telecom/Accessories)
+  tcFact: number;
+  tcPlan: number;
+}
