@@ -12,7 +12,8 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "@google/genai": "latest",
-    "qrcode": "latest"
+    "qrcode": "latest",
+    "jsbarcode": "latest"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

@@ -1,24 +1,23 @@
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { MonthData, GoalStatus, Goal, StorePlan, Seller } from './types';
-import MonthCard from './components/MonthCard';
-import TopNav from './components/TopNav';
-import Dashboard from './components/Dashboard';
-import StorePlanView from './components/StorePlanView';
-import { PlusIcon, GoogleSheetsIcon, ChevronDownIcon, ChevronRightIcon, FolderIcon } from './components/Icons';
-import HomePage from './components/HomePage';
-import ComparisonDashboard from './components/ComparisonDashboard';
-import SettingsModal from './components/SettingsModal';
-import NewMonthModal from './components/NewMonthModal';
-import IntegrationsPage from './components/IntegrationsPage';
-import SellerView from './components/SellerView';
+import { MonthData, GoalStatus, Goal, StorePlan, Seller } from './types.ts';
+import MonthCard from './components/MonthCard.tsx';
+import TopNav from './components/TopNav.tsx';
+import Dashboard from './components/Dashboard.tsx';
+import StorePlanView from './components/StorePlanView.tsx';
+import { PlusIcon, GoogleSheetsIcon, ChevronDownIcon, ChevronRightIcon, FolderIcon } from './components/Icons.tsx';
+import HomePage from './components/HomePage.tsx';
+import ComparisonDashboard from './components/ComparisonDashboard.tsx';
+import SettingsModal from './components/SettingsModal.tsx';
+import NewMonthModal from './components/NewMonthModal.tsx';
+import IntegrationsPage from './components/IntegrationsPage.tsx';
+import SellerView from './components/SellerView.tsx';
 
 // Initial sample data for the application
 const initialData: MonthData[] = [
   {
     id: 'september-2025',
     name: 'September 2025',
-    date: '2025-09-15T00:00:00Z',
+    date: '2025-09-30T12:00:00Z', // End of month for past
     goals: [
       { id: 'g1', name: 'within 5 minutes', progress: 40, endValue: 40, status: GoalStatus.COMPLETED },
       { id: 'g2', name: 'within 10 minutes', progress: 16, endValue: 16, status: GoalStatus.COMPLETED },
@@ -30,7 +29,7 @@ const initialData: MonthData[] = [
   {
     id: 'october-2025',
     name: 'October 2025',
-    date: '2025-10-15T00:00:00Z',
+    date: '2025-10-31T12:00:00Z', // End of month for past (relative to now in sample)
     goals: [
       { id: 'g1', name: 'within 5 minutes', progress: 26, endValue: 40, status: GoalStatus.COMPLETED },
       { id: 'g2', name: 'within 10 minutes', progress: 16, endValue: 16, status: GoalStatus.COMPLETED },
@@ -627,6 +626,10 @@ const App: React.FC = () => {
       setSellers(prev => prev.filter(s => s.id !== id));
   };
 
+  const handleSellerBulkUpdate = (updatedSellers: Seller[]) => {
+      setSellers(updatedSellers);
+  };
+
 
   const renderContent = () => {
     switch (activeView) {
@@ -653,6 +656,7 @@ const App: React.FC = () => {
                 onUpdate={handleSellerUpdate} 
                 onAdd={handleAddSeller}
                 onDelete={handleDeleteSeller}
+                onBulkUpdate={handleSellerBulkUpdate}
             />
         );
       case 'comparison':

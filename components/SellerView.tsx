@@ -7,9 +7,10 @@ interface SellerViewProps {
   onUpdate: (id: string, updatedValues: Partial<Seller>) => void;
   onAdd: () => void;
   onDelete: (id: string) => void;
+  onBulkUpdate: (updatedSellers: Seller[]) => void;
 }
 
-const SellerView: React.FC<SellerViewProps> = ({ sellers, onUpdate, onAdd, onDelete }) => {
+const SellerView: React.FC<SellerViewProps> = ({ sellers, onUpdate, onAdd, onDelete, onBulkUpdate }) => {
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
