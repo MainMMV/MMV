@@ -28,6 +28,10 @@ export interface MonthData {
   name: string; // Display name for the month (e.g., "November 2025")
   date: string; // ISO 8601 date string
   goals: Goal[]; // An array of goals for this month
+  // New Salary Breakdown Fields
+  salary65?: number;
+  salary35?: number;
+  manualBonus?: number;
 }
 
 /**

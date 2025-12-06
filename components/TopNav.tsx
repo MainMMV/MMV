@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { 
   SunIcon, MoonIcon, MenuIcon, ChartBarIcon, CogIcon, CheckCircleIcon,
-  HomeIcon, Squares2X2Icon, BuildingStoreIcon, UserGroupIcon, PuzzlePieceIcon, PresentationChartLineIcon 
+  HomeIcon, Squares2X2Icon, BuildingStoreIcon, UserGroupIcon, PuzzlePieceIcon, PresentationChartLineIcon,
+  CalendarIcon, WalletIcon
 } from './Icons';
 
 /**
@@ -11,8 +12,8 @@ import {
 interface TopNavProps {
   theme: 'light' | 'dark';
   toggleTheme: () => void;
-  activeView: 'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations';
-  onViewChange: (view: 'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations') => void;
+  activeView: 'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations' | 'income_detail';
+  onViewChange: (view: 'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations' | 'income_detail') => void;
   onOpenSettings: () => void;
   isCloudSyncActive?: boolean;
 }
@@ -23,17 +24,17 @@ interface TopNavProps {
 const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewChange, onOpenSettings, isCloudSyncActive }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleViewClick = (view: 'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations') => {
+  const handleViewClick = (view: 'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations' | 'income_detail') => {
     onViewChange(view);
     setIsMenuOpen(false);
   };
 
-  const getButtonClass = (view: 'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations') => {
-    const baseClass = "text-left p-2 rounded-md transition-colors w-full font-medium flex items-center gap-2";
+  const getButtonClass = (view: string) => {
+    const baseClass = "text-left p-3 rounded-xl transition-all w-full font-medium flex items-center gap-3 text-sm";
     if (activeView === view) {
-      return `${baseClass} bg-gray-300 dark:bg-gray-700 font-semibold text-gray-900 dark:text-white`;
+      return `${baseClass} bg-gray-900 text-white dark:bg-white dark:text-gray-900 shadow-md`;
     }
-    return `${baseClass} hover:bg-gray-200 dark:hover:bg-gray-700/50 text-gray-600 dark:text-gray-300`;
+    return `${baseClass} hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200`;
   };
 
   return (
@@ -100,39 +101,62 @@ const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewC
         
         {/* Sidebar */}
         <div 
-          className={`relative h-full w-64 bg-gray-100 dark:bg-gray-900 shadow-xl transition-transform duration-300 ease-in-out ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+          className={`relative h-full w-72 bg-gray-50 dark:bg-gray-900 shadow-2xl transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
         >
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Menu</h2>
-              <button onClick={() => setIsMenuOpen(false)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700">
-                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          <div className="p-6 flex-grow overflow-y-auto">
+            <div className="flex items-center justify-between mb-8 pl-2">
+              <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Navigation</h2>
+              <button onClick={() => setIsMenuOpen(false)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-500">
+                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
+            
             <nav className="flex flex-col gap-2">
+              {/* 1. Home Page */}
               <button className={getButtonClass('welcome')} onClick={() => handleViewClick('welcome')}>
-                <HomeIcon /> Home
+                <HomeIcon className="w-5 h-5" /> Home Page
               </button>
+
+              {/* 2. Months (Formerly Dashboard/MMV) */}
               <button className={getButtonClass('mmv')} onClick={() => handleViewClick('mmv')}>
-                <Squares2X2Icon /> Dashboard
+                <CalendarIcon className="w-5 h-5" /> Months
               </button>
+
+              {/* 3. AI Dashboard */}
               <button className={getButtonClass('ai')} onClick={() => handleViewClick('ai')}>
-                <PresentationChartLineIcon /> AI Dashboard
+                <PresentationChartLineIcon className="w-5 h-5" /> AI Dashboard
               </button>
+
+              {/* 4. Dashboard (Formerly Analytics/Comparison) */}
               <button className={getButtonClass('comparison')} onClick={() => handleViewClick('comparison')}>
-                  <ChartBarIcon /> Analytics
+                  <Squares2X2Icon className="w-5 h-5" /> Dashboard
               </button>
+
+              {/* 5. Monthly Income (New) */}
+              <button className={getButtonClass('income_detail')} onClick={() => handleViewClick('income_detail')}>
+                  <WalletIcon className="w-5 h-5" /> Monthly Income(in detail)
+              </button>
+
+              {/* 6. Branch Plan */}
               <button className={getButtonClass('branch')} onClick={() => handleViewClick('branch')}>
-                <BuildingStoreIcon /> Branch Plan
+                <BuildingStoreIcon className="w-5 h-5" /> Branch Plan
               </button>
+
+              {/* 7. Sellers Plan */}
               <button className={getButtonClass('seller')} onClick={() => handleViewClick('seller')}>
-                <UserGroupIcon /> Seller View
+                <UserGroupIcon className="w-5 h-5" /> Sellers Plan
               </button>
-              <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+
+              <div className="border-t border-gray-200 dark:border-gray-800 my-2"></div>
+              
               <button className={getButtonClass('integrations')} onClick={() => handleViewClick('integrations')}>
-                <PuzzlePieceIcon /> Integrations
+                <PuzzlePieceIcon className="w-5 h-5" /> Integrations
               </button>
             </nav>
+          </div>
+          
+          <div className="p-4 bg-gray-100 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-800">
+              <p className="text-xs text-center text-gray-400">Salary & Goal Tracker v9.6</p>
           </div>
         </div>
       </div>

@@ -13,6 +13,7 @@ import NewMonthModal from './components/NewMonthModal.tsx';
 import IntegrationsPage from './components/IntegrationsPage.tsx';
 import SellerView from './components/SellerView.tsx';
 import AIDashboard from './components/AIDashboard.tsx';
+import MonthlyIncomeView from './components/MonthlyIncomeView.tsx';
 
 // Initial sample data for the application
 const initialData: MonthData[] = [
@@ -27,6 +28,9 @@ const initialData: MonthData[] = [
       { id: 'g4', name: 'who rejected', progress: 60, endValue: 60, status: GoalStatus.COMPLETED },
       { id: 'g5', name: 'created by sellers', progress: 110, endValue: 110, status: GoalStatus.COMPLETED },
     ],
+    salary65: 1820000,
+    salary35: 980000,
+    manualBonus: 1900800
   },
   {
     id: 'october-2025',
@@ -39,6 +43,9 @@ const initialData: MonthData[] = [
       { id: 'g4', name: 'who rejected', progress: 58, endValue: 60, status: GoalStatus.COMPLETED },
       { id: 'g5', name: 'created by sellers', progress: 94, endValue: 110, status: GoalStatus.COMPLETED },
     ],
+    salary65: 1820000,
+    salary35: 980000,
+    manualBonus: 1906320
   },
 ];
 
@@ -82,7 +89,7 @@ const initialSellers: Seller[] = [
  * Manages the state for all month data and handles CRUD operations.
  */
 const App: React.FC = () => {
-  const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations'>('welcome');
+  const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations' | 'income_detail'>('welcome');
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNewMonthModalOpen, setIsNewMonthModalOpen] = useState(false);
@@ -646,7 +653,12 @@ const App: React.FC = () => {
         return (
           <HomePage 
             monthData={currentMonthData}
-            onNavigate={setActiveView}
+            onNavigate={(view) => {
+                // Ensure the view is compatible with activeView type
+                if (view === 'mmv' || view === 'branch' || view === 'seller' || view === 'comparison' || view === 'integrations') {
+                    setActiveView(view);
+                }
+            }}
           />
         );
       case 'branch':
@@ -665,6 +677,8 @@ const App: React.FC = () => {
         return <ComparisonDashboard allMonths={data} />;
       case 'ai':
         return <AIDashboard allMonths={data} />;
+      case 'income_detail':
+        return <MonthlyIncomeView allMonths={data} onUpdateMonth={handleUpdateMonth} />;
       case 'integrations':
         return <IntegrationsPage onConnectDrive={handleConnectFile} isConnected={!!fileHandle} />;
       case 'mmv':
