@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import WelcomeHeader from './WelcomeHeader';
 import { MonthData } from '../types';
@@ -75,7 +74,7 @@ const HomePage: React.FC<HomePageProps> = ({ monthData, onNavigate }) => {
     const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 
     return (
-    <div className="w-full max-w-7xl mx-auto space-y-8 pb-12 animate-fade-in">
+    <div className="w-full mx-auto space-y-8 pb-12 animate-fade-in">
       
       {/* 1. Header Section */}
       <WelcomeHeader />

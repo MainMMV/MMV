@@ -60,7 +60,7 @@ const Dashboard: React.FC<DashboardProps> = ({ allMonths }) => {
 
   return (
     <div className="mb-12">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
         {/* Stat Card: Total Net Salary */}
         <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 rounded-xl p-6 flex flex-col justify-between shadow-lg">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Net Salary</h3>

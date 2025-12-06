@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { GoogleSheetsIcon, PuzzlePieceIcon, CheckCircleIcon, ExternalLinkIcon } from './Icons';
 
@@ -84,7 +83,7 @@ const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ onConnectDrive, isC
     };
 
     return (
-        <div className="max-w-5xl mx-auto">
+        <div className="w-full mx-auto">
             <div className="flex items-center gap-3 mb-8">
                 <div className="p-3 bg-violet-600 rounded-xl shadow-lg shadow-violet-500/20">
                     <PuzzlePieceIcon />

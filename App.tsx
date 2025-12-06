@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { MonthData, GoalStatus, Goal, StorePlan, Seller } from './types.ts';
 import MonthCard from './components/MonthCard.tsx';
@@ -11,6 +12,7 @@ import SettingsModal from './components/SettingsModal.tsx';
 import NewMonthModal from './components/NewMonthModal.tsx';
 import IntegrationsPage from './components/IntegrationsPage.tsx';
 import SellerView from './components/SellerView.tsx';
+import AIDashboard from './components/AIDashboard.tsx';
 
 // Initial sample data for the application
 const initialData: MonthData[] = [
@@ -80,7 +82,7 @@ const initialSellers: Seller[] = [
  * Manages the state for all month data and handles CRUD operations.
  */
 const App: React.FC = () => {
-  const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'branch' | 'seller' | 'comparison' | 'integrations'>('welcome');
+  const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations'>('welcome');
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNewMonthModalOpen, setIsNewMonthModalOpen] = useState(false);
@@ -661,6 +663,8 @@ const App: React.FC = () => {
         );
       case 'comparison':
         return <ComparisonDashboard allMonths={data} />;
+      case 'ai':
+        return <AIDashboard allMonths={data} />;
       case 'integrations':
         return <IntegrationsPage onConnectDrive={handleConnectFile} isConnected={!!fileHandle} />;
       case 'mmv':
@@ -720,7 +724,7 @@ const App: React.FC = () => {
                         </button>
 
                         {expandedDashboardYears[year] && (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-8 items-start">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                                 {dashboardGroupedData.groups[year].map(monthData => (
                                     <MonthCard 
                                       key={monthData.id} 

@@ -31,79 +31,54 @@ const getGoalColor = (name: string) => {
 const SingleGoalBarChart: React.FC<{ config: any, data: any[] }> = ({ config, data }) => {
     if (data.length === 0) return null;
     
-    // Increased height to give more room for bars and labels
-    const height = 220; 
-    // Increased multiplier to 80 for wider bars, ensured min width is adequate
-    const width = Math.max(data.length * 80, 600); 
-    const padding = { top: 20, right: 10, bottom: 40, left: 10 }; // Increased bottom padding for labels
-    
     const maxValue = Math.max(...data.map(d => d.value));
-    const yMax = maxValue > 0 ? maxValue * 1.2 : 10;
-    
-    const barWidth = (width - padding.left - padding.right) / data.length * 0.6; // Slightly wider bars (0.6)
-    const step = (width - padding.left - padding.right) / data.length;
+    const yMax = maxValue > 0 ? maxValue * 1.2 : 10; 
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm h-full flex flex-col">
-            <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 pb-2 border-b border-gray-100 dark:border-gray-700/50 truncate">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm h-full flex flex-col w-full">
+            <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-6 pb-2 border-b border-gray-100 dark:border-gray-700/50 truncate">
                 {config.label}
             </h4>
-            <div className="w-full overflow-x-auto pb-2 custom-scrollbar">
-                 <div style={{ minWidth: '100%', width: `${width}px`, height: `${height}px` }}>
-                    <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="w-full h-full overflow-visible">
-                        {/* Grid Lines */}
-                        {[0, 0.25, 0.5, 0.75, 1].map(tick => {
-                            const y = height - padding.bottom - (tick * (height - padding.top - padding.bottom));
-                            return (
-                                <line key={tick} x1={padding.left} y1={y} x2={width - padding.right} y2={y} stroke="currentColor" className="text-gray-100 dark:text-gray-700" strokeWidth="1" />
-                            )
-                        })}
+            
+            <div className="relative h-48 w-full">
+                {/* Horizontal Grid Lines */}
+                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                    <div className="w-full border-t border-gray-100 dark:border-gray-700/50 h-0"></div>
+                    <div className="w-full border-t border-gray-100 dark:border-gray-700/50 h-0 border-dashed"></div>
+                    <div className="w-full border-t border-gray-100 dark:border-gray-700/50 h-0"></div>
+                </div>
 
-                        {data.map((d, i) => {
-                            const x = padding.left + i * step + step / 2;
-                            const barHeight = (d.value / yMax) * (height - padding.top - padding.bottom);
-                            const y = height - padding.bottom - barHeight;
-                            
-                            return (
-                                <g key={i} className="group">
-                                    <rect 
-                                        x={x - barWidth / 2} 
-                                        y={y} 
-                                        width={barWidth} 
-                                        height={barHeight} 
-                                        fill={config.barColor} 
-                                        className="transition-opacity duration-300 group-hover:opacity-80"
-                                        rx="4"
-                                    />
-                                    {/* Value Label */}
-                                    <text 
-                                        x={x} 
-                                        y={y - 8} 
-                                        textAnchor="middle" 
-                                        fontSize="14" 
-                                        fontWeight="bold" 
-                                        fill="currentColor" 
-                                        className="text-gray-600 dark:text-gray-300"
-                                    >
-                                        {d.value > 0 ? d.value : ''}
-                                    </text>
-                                    
-                                    {/* X Axis Label */}
-                                    <text 
-                                        x={x} 
-                                        y={height - 10} 
-                                        textAnchor="middle" 
-                                        fontSize="12" 
-                                        fontWeight="500"
-                                        fill="currentColor" 
-                                        className="text-gray-400 dark:text-gray-500"
-                                    >
-                                        {d.month}
-                                    </text>
-                                </g>
-                            );
-                        })}
-                    </svg>
+                {/* Bars */}
+                <div className="absolute inset-0 flex items-end justify-around px-4 gap-4">
+                    {data.map((d, i) => {
+                        const height = (d.value / yMax) * 100;
+                        return (
+                            <div key={i} className="flex-1 flex flex-col items-center justify-end h-full group">
+                                {/* Value Label */}
+                                <span className="mb-2 text-sm font-bold text-gray-700 dark:text-gray-200 transition-transform group-hover:-translate-y-1">
+                                    {d.value > 0 ? d.value : ''}
+                                </span>
+                                
+                                {/* The Bar */}
+                                <div 
+                                    className="w-full max-w-[80px] rounded-t-lg transition-all duration-500 relative"
+                                    style={{ 
+                                        height: `${Math.max(height, 2)}%`, // Ensure at least a sliver is visible 
+                                        backgroundColor: config.barColor,
+                                        opacity: 0.9 
+                                    }}
+                                >
+                                    {/* Hover Overlay */}
+                                    <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity rounded-t-lg"></div>
+                                </div>
+                                
+                                {/* X-Axis Label */}
+                                <span className="mt-3 text-[10px] sm:text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide text-center">
+                                    {d.month}
+                                </span>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </div>
@@ -132,7 +107,7 @@ const GoalVolumeCharts: React.FC<{ months: any[] }> = ({ months }) => {
     });
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 items-start">
+        <div className="grid grid-cols-1 gap-6 mb-8 items-start w-full">
             {preparedData.map((item, index) => (
                 <SingleGoalBarChart key={index} config={item.config} data={item.data} />
             ))}
@@ -230,124 +205,151 @@ const MonthPicker: React.FC<{ selectedDate: Date, onChange: (date: Date) => void
 
 // TrendChart Component
 const TrendChart: React.FC<{ data: { label: string; value: number }[]; color: string }> = ({ data, color }) => {
-    if (data.length === 0) return <div className="h-52 flex items-center justify-center text-gray-400 text-sm">No data available</div>;
+    if (data.length === 0) return <div className="h-80 flex items-center justify-center text-gray-400 text-sm">No data available</div>;
     
-    const height = 250;
-    const width = Math.max(data.length * 50, 800); // Dynamic width for scroll
-    const paddingX = 40;
-    const paddingY = 30;
-    const chartW = width - paddingX * 2;
-    const chartH = height - paddingY * 2;
-    
+    // Calculate scaling range
     const maxVal = Math.max(...data.map(d => d.value)) * 1.1 || 100;
     const minVal = 0;
 
+    // Helper to get percentage coordinates (0-100) relative to SVG viewBox/Canvas
+    const getCoord = (index: number, value: number) => {
+        const x = data.length > 1 ? (index / (data.length - 1)) * 100 : 50;
+        const y = 100 - ((value - minVal) / (maxVal - minVal)) * 100;
+        return { x, y };
+    };
+
+    // Generate path strings
     const points = data.map((d, i) => {
-        const x = data.length === 1 ? width / 2 : paddingX + (i / (data.length - 1)) * chartW;
-        const y = height - paddingY - ((d.value - minVal) / (maxVal - minVal)) * chartH;
+        const { x, y } = getCoord(i, d.value);
         return `${x},${y}`;
     }).join(' ');
-    
-    const areaPath = data.length > 1 
-        ? `${points} L ${data.length === 1 ? width/2 : width - paddingX},${height - paddingY} L ${data.length === 1 ? width/2 : paddingX},${height - paddingY} Z`
-        : `${width/2},${height-paddingY-(data[0].value/maxVal)*chartH} L ${width/2 + 20},${height - paddingY} L ${width/2 - 20},${height - paddingY} Z`;
+
+    const firstX = data.length > 1 ? 0 : 50;
+    const lastX = data.length > 1 ? 100 : 50;
+    const areaPath = `M ${firstX},100 L ${points} L ${lastX},100 Z`;
 
     return (
-        <div className="w-full h-64 select-none overflow-x-auto bg-gray-50/50 dark:bg-gray-900/30 rounded-lg border border-gray-100 dark:border-gray-700/50 custom-scrollbar">
-            <div style={{ minWidth: '100%', width: `${width}px`, height: '100%' }}>
-                <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="w-full h-full overflow-visible">
+        <div className="w-full h-80 relative bg-gray-50/50 dark:bg-gray-900/30 rounded-lg border border-gray-100 dark:border-gray-700/50 select-none overflow-hidden">
+            
+            {/* Background Grid (HTML) */}
+            <div className="absolute inset-0 flex flex-col justify-between py-8 px-4 sm:px-8 opacity-30 pointer-events-none">
+                 <div className="w-full border-t border-gray-300 dark:border-gray-600 border-dashed"></div>
+                 <div className="w-full border-t border-gray-300 dark:border-gray-600 border-dashed"></div>
+                 <div className="w-full border-t border-gray-300 dark:border-gray-600 border-dashed"></div>
+            </div>
+
+            {/* Chart Area (SVG) */}
+            <div className="absolute inset-0 py-8 px-4 sm:px-8 z-10">
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full overflow-visible">
                     <defs>
-                        <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient id={`gradient-${color.replace('#','')}`} x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor={color} stopOpacity="0.3" />
                             <stop offset="100%" stopColor={color} stopOpacity="0" />
                         </linearGradient>
                     </defs>
-                    
-                    <line x1={paddingX} y1={height - paddingY} x2={width - paddingX} y2={height - paddingY} stroke="currentColor" className="text-gray-200 dark:text-gray-700" strokeWidth="1" />
-                    <line x1={paddingX} y1={paddingY} x2={width - paddingX} y2={paddingY} stroke="currentColor" className="text-gray-200 dark:text-gray-700" strokeWidth="1" strokeDasharray="4" />
-                    
-                    {data.length > 0 && (
-                    <>
-                        <path d={areaPath} fill="url(#chartGradient)" />
-                        {data.length > 1 && <polyline points={points} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
-                    </>
-                    )}
-                    
-                    {data.map((d, i) => {
-                        const x = data.length === 1 ? width / 2 : paddingX + (i / (data.length - 1)) * chartW;
-                        const y = height - paddingY - ((d.value - minVal) / (maxVal - minVal)) * chartH;
-                        return (
-                            <g key={i} className="group">
-                                <circle cx={x} cy={y} r="5" fill="white" stroke={color} strokeWidth="3" className="dark:fill-gray-800 transition-all duration-200 group-hover:r-7 group-hover:stroke-white dark:group-hover:stroke-white group-hover:fill-emerald-500" />
-                                <foreignObject x={x - 50} y={y - 50} width="100" height="40" className="overflow-visible opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                    <div className="bg-gray-900 text-white text-xs font-bold py-1 px-2 rounded shadow-lg text-center transform -translate-y-1">
-                                        {new Intl.NumberFormat('en-US', { notation: "compact" }).format(d.value)}
-                                    </div>
-                                </foreignObject>
-                            </g>
-                        );
-                    })}
-
-                    {data.map((d, i) => {
-                        const x = data.length === 1 ? width / 2 : paddingX + (i / (data.length - 1)) * chartW;
-                        return (
-                            <text key={i} x={x} y={height - 10} textAnchor="middle" fontSize="11" fill="currentColor" className="text-gray-500 dark:text-gray-400 font-medium">
-                                {d.label}
-                            </text>
-                        );
-                    })}
+                    <path d={areaPath} fill={`url(#gradient-${color.replace('#','')})`} />
+                    <polyline 
+                        points={points} 
+                        fill="none" 
+                        stroke={color} 
+                        strokeWidth="3" 
+                        vectorEffect="non-scaling-stroke" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                    />
                 </svg>
+            </div>
+
+            {/* Interactive HTML Layer (Tooltips & Labels) */}
+            <div className="absolute inset-0 py-8 px-4 sm:px-8 z-20 pointer-events-none">
+                {data.map((d, i) => {
+                    const { x, y } = getCoord(i, d.value);
+                    return (
+                        <div 
+                            key={i}
+                            className="absolute flex flex-col items-center group pointer-events-auto"
+                            style={{ 
+                                left: `${x}%`, 
+                                top: `${y}%`,
+                                transform: 'translate(-50%, -50%)'
+                            }}
+                        >
+                            {/* Hit Area for easier hovering */}
+                            <div className="w-8 h-20 absolute -top-10 opacity-0"></div>
+
+                            {/* The Dot */}
+                            <div 
+                                className="w-3 h-3 rounded-full bg-white dark:bg-gray-800 border-2 transition-all duration-200 group-hover:scale-150 group-hover:border-4 shadow-sm"
+                                style={{ borderColor: color }}
+                            ></div>
+
+                            {/* Tooltip */}
+                            <div className="absolute bottom-full mb-3 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[10px] font-bold py-1.5 px-2.5 rounded shadow-xl whitespace-nowrap transform translate-y-2 group-hover:translate-y-0">
+                                {new Intl.NumberFormat('en-US', { notation: "compact" }).format(d.value)}
+                                {/* Triangle pointer */}
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-white"></div>
+                            </div>
+
+                            {/* X Axis Label */}
+                            <div className="absolute top-4 mt-2 text-[10px] sm:text-xs font-medium text-gray-400 dark:text-gray-500 whitespace-nowrap opacity-70 group-hover:opacity-100 transition-opacity group-hover:text-gray-600 dark:group-hover:text-gray-300">
+                                {d.label}
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );
 };
 
-// DonutChart Component
-const DonutChart: React.FC<{ data: { name: string; value: number; color: string }[] }> = ({ data }) => {
-    const size = 160;
-    const strokeWidth = 18;
-    const radius = (size - strokeWidth) / 2;
-    const circumference = 2 * Math.PI * radius;
+// RevenuePieChart Component
+const RevenuePieChart: React.FC<{ data: { name: string; value: number; color: string }[] }> = ({ data }) => {
+    const size = 180;
     const total = data.reduce((sum, d) => sum + d.value, 0);
+    let cumulativePercent = 0;
 
-    let accumulatedOffset = 0;
-    const sortedData = [...data].sort((a, b) => b.value - a.value);
+    const slices = data.sort((a, b) => b.value - a.value).map(d => {
+        const percent = total > 0 ? d.value / total : 0;
+        const slice = { ...d, percent, start: cumulativePercent };
+        cumulativePercent += percent;
+        return slice;
+    });
+
+    const getCoordinatesForPercent = (percent: number) => {
+        const x = size/2 + (size/2) * Math.cos(2 * Math.PI * percent);
+        const y = size/2 + (size/2) * Math.sin(2 * Math.PI * percent);
+        return [x, y];
+    };
 
     if (total === 0) return <div className="h-48 flex items-center justify-center text-gray-400 text-sm italic">No revenue data</div>;
 
     return (
         <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-            <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`} className="transform -rotate-90">
-                {sortedData.map((d, i) => {
-                    const percentage = d.value / total;
-                    const dashArray = percentage * circumference;
-                    const currentOffset = -1 * accumulatedOffset;
-                    accumulatedOffset += dashArray;
+            <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="transform -rotate-90 overflow-visible">
+                {slices.map((slice, i) => {
+                    const start = slice.start;
+                    const end = slice.start + slice.percent;
+                    const [startX, startY] = getCoordinatesForPercent(start);
+                    const [endX, endY] = getCoordinatesForPercent(end);
+                    const largeArcFlag = slice.percent > 0.5 ? 1 : 0;
+                    
+                    const pathData = [
+                        `M ${size/2} ${size/2}`,
+                        `L ${startX} ${startY}`,
+                        `A ${size/2} ${size/2} 0 ${largeArcFlag} 1 ${endX} ${endY}`,
+                        `Z`
+                    ].join(' ');
 
                     return (
-                        <circle
-                            key={i}
-                            cx={size / 2}
-                            cy={size / 2}
-                            r={radius}
-                            fill="transparent"
-                            stroke={d.color}
-                            strokeWidth={strokeWidth}
-                            strokeDasharray={`${dashArray} ${circumference}`}
-                            strokeDashoffset={currentOffset}
-                            className="transition-all duration-300 hover:opacity-80"
-                        >
-                            <title>{`${d.name}: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(d.value)}`}</title>
-                        </circle>
+                        <path 
+                            key={i} 
+                            d={pathData} 
+                            fill={slice.color}
+                            className="transition-opacity hover:opacity-80 stroke-white dark:stroke-gray-800 stroke-2"
+                        />
                     );
                 })}
             </svg>
-             <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total</span>
-                <span className="text-lg font-bold text-gray-900 dark:text-white">
-                   {new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(total)}
-                </span>
-           </div>
         </div>
     );
 };
@@ -364,7 +366,7 @@ const MonthlyPostcard: React.FC<{
     const net = monthData?.net || 0;
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col h-full">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col h-full w-full">
             <div className="p-4 sm:p-6 border-b border-gray-100 dark:border-gray-700/50 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
                 <div>
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white">Monthly Summary</h3>
@@ -375,15 +377,17 @@ const MonthlyPostcard: React.FC<{
 
             <div className="flex-grow p-4 sm:p-6 flex flex-col gap-8 items-center justify-center">
                 <div className="flex flex-col items-center w-full">
-                    <DonutChart data={donutData} />
-                    <div className="mt-6 w-full space-y-2">
-                         {donutData.slice(0, 3).map((d, i) => (
-                            <div key={i} className="flex items-center justify-between gap-3 text-sm">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }}></div>
-                                    <span className="text-gray-600 dark:text-gray-300 truncate max-w-[150px]">{d.name}</span>
+                    <div className="mb-6">
+                        <RevenuePieChart data={donutData} />
+                    </div>
+                    <div className="w-full space-y-3">
+                         {donutData.map((d, i) => (
+                            <div key={i} className="flex items-center justify-between text-sm group">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: d.color }}></div>
+                                    <span className="font-medium text-gray-600 dark:text-gray-300 truncate max-w-[150px]">{d.name}</span>
                                 </div>
-                                <span className="font-medium text-gray-900 dark:text-white">
+                                <span className="font-bold text-gray-900 dark:text-white font-mono">
                                     {new Intl.NumberFormat('en-US', { notation: "compact" }).format(d.value)}
                                 </span>
                             </div>
@@ -580,7 +584,7 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
   };
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-8 pb-12 w-full">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex flex-col gap-2">
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Analytics Dashboard</h2>
@@ -592,7 +596,7 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start w-full">
          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden h-full">
              <div className="relative z-10">
                  <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lifetime Net Earnings</h3>
@@ -612,13 +616,13 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
       </div>
 
       {/* Goal Volume Charts Section */}
-      <div className="mb-8">
+      <div className="mb-8 w-full">
         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Goal Activity Volume</h3>
         <GoalVolumeCharts months={ascendingMonths} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start w-full">
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm w-full">
             <div className="mb-6">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">Net Salary Trend</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Monthly net income growth over time.</p>
@@ -634,7 +638,7 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
         />
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden w-full">
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">Goal Performance Matrix</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">Raw volume of tasks completed per month.</p>
@@ -702,7 +706,7 @@ const ComparisonDashboard: React.FC<ComparisonDashboardProps> = ({ allMonths }) 
           </div>
       </div>
       
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden w-full">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">Financial Summary</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">Gross, Tax, and Net Salary breakdown by year.</p>
