@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { MonthData } from '../types';
 import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon, ChevronDownIcon, DownloadIcon } from './Icons';
@@ -204,7 +205,7 @@ const MonthPicker: React.FC<{ selectedDate: Date, onChange: (date: Date) => void
 };
 
 // TrendChart Component
-const TrendChart: React.FC<{ data: { label: string; value: number }[]; color: string }> = ({ data, color }) => {
+export const TrendChart: React.FC<{ data: { label: string; value: number }[]; color: string }> = ({ data, color }) => {
     if (data.length === 0) return <div className="h-80 flex items-center justify-center text-gray-400 text-sm">No data available</div>;
     
     // Calculate scaling range
@@ -213,33 +214,54 @@ const TrendChart: React.FC<{ data: { label: string; value: number }[]; color: st
 
     // Helper to get percentage coordinates (0-100) relative to SVG viewBox/Canvas
     const getCoord = (index: number, value: number) => {
+        // Center the point horizontally within its segment
+        // If n points, we divide into n-1 segments or just spread evenly
+        // Using (index / (length - 1)) ensures start at 0 and end at 100
         const x = data.length > 1 ? (index / (data.length - 1)) * 100 : 50;
         const y = 100 - ((value - minVal) / (maxVal - minVal)) * 100;
         return { x, y };
     };
 
-    // Generate path strings
-    const points = data.map((d, i) => {
-        const { x, y } = getCoord(i, d.value);
-        return `${x},${y}`;
-    }).join(' ');
+    const getSmoothPath = (points: {x: number, y: number}[]) => {
+        if (points.length === 0) return "";
+        if (points.length === 1) return `M ${points[0].x},${points[0].y}`;
+        
+        // Start
+        let d = `M ${points[0].x},${points[0].y}`;
+        
+        for (let i = 0; i < points.length - 1; i++) {
+            const p0 = points[i];
+            const p1 = points[i + 1];
+            // Control points for bezier curve
+            const cp1x = p0.x + (p1.x - p0.x) / 2;
+            const cp1y = p0.y;
+            const cp2x = p0.x + (p1.x - p0.x) / 2;
+            const cp2y = p1.y;
+            
+            d += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p1.x},${p1.y}`;
+        }
+        return d;
+    };
+
+    const points = data.map((d, i) => getCoord(i, d.value));
+    const smoothPath = getSmoothPath(points);
 
     const firstX = data.length > 1 ? 0 : 50;
     const lastX = data.length > 1 ? 100 : 50;
-    const areaPath = `M ${firstX},100 L ${points} L ${lastX},100 Z`;
+    const areaPath = `${smoothPath} L ${lastX},100 L ${firstX},100 Z`;
 
     return (
         <div className="w-full h-80 relative bg-gray-50/50 dark:bg-gray-900/30 rounded-lg border border-gray-100 dark:border-gray-700/50 select-none overflow-hidden">
             
             {/* Background Grid (HTML) */}
-            <div className="absolute inset-0 flex flex-col justify-between py-8 px-4 sm:px-8 opacity-30 pointer-events-none">
+            <div className="absolute inset-0 flex flex-col justify-between py-8 px-8 opacity-30 pointer-events-none">
                  <div className="w-full border-t border-gray-300 dark:border-gray-600 border-dashed"></div>
                  <div className="w-full border-t border-gray-300 dark:border-gray-600 border-dashed"></div>
                  <div className="w-full border-t border-gray-300 dark:border-gray-600 border-dashed"></div>
             </div>
 
             {/* Chart Area (SVG) */}
-            <div className="absolute inset-0 py-8 px-4 sm:px-8 z-10">
+            <div className="absolute inset-0 py-8 px-8 z-10">
                 <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full overflow-visible">
                     <defs>
                         <linearGradient id={`gradient-${color.replace('#','')}`} x1="0" y1="0" x2="0" y2="1">
@@ -248,8 +270,8 @@ const TrendChart: React.FC<{ data: { label: string; value: number }[]; color: st
                         </linearGradient>
                     </defs>
                     <path d={areaPath} fill={`url(#gradient-${color.replace('#','')})`} />
-                    <polyline 
-                        points={points} 
+                    <path 
+                        d={smoothPath} 
                         fill="none" 
                         stroke={color} 
                         strokeWidth="3" 
@@ -261,9 +283,9 @@ const TrendChart: React.FC<{ data: { label: string; value: number }[]; color: st
             </div>
 
             {/* Interactive HTML Layer (Tooltips & Labels) */}
-            <div className="absolute inset-0 py-8 px-4 sm:px-8 z-20 pointer-events-none">
+            <div className="absolute inset-0 py-8 px-8 z-20 pointer-events-none">
                 {data.map((d, i) => {
-                    const { x, y } = getCoord(i, d.value);
+                    const { x, y } = points[i];
                     return (
                         <div 
                             key={i}
@@ -275,23 +297,23 @@ const TrendChart: React.FC<{ data: { label: string; value: number }[]; color: st
                             }}
                         >
                             {/* Hit Area for easier hovering */}
-                            <div className="w-8 h-20 absolute -top-10 opacity-0"></div>
+                            <div className="w-8 h-20 absolute -top-10 opacity-0 cursor-pointer"></div>
 
-                            {/* The Dot */}
+                            {/* The Dot (Centered via translate) */}
                             <div 
-                                className="w-3 h-3 rounded-full bg-white dark:bg-gray-800 border-2 transition-all duration-200 group-hover:scale-150 group-hover:border-4 shadow-sm"
+                                className="w-3 h-3 rounded-full bg-white dark:bg-gray-800 border-2 transition-all duration-200 group-hover:scale-150 group-hover:border-4 shadow-sm z-10"
                                 style={{ borderColor: color }}
                             ></div>
 
                             {/* Tooltip */}
-                            <div className="absolute bottom-full mb-3 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[10px] font-bold py-1.5 px-2.5 rounded shadow-xl whitespace-nowrap transform translate-y-2 group-hover:translate-y-0">
+                            <div className="absolute bottom-full mb-3 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[10px] font-bold py-1.5 px-2.5 rounded shadow-xl whitespace-nowrap transform translate-y-2 group-hover:translate-y-0 z-20">
                                 {new Intl.NumberFormat('en-US', { notation: "compact" }).format(d.value)}
                                 {/* Triangle pointer */}
                                 <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-white"></div>
                             </div>
 
                             {/* X Axis Label */}
-                            <div className="absolute top-4 mt-2 text-[10px] sm:text-xs font-medium text-gray-400 dark:text-gray-500 whitespace-nowrap opacity-70 group-hover:opacity-100 transition-opacity group-hover:text-gray-600 dark:group-hover:text-gray-300">
+                            <div className="absolute top-6 mt-2 text-[10px] sm:text-xs font-medium text-gray-400 dark:text-gray-500 whitespace-nowrap opacity-70 group-hover:opacity-100 transition-opacity group-hover:text-gray-600 dark:group-hover:text-gray-300">
                                 {d.label}
                             </div>
                         </div>

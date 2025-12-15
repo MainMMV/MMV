@@ -83,6 +83,67 @@ const initialSellers: Seller[] = [
     }
 ];
 
+// Define Theme Palette Mappings
+// These map the 'emerald' values (used as default in components) to the selected theme's values
+const THEME_PALETTES: Record<string, any> = {
+    emerald: null, // Default, no override needed
+    blue: {
+        50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa',
+        500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a'
+    },
+    indigo: {
+        50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc', 400: '#818cf8',
+        500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 800: '#3730a3', 900: '#312e81'
+    },
+    violet: {
+        50: '#f5f3ff', 100: '#ede9fe', 200: '#ddd6fe', 300: '#c4b5fd', 400: '#a78bfa',
+        500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9', 800: '#5b21b6', 900: '#4c1d95'
+    },
+    purple: {
+        50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe', 400: '#c084fc',
+        500: '#a855f7', 600: '#9333ea', 700: '#7e22ce', 800: '#6b21a8', 900: '#581c87'
+    },
+    fuchsia: {
+        50: '#fdf4ff', 100: '#fae8ff', 200: '#f5d0fe', 300: '#f0abfc', 400: '#e879f9',
+        500: '#d946ef', 600: '#c026d3', 700: '#a21caf', 800: '#86198f', 900: '#701a75'
+    },
+    pink: {
+        50: '#fdf2f8', 100: '#fce7f3', 200: '#fbcfe8', 300: '#f9a8d4', 400: '#f472b6',
+        500: '#ec4899', 600: '#db2777', 700: '#be185d', 800: '#9d174d', 900: '#831843'
+    },
+    rose: {
+        50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 300: '#fda4af', 400: '#fb7185',
+        500: '#f43f5e', 600: '#e11d48', 700: '#be123c', 800: '#9f1239', 900: '#881337'
+    },
+    orange: {
+        50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74', 400: '#fb923c',
+        500: '#f97316', 600: '#ea580c', 700: '#c2410c', 800: '#9a3412', 900: '#7c2d12'
+    },
+    amber: {
+        50: '#fffbeb', 100: '#fef3c7', 200: '#fde68a', 300: '#fcd34d', 400: '#fbbf24',
+        500: '#f59e0b', 600: '#d97706', 700: '#b45309', 800: '#92400e', 900: '#78350f'
+    },
+    yellow: {
+        50: '#fefce8', 100: '#fef9c3', 200: '#fef08a', 300: '#fde047', 400: '#facc15',
+        500: '#eab308', 600: '#ca8a04', 700: '#a16207', 800: '#854d0e', 900: '#713f12'
+    },
+    lime: {
+        50: '#f7fee7', 100: '#ecfccb', 200: '#d9f99d', 300: '#bef264', 400: '#a3e635',
+        500: '#84cc16', 600: '#65a30d', 700: '#4d7c0f', 800: '#3f6212', 900: '#365314'
+    },
+    teal: {
+        50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4', 400: '#2dd4bf',
+        500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 900: '#134e4a'
+    },
+    cyan: {
+        50: '#ecfeff', 100: '#cffafe', 200: '#a5f3fc', 300: '#67e8f9', 400: '#22d3ee',
+        500: '#06b6d4', 600: '#0891b2', 700: '#0e7490', 800: '#155e75', 900: '#164e63'
+    },
+    sky: {
+        50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc', 400: '#38bdf8',
+        500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#0c4a6e'
+    },
+};
 
 /**
  * The main component of the application.
@@ -102,10 +163,14 @@ const App: React.FC = () => {
   const [storePlans, setStorePlans] = useState<StorePlan[]>(initialStorePlans);
   const [sellers, setSellers] = useState<Seller[]>(initialSellers);
 
+  // Theme & Appearance State
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const savedTheme = localStorage.getItem('theme');
     return (savedTheme === 'light' || savedTheme === 'dark') ? savedTheme : 'dark';
   });
+  
+  const [appFont, setAppFont] = useState(() => localStorage.getItem('appFont') || 'Inter');
+  const [appThemeColor, setAppThemeColor] = useState(() => localStorage.getItem('appThemeColor') || 'emerald');
 
   // Only persist theme to localStorage
   useEffect(() => {
@@ -115,9 +180,87 @@ const App: React.FC = () => {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
+  // Persist font
+  useEffect(() => {
+      localStorage.setItem('appFont', appFont);
+  }, [appFont]);
+
+  // Persist Theme Color and Apply Styles
+  useEffect(() => {
+      localStorage.setItem('appThemeColor', appThemeColor);
+      
+      const palette = THEME_PALETTES[appThemeColor];
+      const styleId = 'dynamic-theme-styles';
+      let styleTag = document.getElementById(styleId);
+      
+      if (!styleTag) {
+          styleTag = document.createElement('style');
+          styleTag.id = styleId;
+          document.head.appendChild(styleTag);
+      }
+
+      if (palette) {
+          // Override default 'emerald' classes with selected theme colors
+          styleTag.innerHTML = `
+            .text-emerald-50 { color: ${palette[50]} !important; }
+            .text-emerald-100 { color: ${palette[100]} !important; }
+            .text-emerald-200 { color: ${palette[200]} !important; }
+            .text-emerald-300 { color: ${palette[300]} !important; }
+            .text-emerald-400 { color: ${palette[400]} !important; }
+            .text-emerald-500 { color: ${palette[500]} !important; }
+            .text-emerald-600 { color: ${palette[600]} !important; }
+            .text-emerald-700 { color: ${palette[700]} !important; }
+            .text-emerald-800 { color: ${palette[800]} !important; }
+            .text-emerald-900 { color: ${palette[900]} !important; }
+
+            .bg-emerald-50 { background-color: ${palette[50]} !important; }
+            .bg-emerald-100 { background-color: ${palette[100]} !important; }
+            .bg-emerald-200 { background-color: ${palette[200]} !important; }
+            .bg-emerald-300 { background-color: ${palette[300]} !important; }
+            .bg-emerald-400 { background-color: ${palette[400]} !important; }
+            .bg-emerald-500 { background-color: ${palette[500]} !important; }
+            .bg-emerald-600 { background-color: ${palette[600]} !important; }
+            .bg-emerald-700 { background-color: ${palette[700]} !important; }
+            .bg-emerald-800 { background-color: ${palette[800]} !important; }
+            .bg-emerald-900 { background-color: ${palette[900]} !important; }
+
+            .border-emerald-50 { border-color: ${palette[50]} !important; }
+            .border-emerald-100 { border-color: ${palette[100]} !important; }
+            .border-emerald-200 { border-color: ${palette[200]} !important; }
+            .border-emerald-300 { border-color: ${palette[300]} !important; }
+            .border-emerald-400 { border-color: ${palette[400]} !important; }
+            .border-emerald-500 { border-color: ${palette[500]} !important; }
+            .border-emerald-600 { border-color: ${palette[600]} !important; }
+            .border-emerald-700 { border-color: ${palette[700]} !important; }
+            
+            .from-emerald-500 { --tw-gradient-from: ${palette[500]} !important; }
+            .from-emerald-600 { --tw-gradient-from: ${palette[600]} !important; }
+            .to-emerald-500 { --tw-gradient-to: ${palette[500]} !important; }
+            
+            .shadow-emerald-500\/20 { --tw-shadow-color: ${palette[500]}33 !important; }
+            
+            /* Specific overrides for opacities used in app */
+            .bg-emerald-50\/30 { background-color: ${palette[50]}4D !important; }
+            .bg-emerald-50\/50 { background-color: ${palette[50]}80 !important; }
+            .bg-emerald-100\/50 { background-color: ${palette[100]}80 !important; }
+            .bg-emerald-500\/10 { background-color: ${palette[500]}1A !important; }
+            .bg-emerald-500\/20 { background-color: ${palette[500]}33 !important; }
+            .bg-emerald-900\/20 { background-color: ${palette[900]}33 !important; }
+            .bg-emerald-900\/30 { background-color: ${palette[900]}4D !important; }
+            .bg-emerald-50\/20 { background-color: ${palette[50]}33 !important; }
+            .bg-emerald-900\/5 { background-color: ${palette[900]}0D !important; }
+            .bg-emerald-900\/10 { background-color: ${palette[900]}1A !important; }
+          `;
+      } else {
+          styleTag.innerHTML = ''; // Clear overrides for default
+      }
+
+  }, [appThemeColor]);
+
   // --- Cloud / File System Sync Logic ---
-  
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Ref for hidden file input (Mobile fallback)
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const generateBackupJSON = useCallback(() => {
     return JSON.stringify({
@@ -127,12 +270,14 @@ const App: React.FC = () => {
             salaryGoalTrackerData: data,
             storePlansData: storePlans,
             sellersData: sellers,
-            theme: theme
+            theme: theme,
+            appFont: appFont,
+            appThemeColor: appThemeColor
         }
     }, null, 2);
-  }, [data, storePlans, sellers, theme]);
+  }, [data, storePlans, sellers, theme, appFont, appThemeColor]);
 
-  // Auto-save to file handle if connected
+  // Auto-save to file handle if connected (Desktop only)
   useEffect(() => {
     if (!fileHandle) return;
 
@@ -147,80 +292,99 @@ const App: React.FC = () => {
             console.log("Auto-saved to file.");
         } catch (err) {
             console.error("Failed to auto-save to file:", err);
-            // If permission is lost or file moved, we might want to reset fileHandle
-            // setFileHandle(null); 
         }
-    }, 2000); // Debounce 2 seconds
+    }, 2000); 
 
     return () => {
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
   }, [data, storePlans, sellers, theme, fileHandle, generateBackupJSON]);
 
-  const handleConnectFile = async () => {
+  const loadDataFromText = (text: string) => {
       try {
-          // @ts-ignore - File System Access API
-          if (!window.showOpenFilePicker) {
-              alert("Your browser does not support local file access. Please use Chrome, Edge, or Opera on Desktop.");
-              return;
-          }
-          
-          // @ts-ignore
-          const [handle] = await window.showOpenFilePicker({
-              types: [{
-                  description: 'JSON Data Files',
-                  accept: { 'application/json': ['.json', '.txt'] }
-              }],
-              multiple: false
-          });
-
-          const file = await handle.getFile();
-          const text = await file.text();
-          
-          // Handle empty or new files
+          // Handle empty files
           if (!text.trim()) {
-              if (window.confirm("You selected an empty file. Do you want to start syncing your current data to this file?")) {
-                  setFileHandle(handle);
-                  alert("File connected successfully! Your data will now auto-sync.");
-              }
-              setIsSettingsOpen(false);
-              return;
+              alert("File is empty. Using current app data.");
+              return true; // Return true to signal success (handled)
           }
 
-          let backup;
-          try {
-             backup = JSON.parse(text);
-          } catch (e) {
-             if (window.confirm("The selected file contains invalid data. Do you want to overwrite it with your current app data?")) {
-                 setFileHandle(handle);
-                 alert("File connected! It will be overwritten with current data on next save.");
-             }
-             setIsSettingsOpen(false);
-             return;
-          }
-
+          const backup = JSON.parse(text);
           if (backup && backup.data) {
               if (window.confirm("Do you want to LOAD data from this file? Cancel to overwrite file with current App data.")) {
                 if (backup.data.salaryGoalTrackerData) setData(backup.data.salaryGoalTrackerData);
                 if (backup.data.storePlansData) setStorePlans(backup.data.storePlansData);
                 if (backup.data.sellersData) setSellers(backup.data.sellersData);
                 if (backup.data.theme) setTheme(backup.data.theme);
-                alert("Data loaded successfully! Sync active.");
+                if (backup.data.appFont) setAppFont(backup.data.appFont);
+                if (backup.data.appThemeColor) setAppThemeColor(backup.data.appThemeColor);
+                alert("Data loaded successfully!");
               } else {
-                alert("Keeping current data. Sync active (file will be overwritten).");
+                alert("Keeping current data. It will be saved to the file.");
               }
-              
-              setFileHandle(handle);
-              setIsSettingsOpen(false);
+              return true;
           } else {
               alert("Invalid file format.");
+              return false;
           }
-      } catch (err: any) {
-          if (err.name !== 'AbortError') {
-              console.error(err);
-              alert("Error connecting to file.");
+      } catch (e) {
+          console.error(e);
+          alert("Error parsing file.");
+          return false;
+      }
+  };
+
+  const handleConnectFile = async () => {
+      // Check for File System Access API support (Desktop Chrome/Edge)
+      // @ts-ignore
+      if (window.showOpenFilePicker) {
+          try {
+              // @ts-ignore
+              const [handle] = await window.showOpenFilePicker({
+                  types: [{
+                      description: 'JSON Data Files',
+                      accept: { 'application/json': ['.json', '.txt'] }
+                  }],
+                  multiple: false
+              });
+
+              const file = await handle.getFile();
+              const text = await file.text();
+              
+              if (loadDataFromText(text)) {
+                  setFileHandle(handle);
+                  setIsSettingsOpen(false);
+              }
+
+          } catch (err: any) {
+              if (err.name !== 'AbortError') {
+                  console.error(err);
+                  alert("Error connecting to file.");
+              }
+          }
+      } else {
+          // Fallback for Mobile (iOS/Android) / Firefox / Safari
+          // Triggers the hidden file input
+          if (fileInputRef.current) {
+              fileInputRef.current.click();
           }
       }
+  };
+
+  const handleMobileFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+          const text = e.target?.result as string;
+          loadDataFromText(text);
+          // On mobile, we can't get a persistent handle to write back automatically
+          // So we don't setFileHandle. Users must manually export/download to save.
+      };
+      reader.readAsText(file);
+      // Reset input value so same file can be selected again if needed
+      event.target.value = '';
+      setIsSettingsOpen(false);
   };
 
   const toggleTheme = () => {
@@ -715,6 +879,15 @@ const App: React.FC = () => {
                 </button>
               </div>
             </div>
+            
+            {/* Hidden Input for Mobile File Loading */}
+            <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept=".json,.txt"
+                onChange={handleMobileFileImport}
+            />
 
             <Dashboard allMonths={data} />
             
@@ -760,7 +933,10 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans transition-colors duration-300">
+    <div 
+        className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300"
+        style={{ fontFamily: `"${appFont}", sans-serif` }}
+    >
       <TopNav 
         theme={theme}
         toggleTheme={toggleTheme}
@@ -769,7 +945,7 @@ const App: React.FC = () => {
         onOpenSettings={() => setIsSettingsOpen(true)}
         isCloudSyncActive={!!fileHandle}
       />
-      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         {renderContent()}
       </div>
       <SettingsModal 
@@ -777,6 +953,10 @@ const App: React.FC = () => {
         onClose={() => setIsSettingsOpen(false)}
         onConnectFile={handleConnectFile}
         isFileConnected={!!fileHandle}
+        currentFont={appFont}
+        setFont={setAppFont}
+        currentTheme={appThemeColor}
+        setTheme={setAppThemeColor}
       />
       <NewMonthModal 
         isOpen={isNewMonthModalOpen}

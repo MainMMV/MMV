@@ -1,6 +1,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { MonthData } from '../types';
+import { TrendChart } from './ComparisonDashboard';
 
 // Icons
 interface IconProps { className?: string; }
@@ -11,6 +12,8 @@ const TrendingUpIcon = ({ className }: IconProps) => <svg className={className |
 const SparklesIcon = ({ className }: IconProps) => <svg className={className || "w-5 h-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 3.214L13 21l-2.286-6.857L5 12l5.714-3.214L13 3z" /></svg>;
 const SearchIcon = ({ className }: IconProps) => <svg className={className || "w-4 h-4"} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
 const CheckCircleIcon = ({ className }: IconProps) => <svg className={className || "w-5 h-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+const FlameIcon = ({ className }: IconProps) => <svg className={className || "w-5 h-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" /></svg>;
+const SquareIcon = ({ className }: IconProps) => <svg className={className || "w-5 h-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>;
 
 interface AIDashboardProps {
   allMonths: MonthData[];
@@ -150,6 +153,141 @@ const StrategyEngine: React.FC<{ data: any }> = ({ data }) => {
     );
 };
 
+// --- NEW DASHBOARDS (Pareto, Heatmap, Consistency) ---
+
+const ParetoChart: React.FC<{ goals: any[] }> = ({ goals }) => {
+    // Sort by income
+    const sorted = [...goals].sort((a, b) => b.income - a.income);
+    const totalIncome = sorted.reduce((sum, g) => sum + g.income, 0);
+    
+    let cumulative = 0;
+    const data = sorted.map(g => {
+        cumulative += g.income;
+        return {
+            ...g,
+            cumulativePct: totalIncome > 0 ? (cumulative / totalIncome) * 100 : 0,
+            share: totalIncome > 0 ? (g.income / totalIncome) * 100 : 0
+        };
+    });
+
+    return (
+        <div className="bg-[#111827] rounded-2xl p-6 border border-gray-800 shadow-xl h-full flex flex-col">
+            <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2 uppercase tracking-wide">
+                <PieChartIcon className="w-5 h-5 text-amber-400" />
+                80/20 Rule Analyzer
+            </h3>
+            <div className="flex-grow space-y-3 overflow-y-auto custom-scrollbar pr-2 max-h-[250px]">
+                {data.map((g, i) => {
+                    const isVital = g.cumulativePct <= 80 || (i > 0 && data[i-1].cumulativePct < 80); 
+                    return (
+                        <div key={i} className="group">
+                            <div className="flex justify-between text-xs mb-1">
+                                <span className={`font-bold ${isVital ? 'text-white' : 'text-gray-500'}`}>{g.name}</span>
+                                <span className={isVital ? 'text-emerald-400' : 'text-gray-600'}>{g.share.toFixed(1)}% Share</span>
+                            </div>
+                            <div className="w-full bg-gray-800 rounded-full h-2 overflow-hidden flex">
+                                <div className={`h-full ${isVital ? 'bg-amber-400' : 'bg-gray-600'}`} style={{ width: `${g.share}%` }}></div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+            <p className="text-[10px] text-gray-500 mt-4 border-t border-gray-800 pt-2">
+                The top goals (highlighted) contribute to ~80% of your income.
+            </p>
+        </div>
+    );
+};
+
+const PerformanceHeatmap: React.FC<{ months: any[] }> = ({ months }) => {
+    const maxNet = Math.max(...months.map(m => m.net));
+    // Sort chronologically for display
+    const chronMonths = [...months].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    const getColor = (val: number, max: number) => {
+        const ratio = max > 0 ? val / max : 0;
+        if (ratio > 0.9) return 'bg-emerald-400';
+        if (ratio > 0.7) return 'bg-emerald-600';
+        if (ratio > 0.5) return 'bg-emerald-800';
+        if (ratio > 0.3) return 'bg-gray-700';
+        return 'bg-gray-800';
+    };
+
+    return (
+        <div className="bg-[#111827] rounded-2xl p-6 border border-gray-800 shadow-xl h-full">
+            <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2 uppercase tracking-wide">
+                <SquareIcon className="w-5 h-5 text-emerald-400" />
+                Performance Heatmap
+            </h3>
+            <div className="flex flex-wrap gap-2 content-start min-h-[120px]">
+                {chronMonths.map(m => (
+                    <div key={m.id} className="group relative">
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-md ${getColor(m.net, maxNet)} transition-all hover:scale-110 border border-gray-900/50 cursor-default`}></div>
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-[10px] p-2 rounded whitespace-nowrap border border-gray-700 z-50 shadow-xl">
+                            <div className="font-bold">{m.name}</div>
+                            <div className="text-emerald-400 font-mono">{formatCurrency(m.net)}</div>
+                        </div>
+                    </div>
+                ))}
+                {chronMonths.length < 12 && Array.from({length: Math.max(0, 12 - chronMonths.length)}).map((_, i) => (
+                    <div key={`fill-${i}`} className="w-8 h-8 sm:w-10 sm:h-10 rounded-md bg-gray-800/20 border border-dashed border-gray-800"></div>
+                ))}
+            </div>
+            <div className="flex justify-between items-center mt-4 text-[10px] text-gray-500">
+                <span>Less</span>
+                <div className="flex gap-1">
+                    <div className="w-3 h-3 bg-gray-800 rounded"></div>
+                    <div className="w-3 h-3 bg-gray-700 rounded"></div>
+                    <div className="w-3 h-3 bg-emerald-800 rounded"></div>
+                    <div className="w-3 h-3 bg-emerald-600 rounded"></div>
+                    <div className="w-3 h-3 bg-emerald-400 rounded"></div>
+                </div>
+                <span>More</span>
+            </div>
+        </div>
+    );
+};
+
+const ConsistencyStreaks: React.FC<{ allMonths: any[] }> = ({ allMonths }) => {
+    const goalNames = Array.from(new Set(allMonths.flatMap(m => m.goals.map((g:any) => g.name))));
+    const sorted = [...allMonths].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    const streaks = goalNames.map(name => {
+        let streak = 0;
+        for (const m of sorted) {
+            const g = m.goals.find((goal:any) => goal.name === name);
+            if (!g) break; 
+            const isSuccess = g.endValue > 0 ? g.progress >= g.endValue : g.progress > 0;
+            if (isSuccess) {
+                streak++;
+            } else {
+                break;
+            }
+        }
+        return { name, streak };
+    }).sort((a,b) => b.streak - a.streak).filter(s => s.streak > 0).slice(0, 5);
+
+    return (
+        <div className="bg-[#111827] rounded-2xl p-6 border border-gray-800 shadow-xl h-full">
+            <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2 uppercase tracking-wide">
+                <FlameIcon className="w-5 h-5 text-rose-500" />
+                Consistency Streaks
+            </h3>
+            <div className="space-y-3">
+                {streaks.length > 0 ? streaks.map((s, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-700/50">
+                        <span className="text-sm font-medium text-gray-200 truncate pr-2">{s.name}</span>
+                        <div className="flex items-center gap-1.5 text-rose-400 font-bold font-mono whitespace-nowrap">
+                            <span>{s.streak}</span>
+                            <span className="text-[10px] uppercase text-rose-500/70">Mo</span>
+                        </div>
+                    </div>
+                )) : <p className="text-gray-500 text-xs italic py-4 text-center">No active streaks found.</p>}
+            </div>
+        </div>
+    );
+};
+
 // --- STRATEGIC INSIGHTS COMPONENT (New) ---
 const StrategicInsights: React.FC<{ goals: any[] }> = ({ goals }) => {
     // 1. Money Makers
@@ -214,7 +352,43 @@ const StrategicInsights: React.FC<{ goals: any[] }> = ({ goals }) => {
     )
 }
 
-// --- WIDGET COMPONENTS (Unchanged Logic, Compacted for brevity) ---
+// --- WIDGET COMPONENTS ---
+const FutureScenarios: React.FC<{ data: any }> = ({ data }) => {
+    const { avg, stdDev, currentGross } = data;
+    // Simple projection logic:
+    // Optimistic: Current + 10% + half SD
+    // Realistic: Current + 5%
+    // Conservative: Current - 10% - half SD
+    const optimistic = currentGross * 1.1 + stdDev * 0.5;
+    const realistic = currentGross * 1.05; 
+    const pessimistic = Math.max(0, currentGross * 0.9 - stdDev * 0.5);
+
+    return (
+        <div className="bg-[#111827] rounded-2xl p-6 border border-gray-800 shadow-xl h-full flex flex-col">
+            <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2 uppercase tracking-wide">
+                <TrendingUpIcon /> Future Cast
+            </h3>
+            <div className="space-y-4 flex-grow flex flex-col justify-center">
+                <div className="p-3 rounded-xl bg-emerald-900/20 border border-emerald-800/30">
+                    <div className="flex justify-between text-emerald-400 text-[10px] font-bold uppercase mb-1">Optimistic</div>
+                    <div className="text-2xl font-black text-white">{formatCompact(optimistic)}</div>
+                    <div className="text-[10px] text-gray-400">High volume + Bonus</div>
+                </div>
+                <div className="p-3 rounded-xl bg-blue-900/20 border border-blue-800/30">
+                    <div className="flex justify-between text-blue-400 text-[10px] font-bold uppercase mb-1">Realistic</div>
+                    <div className="text-2xl font-black text-white">{formatCompact(realistic)}</div>
+                    <div className="text-[10px] text-gray-400">Trend continuity</div>
+                </div>
+                <div className="p-3 rounded-xl bg-rose-900/20 border border-rose-800/30">
+                    <div className="flex justify-between text-rose-400 text-[10px] font-bold uppercase mb-1">Conservative</div>
+                    <div className="text-2xl font-black text-white">{formatCompact(pessimistic)}</div>
+                    <div className="text-[10px] text-gray-400">Market correction</div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const SalarySimulator: React.FC<{ monthData: MonthData }> = ({ monthData }) => {
     const [simulatedProgress, setSimulatedProgress] = useState<Record<string, number>>({});
     useMemo(() => {
@@ -557,9 +731,14 @@ const AIDashboard: React.FC<AIDashboardProps> = ({ allMonths }) => {
         const volatilityData = grossVals.map(v => v - avg);
         const stdDev = Math.sqrt(volatilityData.map(x => x*x).reduce((a,b)=>a+b, 0) / (volatilityData.length || 1));
 
+        const trendData = sorted.map(m => ({
+            label: new Date(m.date).toLocaleDateString('en-US', { month: 'short' }),
+            value: m.goals.reduce((acc, g) => acc + (g.progress * getSalaryMultiplier(g.name)), 0) * 0.88
+        }));
+
         return { 
             currentMonth, bestMonth, sorted, scatterGoals, donutData, volatilityData, 
-            currentGross, currentNet, cumulativeData, cumulativeGross, avg, stdDev, prevMonth, grossVals
+            currentGross, currentNet, cumulativeData, cumulativeGross, avg, stdDev, prevMonth, grossVals, trendData
         };
     }, [allMonths]);
 
@@ -598,16 +777,41 @@ const AIDashboard: React.FC<AIDashboardProps> = ({ allMonths }) => {
             {/* Row 2: Strategic Insights (New) */}
             <StrategicInsights goals={processedData.scatterGoals} />
 
-            {/* Row 3: Secondary Visuals (Fixed Scatter) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[300px]">
+            {/* Row 3: Secondary Visuals (Including New Future Cast & Added Net Salary Trend) */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-[300px]">
+                <div className="lg:col-span-1"><FutureScenarios data={processedData} /></div>
                 <div className="lg:col-span-1"><DonutChart data={processedData.donutData} /></div>
-                <div className="lg:col-span-2"><ScatterPlot goals={processedData.scatterGoals} /></div>
+                <div className="lg:col-span-2">
+                    {/* Added Net Salary Trend to AI Dashboard as requested */}
+                    <div className="bg-[#111827] rounded-2xl p-6 border border-gray-800 shadow-xl h-full flex flex-col">
+                        <h3 className="text-lg font-bold text-white mb-4">Net Salary Trend</h3>
+                        <div className="flex-grow">
+                            <TrendChart data={processedData.trendData} color="#10b981" />
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            {/* Row 4: Financial Deep Dive */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <CumulativeWealthChart data={processedData.cumulativeData} />
-                <TaxAnalyzer gross={processedData.currentGross} tax={processedData.currentGross * 0.12} />
+            {/* Row 4: Financial Deep Dive (Moved ScatterPlot here to maintain grid balance) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                 <div className="min-h-[300px]">
+                    <ScatterPlot goals={processedData.scatterGoals} />
+                 </div>
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <CumulativeWealthChart data={processedData.cumulativeData} />
+                    <TaxAnalyzer gross={processedData.currentGross} tax={processedData.currentGross * 0.12} />
+                 </div>
+            </div>
+
+            {/* Row 5: Additional Analytics (Pareto, Heatmap, Streaks) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 min-h-[300px]">
+                <ParetoChart goals={processedData.scatterGoals} />
+                <PerformanceHeatmap months={processedData.sorted.map(m => ({ id: m.id, name: m.name, date: new Date(m.date), shortName: new Date(m.date).toLocaleDateString('en-US', {month: 'short'}), net: m.goals.reduce((acc,g)=>acc+(g.progress * getSalaryMultiplier(g.name)),0)*0.88 }))} />
+                <ConsistencyStreaks allMonths={processedData.sorted} />
+            </div>
+            
+            {/* Row 6: Forecast & Velocity */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <ForecastConfidence volatility={processedData.volatilityData} />
                 <VelocityTrend allMonths={processedData.sorted} />
             </div>

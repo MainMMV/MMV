@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Seller } from '../types';
-import { PlusIcon, TrashIcon, DownloadIcon, CalendarIcon } from './Icons';
+import { PlusIcon, TrashIcon, DownloadIcon, CalendarIcon, CogIcon, CheckCircleIcon } from './Icons';
 import Calendar from './Calendar';
 
 interface SellerViewProps {
@@ -12,7 +12,7 @@ interface SellerViewProps {
   onBulkUpdate: (updatedSellers: Seller[]) => void;
 }
 
-const SellerView: React.FC<SellerViewProps> = ({ sellers, onUpdate, onAdd, onDelete }) => {
+const SellerView: React.FC<SellerViewProps> = ({ sellers, onUpdate, onAdd, onDelete, onBulkUpdate }) => {
   const [selectedDate, setSelectedDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 1); // Default to yesterday
@@ -20,6 +20,12 @@ const SellerView: React.FC<SellerViewProps> = ({ sellers, onUpdate, onAdd, onDel
   });
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
+
+  // Plan Distribution State
+  const [showPlanSettings, setShowPlanSettings] = useState(false);
+  const [teamTotalPlan, setTeamTotalPlan] = useState('');
+  const [teamCePlan, setTeamCePlan] = useState('');
+  const [teamTcPlan, setTeamTcPlan] = useState('');
 
   // Close calendar on click outside
   useEffect(() => {
@@ -32,11 +38,58 @@ const SellerView: React.FC<SellerViewProps> = ({ sellers, onUpdate, onAdd, onDel
       return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Sync team plan inputs when opening settings
+  useEffect(() => {
+    if (showPlanSettings) {
+        const tPlan = sellers.reduce((sum, s) => sum + s.totalPlan, 0);
+        const cPlan = sellers.reduce((sum, s) => sum + s.cePlan, 0);
+        const tcPlan = sellers.reduce((sum, s) => sum + s.tcPlan, 0);
+        setTeamTotalPlan(tPlan.toString());
+        setTeamCePlan(cPlan.toString());
+        setTeamTcPlan(tcPlan.toString());
+    }
+  }, [showPlanSettings, sellers]);
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
     }).format(value);
+  };
+  
+  const formatInputNumber = (val: string) => {
+      // Remove non-numeric chars and format with commas
+      const num = parseInt(val.replace(/[^0-9]/g, ''), 10);
+      if (isNaN(num)) return '';
+      return num.toLocaleString('en-US');
+  };
+
+  const handleTeamPlanChange = (setter: React.Dispatch<React.SetStateAction<string>>, val: string) => {
+      const num = val.replace(/[^0-9]/g, '');
+      setter(num);
+  };
+
+  const handleDistributePlans = () => {
+    const count = sellers.length;
+    if (count === 0) return;
+
+    const newTotal = parseInt(teamTotalPlan.replace(/[^0-9]/g, ''), 10) || 0;
+    const newCe = parseInt(teamCePlan.replace(/[^0-9]/g, ''), 10) || 0;
+    const newTc = parseInt(teamTcPlan.replace(/[^0-9]/g, ''), 10) || 0;
+
+    const perSellerTotal = Math.floor(newTotal / count);
+    const perSellerCe = Math.floor(newCe / count);
+    const perSellerTc = Math.floor(newTc / count);
+
+    const updatedSellers = sellers.map(s => ({
+        ...s,
+        totalPlan: perSellerTotal,
+        cePlan: perSellerCe,
+        tcPlan: perSellerTc
+    }));
+
+    onBulkUpdate(updatedSellers);
+    setShowPlanSettings(false);
   };
 
   // Projection Logic
@@ -138,24 +191,33 @@ const SellerView: React.FC<SellerViewProps> = ({ sellers, onUpdate, onAdd, onDel
 
   const formattedDate = selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-  // Styles for fixed widths to ensure stickiness works well
-  const cellClass = "px-2 py-2 text-right border-l border-gray-200 dark:border-gray-700 min-w-[90px]";
-  const inputClass = "w-full text-right bg-transparent border-b border-transparent focus:border-emerald-500 focus:outline-none py-1";
+  // Update alignment to right side for all numeric columns
+  const thClass = "px-0.5 py-1 text-right font-bold text-[9px] sm:text-[10px] leading-tight";
+  const tdClass = "px-0.5 py-1 text-right text-[10px] sm:text-[10px]";
+  const inputClass = "w-full text-right bg-transparent border-none focus:ring-0 p-0 text-[10px] sm:text-[10px]";
 
   return (
-    <div className="animate-fade-in pb-12">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+    <div className="animate-fade-in pb-12 w-full">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
             <div>
-                <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Seller Performance</h2>
-                <p className="text-gray-500 dark:text-gray-400">Advanced projection and pacing analysis.</p>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Seller Performance</h2>
             </div>
-            <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-                 <div className="relative w-full sm:w-auto" ref={calendarRef}>
+            <div className="flex flex-row items-center gap-2 w-full sm:w-auto">
+                 <button 
+                    onClick={() => setShowPlanSettings(!showPlanSettings)}
+                    className={`flex items-center justify-center gap-1 px-3 py-1.5 rounded-md transition-colors font-semibold text-xs border border-gray-200 dark:border-gray-700 ${showPlanSettings ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                    title="Distribute Plans"
+                 >
+                    <CogIcon className="w-3 h-3" />
+                    <span className="hidden sm:inline">Set Plans</span>
+                 </button>
+
+                 <div className="relative flex-grow sm:flex-grow-0" ref={calendarRef}>
                     <button
                         onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium text-sm shadow-sm"
+                        className="w-full flex items-center justify-center gap-1 px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium text-xs shadow-sm"
                     >
-                        <CalendarIcon className="w-4 h-4 text-gray-500" />
+                        <CalendarIcon className="w-3 h-3 text-gray-500" />
                         <span>{formattedDate}</span>
                     </button>
                     {isCalendarOpen && (
@@ -173,177 +235,225 @@ const SellerView: React.FC<SellerViewProps> = ({ sellers, onUpdate, onAdd, onDel
 
                  <button 
                     onClick={handleExport}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-semibold text-sm"
+                    className="flex items-center justify-center gap-1 px-3 py-1.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-semibold text-xs"
                 >
-                    <DownloadIcon />
+                    <DownloadIcon className="w-3 h-3"/>
                     <span>Export</span>
                 </button>
                 <button 
                     onClick={onAdd}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-semibold text-sm shadow-md shadow-emerald-500/20"
+                    className="flex items-center justify-center gap-1 px-3 py-1.5 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors font-semibold text-xs shadow-md shadow-emerald-500/20"
                 >
-                    <PlusIcon />
+                    <PlusIcon className="w-3 h-3"/>
                     <span>Add</span>
                 </button>
             </div>
         </div>
 
-        {/* Responsive Table Container */}
-        <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-gray-700/50 shadow-xl overflow-hidden relative">
-            <div className="overflow-x-auto max-w-full">
-                <table className="text-sm text-left border-collapse table-fixed w-max">
-                    <thead className="text-xs text-gray-500 dark:text-gray-400 uppercase bg-gray-100/80 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700">
-                        <tr>
-                            <th scope="col" className="p-3 sticky left-0 z-20 bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 w-[180px] shadow-[2px_0_5px_rgba(0,0,0,0.05)]">Consultant</th>
-                            
-                            {/* Total Group */}
-                            <th scope="col" className="px-2 py-3 text-center bg-emerald-50/50 dark:bg-emerald-900/10 min-w-[100px] border-l border-gray-200 dark:border-gray-700">Total Fact</th>
-                            <th scope="col" className="px-2 py-3 text-center bg-emerald-50/50 dark:bg-emerald-900/10 min-w-[100px]">Total Plan</th>
-                            <th scope="col" className="px-2 py-3 text-center bg-emerald-50/50 dark:bg-emerald-900/10 min-w-[60px]">%</th>
-                            <th scope="col" className="px-2 py-3 text-center bg-emerald-50/50 dark:bg-emerald-900/10 min-w-[60px]" title="Pace vs Time">Pace</th>
-                            <th scope="col" className="px-2 py-3 text-center bg-emerald-50/50 dark:bg-emerald-900/10 text-rose-500 min-w-[90px]">Left</th>
-                            <th scope="col" className="px-2 py-3 text-center bg-emerald-50/50 dark:bg-emerald-900/10 text-indigo-500 min-w-[100px]">Projected</th>
-                            
-                            <th scope="col" className="px-2 py-3 text-center bg-yellow-50/50 dark:bg-yellow-900/10 border-l border-r border-gray-200 dark:border-gray-700 min-w-[90px]">Bonus</th>
-                            
-                            {/* CE Group */}
-                            <th scope="col" className="px-2 py-3 text-center text-blue-600 dark:text-blue-400 min-w-[90px]">CE Fact</th>
-                            <th scope="col" className="px-2 py-3 text-center text-blue-600 dark:text-blue-400 min-w-[90px]">CE Plan</th>
-                            <th scope="col" className="px-2 py-3 text-center text-blue-600 dark:text-blue-400 min-w-[60px]">%</th>
-                            <th scope="col" className="px-2 py-3 text-center text-blue-600 dark:text-blue-400 min-w-[60px]">Pace</th>
-                            <th scope="col" className="px-2 py-3 text-center text-blue-600 dark:text-blue-400 min-w-[90px] border-r border-gray-200 dark:border-gray-700">Proj</th>
-                            
-                            {/* TC Group */}
-                            <th scope="col" className="px-2 py-3 text-center text-purple-600 dark:text-purple-400 min-w-[90px]">TC Fact</th>
-                            <th scope="col" className="px-2 py-3 text-center text-purple-600 dark:text-purple-400 min-w-[90px]">TC Plan</th>
-                            <th scope="col" className="px-2 py-3 text-center text-purple-600 dark:text-purple-400 min-w-[60px]">%</th>
-                            <th scope="col" className="px-2 py-3 text-center text-purple-600 dark:text-purple-400 min-w-[60px]">Pace</th>
-                            <th scope="col" className="px-2 py-3 text-center text-purple-600 dark:text-purple-400 min-w-[90px]">Proj</th>
-
-                            <th scope="col" className="px-2 py-3 w-10"></th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                        {sellers.map((seller) => {
-                            const total = getMetrics(seller.totalFact, seller.totalPlan);
-                            const ce = getMetrics(seller.ceFact, seller.cePlan);
-                            const tc = getMetrics(seller.tcFact, seller.tcPlan);
-                            
-                            const getPaceColor = (pace: number) => {
-                                if (pace >= 100) return 'text-emerald-500 font-bold';
-                                if (pace >= 90) return 'text-amber-500 font-medium';
-                                return 'text-rose-500';
-                            };
-
-                            return (
-                                <tr key={seller.id} className="hover:bg-white/40 dark:hover:bg-gray-700/40 transition-colors group">
-                                    <td className="p-2 sticky left-0 z-10 bg-white/95 dark:bg-gray-900/95 group-hover:bg-gray-50/95 dark:group-hover:bg-gray-800/95 border-r border-gray-200 dark:border-gray-700 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
-                                        <input 
-                                            type="text" 
-                                            value={seller.name}
-                                            onChange={(e) => handleInputChange(seller.id, 'name', e.target.value)}
-                                            className="w-full bg-transparent border-b border-transparent focus:border-emerald-500 focus:outline-none text-gray-900 dark:text-white font-bold py-1 truncate"
-                                            placeholder="Name"
-                                        />
-                                    </td>
-                                    
-                                    {/* Total */}
-                                    <td className={`${cellClass} bg-emerald-50/20 dark:bg-emerald-900/5`}>
-                                        <input type="text" value={formatCurrency(seller.totalFact)} onChange={(e) => handleInputChange(seller.id, 'totalFact', e.target.value)} className={inputClass} />
-                                    </td>
-                                    <td className={`${cellClass} bg-emerald-50/20 dark:bg-emerald-900/5`}>
-                                        <input type="text" value={formatCurrency(seller.totalPlan)} onChange={(e) => handleInputChange(seller.id, 'totalPlan', e.target.value)} className={`${inputClass} text-gray-500 dark:text-gray-400`} />
-                                    </td>
-                                    <td className="px-2 py-2 text-center bg-emerald-50/20 dark:bg-emerald-900/5">
-                                        <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-bold ${total.pct >= 100 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' : 'text-gray-600 dark:text-gray-400'}`}>{total.pct.toFixed(0)}%</span>
-                                    </td>
-                                    <td className={`px-2 py-2 text-center text-xs bg-emerald-50/20 dark:bg-emerald-900/5 ${getPaceColor(total.pace)}`}>
-                                        {total.pace.toFixed(0)}%
-                                    </td>
-                                    <td className="px-2 py-2 text-right font-mono text-xs text-rose-500 bg-emerald-50/20 dark:bg-emerald-900/5">
-                                        {total.left > 0 ? formatCurrency(total.left) : <span className="text-emerald-500">✓</span>}
-                                    </td>
-                                    <td className="px-2 py-2 text-right font-mono text-xs text-indigo-600 dark:text-indigo-400 font-bold bg-emerald-50/20 dark:bg-emerald-900/5">
-                                        {formatCurrency(total.proj)}
-                                    </td>
-
-                                    {/* Bonus */}
-                                    <td className="px-2 py-2 text-right font-mono text-amber-600 dark:text-amber-400 bg-yellow-50/20 dark:bg-yellow-900/5 border-l border-r border-gray-200 dark:border-gray-700">
-                                         <input type="text" value={formatCurrency(seller.bonus)} onChange={(e) => handleInputChange(seller.id, 'bonus', e.target.value)} className={inputClass} />
-                                    </td>
-
-                                    {/* CE */}
-                                    <td className={cellClass}>
-                                         <input type="text" value={formatCurrency(seller.ceFact)} onChange={(e) => handleInputChange(seller.id, 'ceFact', e.target.value)} className={inputClass} />
-                                    </td>
-                                    <td className={cellClass}>
-                                         <input type="text" value={formatCurrency(seller.cePlan)} onChange={(e) => handleInputChange(seller.id, 'cePlan', e.target.value)} className={`${inputClass} text-gray-400`} />
-                                    </td>
-                                    <td className="px-2 py-2 text-center">
-                                        <span className={`text-xs font-medium ${ce.pct >= 100 ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500'}`}>{ce.pct.toFixed(0)}%</span>
-                                    </td>
-                                    <td className={`px-2 py-2 text-center text-xs ${getPaceColor(ce.pace)}`}>{ce.pace.toFixed(0)}%</td>
-                                    <td className="px-2 py-2 text-right font-mono text-xs text-gray-500 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700">
-                                        {formatCurrency(ce.proj)}
-                                    </td>
-
-                                    {/* TC */}
-                                    <td className={cellClass}>
-                                         <input type="text" value={formatCurrency(seller.tcFact)} onChange={(e) => handleInputChange(seller.id, 'tcFact', e.target.value)} className={inputClass} />
-                                    </td>
-                                    <td className={cellClass}>
-                                         <input type="text" value={formatCurrency(seller.tcPlan)} onChange={(e) => handleInputChange(seller.id, 'tcPlan', e.target.value)} className={`${inputClass} text-gray-400`} />
-                                    </td>
-                                    <td className="px-2 py-2 text-center">
-                                        <span className={`text-xs font-medium ${tc.pct >= 100 ? 'text-purple-600 dark:text-purple-400' : 'text-gray-500'}`}>{tc.pct.toFixed(0)}%</span>
-                                    </td>
-                                    <td className={`px-2 py-2 text-center text-xs ${getPaceColor(tc.pace)}`}>{tc.pace.toFixed(0)}%</td>
-                                    <td className="px-2 py-2 text-right font-mono text-xs text-gray-500 dark:text-gray-400">
-                                        {formatCurrency(tc.proj)}
-                                    </td>
-
-                                    <td className="px-2 py-2 text-center">
-                                        <button onClick={() => onDelete(seller.id)} className="p-1.5 rounded-md hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-400 dark:text-rose-500 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"><TrashIcon className="w-4 h-4" /></button>
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                    <tfoot className="bg-gray-100/90 dark:bg-gray-800/90 font-bold text-gray-900 dark:text-white border-t border-gray-200 dark:border-gray-700 sticky bottom-0 shadow-inner z-20">
-                        <tr>
-                            <td className="p-3 sticky left-0 z-20 bg-gray-100/95 dark:bg-gray-800/95 border-r border-gray-200 dark:border-gray-700 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">Summary</td>
-                            <td className="px-2 py-3 text-right">{formatCurrency(totals.totalFact)}</td>
-                            <td className="px-2 py-3 text-right text-gray-500 dark:text-gray-400">{formatCurrency(totals.totalPlan)}</td>
-                            <td className="px-2 py-3 text-center text-emerald-600 dark:text-emerald-400">
-                                {totals.totalPlan > 0 ? ((totals.totalFact / totals.totalPlan) * 100).toFixed(0) : 0}%
-                            </td>
-                            <td className="px-2 py-3 text-center">-</td>
-                            <td className="px-2 py-3 text-right text-rose-500 text-xs">{formatCurrency(totals.totalRemainder)}</td>
-                            <td className="px-2 py-3 text-right text-indigo-500 text-xs">{formatCurrency(totals.totalProjected)}</td>
-                            
-                            <td className="px-2 py-3 text-right text-amber-600 dark:text-amber-400 border-l border-r border-gray-200 dark:border-gray-700">
-                                {formatCurrency(totals.bonus)}
-                            </td>
-                            <td className="px-2 py-3 text-right">{formatCurrency(totals.ceFact)}</td>
-                            <td className="px-2 py-3 text-right text-gray-500 dark:text-gray-400">{formatCurrency(totals.cePlan)}</td>
-                            <td className="px-2 py-3 text-center text-blue-600 dark:text-blue-400">
-                                {totals.cePlan > 0 ? ((totals.ceFact / totals.cePlan) * 100).toFixed(0) : 0}%
-                            </td>
-                            <td className="px-2 py-3 text-center">-</td>
-                            <td className="px-2 py-3 text-right text-gray-500 text-xs border-r border-gray-200 dark:border-gray-700">{formatCurrency(totals.ceProjected)}</td>
-
-                            <td className="px-2 py-3 text-right">{formatCurrency(totals.tcFact)}</td>
-                            <td className="px-2 py-3 text-right text-gray-500 dark:text-gray-400">{formatCurrency(totals.tcPlan)}</td>
-                            <td className="px-2 py-3 text-center text-purple-600 dark:text-purple-400">
-                                {totals.tcPlan > 0 ? ((totals.tcFact / totals.tcPlan) * 100).toFixed(0) : 0}%
-                            </td>
-                            <td className="px-2 py-3 text-center">-</td>
-                            <td className="px-2 py-3 text-right text-gray-500 text-xs">{formatCurrency(totals.tcProjected)}</td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
+        {/* Plan Distribution Panel */}
+        {showPlanSettings && (
+            <div className="mb-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4 border border-indigo-100 dark:border-indigo-800/50 animate-fade-in">
+                <div className="flex flex-col sm:flex-row items-end gap-4">
+                    <div className="flex-grow grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1 uppercase">Team Total Plan</label>
+                            <input 
+                                type="text" 
+                                value={formatInputNumber(teamTotalPlan)}
+                                onChange={(e) => handleTeamPlanChange(setTeamTotalPlan, e.target.value)}
+                                className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md px-2 py-1.5 text-sm font-mono text-right focus:ring-2 focus:ring-indigo-500 outline-none"
+                                placeholder="0"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-blue-600 dark:text-blue-400 mb-1 uppercase">Team CE Plan</label>
+                            <input 
+                                type="text" 
+                                value={formatInputNumber(teamCePlan)}
+                                onChange={(e) => handleTeamPlanChange(setTeamCePlan, e.target.value)}
+                                className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md px-2 py-1.5 text-sm font-mono text-right focus:ring-2 focus:ring-blue-500 outline-none"
+                                placeholder="0"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-purple-600 dark:text-purple-400 mb-1 uppercase">Team TC Plan</label>
+                            <input 
+                                type="text" 
+                                value={formatInputNumber(teamTcPlan)}
+                                onChange={(e) => handleTeamPlanChange(setTeamTcPlan, e.target.value)}
+                                className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md px-2 py-1.5 text-sm font-mono text-right focus:ring-2 focus:ring-purple-500 outline-none"
+                                placeholder="0"
+                            />
+                        </div>
+                    </div>
+                    <button 
+                        onClick={handleDistributePlans}
+                        className="w-full sm:w-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-xs font-bold shadow-sm transition-colors flex items-center justify-center gap-2 whitespace-nowrap h-[34px]"
+                    >
+                        <CheckCircleIcon className="w-4 h-4" />
+                        Distribute to {sellers.length} Sellers
+                    </button>
+                </div>
+                <p className="text-[10px] text-gray-500 mt-2">
+                    Enter the total target for the entire team. This amount will be divided equally among all {sellers.length} active sellers.
+                </p>
             </div>
+        )}
+
+        {/* Compact Table Container - Removed overflow-x-auto to force fit */}
+        <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-lg border border-white/40 dark:border-gray-700/50 shadow-sm w-full">
+            <table className="w-full border-collapse table-fixed">
+                <thead className="bg-gray-100/80 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400">
+                    <tr>
+                        <th className="p-1 text-left w-[12%] text-[10px] sm:text-[11px] font-bold">Name</th>
+                        
+                        {/* Total Group */}
+                        <th className={`${thClass} bg-emerald-50/50 dark:bg-emerald-900/10 w-[6%]`}>T.Fact</th>
+                        <th className={`${thClass} bg-emerald-50/50 dark:bg-emerald-900/10 w-[6%]`}>T.Plan</th>
+                        <th className={`${thClass} bg-emerald-50/50 dark:bg-emerald-900/10 w-[4%]`}>%</th>
+                        <th className={`${thClass} bg-emerald-50/50 dark:bg-emerald-900/10 w-[4%]`}>Pace</th>
+                        <th className={`${thClass} bg-emerald-50/50 dark:bg-emerald-900/10 text-rose-500 w-[5%]`}>Left</th>
+                        <th className={`${thClass} bg-emerald-50/50 dark:bg-emerald-900/10 text-indigo-500 w-[6%]`}>Proj</th>
+                        
+                        <th className={`${thClass} bg-yellow-50/50 dark:bg-yellow-900/10 border-l border-r border-gray-200 dark:border-gray-700 w-[5%]`}>Bonus</th>
+                        
+                        {/* CE Group */}
+                        <th className={`${thClass} text-blue-600 dark:text-blue-400 w-[6%]`}>CE Fact</th>
+                        <th className={`${thClass} text-blue-600 dark:text-blue-400 w-[6%]`}>CE Plan</th>
+                        <th className={`${thClass} text-blue-600 dark:text-blue-400 w-[4%]`}>%</th>
+                        <th className={`${thClass} text-blue-600 dark:text-blue-400 w-[4%]`}>Pace</th>
+                        <th className={`${thClass} text-blue-600 dark:text-blue-400 w-[6%] border-r border-gray-200 dark:border-gray-700`}>Proj</th>
+                        
+                        {/* TC Group */}
+                        <th className={`${thClass} text-purple-600 dark:text-purple-400 w-[6%]`}>TC Fact</th>
+                        <th className={`${thClass} text-purple-600 dark:text-purple-400 w-[6%]`}>TC Plan</th>
+                        <th className={`${thClass} text-purple-600 dark:text-purple-400 w-[4%]`}>%</th>
+                        <th className={`${thClass} text-purple-600 dark:text-purple-400 w-[4%]`}>Pace</th>
+                        <th className={`${thClass} text-purple-600 dark:text-purple-400 w-[6%]`}>Proj</th>
+
+                        <th className="w-[3%]"></th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {sellers.map((seller) => {
+                        const total = getMetrics(seller.totalFact, seller.totalPlan);
+                        const ce = getMetrics(seller.ceFact, seller.cePlan);
+                        const tc = getMetrics(seller.tcFact, seller.tcPlan);
+                        
+                        const getPaceColor = (pace: number) => {
+                            if (pace >= 100) return 'text-emerald-500 font-bold';
+                            if (pace >= 90) return 'text-amber-500 font-medium';
+                            return 'text-rose-500';
+                        };
+
+                        return (
+                            <tr key={seller.id} className="hover:bg-white/40 dark:hover:bg-gray-700/40 transition-colors group">
+                                <td className="p-1 border-r border-gray-100 dark:border-gray-700/50">
+                                    <input 
+                                        type="text" 
+                                        value={seller.name}
+                                        onChange={(e) => handleInputChange(seller.id, 'name', e.target.value)}
+                                        className="w-full bg-transparent border-none focus:ring-0 text-gray-900 dark:text-white font-bold text-[10px] sm:text-xs truncate p-0"
+                                        placeholder="Name"
+                                    />
+                                </td>
+                                
+                                {/* Total */}
+                                <td className={`${tdClass} bg-emerald-50/20 dark:bg-emerald-900/5`}>
+                                    <input type="text" value={formatCurrency(seller.totalFact)} onChange={(e) => handleInputChange(seller.id, 'totalFact', e.target.value)} className={inputClass} />
+                                </td>
+                                <td className={`${tdClass} bg-emerald-50/20 dark:bg-emerald-900/5`}>
+                                    <input type="text" value={formatCurrency(seller.totalPlan)} onChange={(e) => handleInputChange(seller.id, 'totalPlan', e.target.value)} className={`${inputClass} font-medium text-gray-700 dark:text-gray-200`} />
+                                </td>
+                                <td className={`${tdClass} bg-emerald-50/20 dark:bg-emerald-900/5`}>
+                                    <span className={`inline-block ${total.pct >= 100 ? 'text-emerald-600 font-bold' : 'text-gray-600 dark:text-gray-400'}`}>{total.pct.toFixed(0)}</span>
+                                </td>
+                                <td className={`${tdClass} bg-emerald-50/20 dark:bg-emerald-900/5 ${getPaceColor(total.pace)}`}>
+                                    {total.pace.toFixed(0)}
+                                </td>
+                                <td className={`${tdClass} font-mono text-rose-500 bg-emerald-50/20 dark:bg-emerald-900/5`}>
+                                    {total.left > 0 ? formatCurrency(total.left) : <span className="text-emerald-500">✓</span>}
+                                </td>
+                                <td className={`${tdClass} font-mono text-indigo-600 dark:text-indigo-400 font-bold bg-emerald-50/20 dark:bg-emerald-900/5`}>
+                                    {formatCurrency(total.proj)}
+                                </td>
+
+                                {/* Bonus */}
+                                <td className={`${tdClass} font-mono text-amber-600 dark:text-amber-400 bg-yellow-50/20 dark:bg-yellow-900/5 border-l border-r border-gray-100 dark:border-gray-700/50`}>
+                                     <input type="text" value={formatCurrency(seller.bonus)} onChange={(e) => handleInputChange(seller.id, 'bonus', e.target.value)} className={inputClass} />
+                                </td>
+
+                                {/* CE */}
+                                <td className={tdClass}>
+                                     <input type="text" value={formatCurrency(seller.ceFact)} onChange={(e) => handleInputChange(seller.id, 'ceFact', e.target.value)} className={inputClass} />
+                                </td>
+                                <td className={tdClass}>
+                                     <input type="text" value={formatCurrency(seller.cePlan)} onChange={(e) => handleInputChange(seller.id, 'cePlan', e.target.value)} className={`${inputClass} font-medium text-blue-700 dark:text-blue-300`} />
+                                </td>
+                                <td className={`${tdClass}`}>
+                                    <span className={`${ce.pct >= 100 ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-500'}`}>{ce.pct.toFixed(0)}</span>
+                                </td>
+                                <td className={`${tdClass} ${getPaceColor(ce.pace)}`}>{ce.pace.toFixed(0)}</td>
+                                <td className={`${tdClass} font-mono text-gray-500 dark:text-gray-400 border-r border-gray-100 dark:border-gray-700/50`}>
+                                    {formatCurrency(ce.proj)}
+                                </td>
+
+                                {/* TC */}
+                                <td className={tdClass}>
+                                     <input type="text" value={formatCurrency(seller.tcFact)} onChange={(e) => handleInputChange(seller.id, 'tcFact', e.target.value)} className={inputClass} />
+                                </td>
+                                <td className={tdClass}>
+                                     <input type="text" value={formatCurrency(seller.tcPlan)} onChange={(e) => handleInputChange(seller.id, 'tcPlan', e.target.value)} className={`${inputClass} font-medium text-purple-700 dark:text-purple-300`} />
+                                </td>
+                                <td className={`${tdClass}`}>
+                                    <span className={`${tc.pct >= 100 ? 'text-purple-600 dark:text-purple-400 font-bold' : 'text-gray-500'}`}>{tc.pct.toFixed(0)}</span>
+                                </td>
+                                <td className={`${tdClass} ${getPaceColor(tc.pace)}`}>{tc.pace.toFixed(0)}</td>
+                                <td className={`${tdClass} font-mono text-gray-500 dark:text-gray-400`}>
+                                    {formatCurrency(tc.proj)}
+                                </td>
+
+                                <td className="p-0.5 text-center">
+                                    <button onClick={() => onDelete(seller.id)} className="p-0.5 rounded hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-400 dark:text-rose-500 opacity-0 group-hover:opacity-100"><TrashIcon className="w-3 h-3" /></button>
+                                </td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+                <tfoot className="bg-gray-100 dark:bg-gray-800 font-bold text-gray-900 dark:text-white border-t border-gray-200 dark:border-gray-700 text-[10px] sm:text-[10px]">
+                    <tr>
+                        <td className="p-1 border-r border-gray-200 dark:border-gray-700">Summary</td>
+                        <td className="px-0.5 py-1 text-right">{formatCurrency(totals.totalFact)}</td>
+                        <td className="px-0.5 py-1 text-right text-gray-500 dark:text-gray-400">{formatCurrency(totals.totalPlan)}</td>
+                        <td className="px-0.5 py-1 text-right text-emerald-600 dark:text-emerald-400">
+                            {totals.totalPlan > 0 ? ((totals.totalFact / totals.totalPlan) * 100).toFixed(0) : 0}%
+                        </td>
+                        <td className="px-0.5 py-1 text-right">-</td>
+                        <td className="px-0.5 py-1 text-right text-rose-500">{formatCurrency(totals.totalRemainder)}</td>
+                        <td className="px-0.5 py-1 text-right text-indigo-500">{formatCurrency(totals.totalProjected)}</td>
+                        
+                        <td className="px-0.5 py-1 text-right text-amber-600 dark:text-amber-400 border-l border-r border-gray-200 dark:border-gray-700">
+                            {formatCurrency(totals.bonus)}
+                        </td>
+                        <td className="px-0.5 py-1 text-right">{formatCurrency(totals.ceFact)}</td>
+                        <td className="px-0.5 py-1 text-right text-gray-500 dark:text-gray-400">{formatCurrency(totals.cePlan)}</td>
+                        <td className="px-0.5 py-1 text-right text-blue-600 dark:text-blue-400">
+                            {totals.cePlan > 0 ? ((totals.ceFact / totals.cePlan) * 100).toFixed(0) : 0}%
+                        </td>
+                        <td className="px-0.5 py-1 text-right">-</td>
+                        <td className="px-0.5 py-1 text-right text-gray-500 border-r border-gray-200 dark:border-gray-700">{formatCurrency(totals.ceProjected)}</td>
+
+                        <td className="px-0.5 py-1 text-right">{formatCurrency(totals.tcFact)}</td>
+                        <td className="px-0.5 py-1 text-right text-gray-500 dark:text-gray-400">{formatCurrency(totals.tcPlan)}</td>
+                        <td className="px-0.5 py-1 text-right text-purple-600 dark:text-purple-400">
+                            {totals.tcPlan > 0 ? ((totals.tcFact / totals.tcPlan) * 100).toFixed(0) : 0}%
+                        </td>
+                        <td className="px-0.5 py-1 text-right">-</td>
+                        <td className="px-0.5 py-1 text-right text-gray-500">{formatCurrency(totals.tcProjected)}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
         </div>
     </div>
   );
