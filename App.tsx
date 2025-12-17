@@ -14,6 +14,7 @@ import IntegrationsPage from './components/IntegrationsPage.tsx';
 import SellerView from './components/SellerView.tsx';
 import AIDashboard from './components/AIDashboard.tsx';
 import MonthlyIncomeView from './components/MonthlyIncomeView.tsx';
+import { loadFromNeon, saveToNeon } from './services/neon.ts';
 
 // Initial sample data for the application
 const initialData: MonthData[] = [
@@ -172,6 +173,30 @@ const App: React.FC = () => {
   const [appFont, setAppFont] = useState(() => localStorage.getItem('appFont') || 'Inter');
   const [appThemeColor, setAppThemeColor] = useState(() => localStorage.getItem('appThemeColor') || 'emerald');
 
+  // Load from Neon on Startup
+  useEffect(() => {
+      const neonString = localStorage.getItem('neonConnectionString');
+      if (neonString) {
+          const loadData = async () => {
+              console.log("Attempting to load from Neon...");
+              const result = await loadFromNeon(neonString);
+              if (result.success && result.data) {
+                  const cloudData = result.data;
+                  if (cloudData.salaryGoalTrackerData) setData(cloudData.salaryGoalTrackerData);
+                  if (cloudData.storePlansData) setStorePlans(cloudData.storePlansData);
+                  if (cloudData.sellersData) setSellers(cloudData.sellersData);
+                  if (cloudData.theme) setTheme(cloudData.theme);
+                  if (cloudData.appFont) setAppFont(cloudData.appFont);
+                  if (cloudData.appThemeColor) setAppThemeColor(cloudData.appThemeColor);
+                  console.log("Data loaded from Neon successfully!");
+              } else {
+                  console.warn("Could not load from Neon:", result.error);
+              }
+          };
+          loadData();
+      }
+  }, []);
+
   // Only persist theme to localStorage
   useEffect(() => {
     const root = window.document.documentElement;
@@ -279,19 +304,32 @@ const App: React.FC = () => {
 
   // Auto-save to file handle if connected (Desktop only)
   useEffect(() => {
-    if (!fileHandle) return;
-
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
 
     saveTimeoutRef.current = setTimeout(async () => {
-        try {
-            const writable = await fileHandle.createWritable();
-            const content = generateBackupJSON();
-            await writable.write(content);
-            await writable.close();
-            console.log("Auto-saved to file.");
-        } catch (err) {
-            console.error("Failed to auto-save to file:", err);
+        // 1. File System Sync
+        if (fileHandle) {
+            try {
+                const writable = await fileHandle.createWritable();
+                const content = generateBackupJSON();
+                await writable.write(content);
+                await writable.close();
+                console.log("Auto-saved to file.");
+            } catch (err) {
+                console.error("Failed to auto-save to file:", err);
+            }
+        }
+
+        // 2. Neon Database Sync
+        const neonString = localStorage.getItem('neonConnectionString');
+        if (neonString) {
+            try {
+                const rawData = JSON.parse(generateBackupJSON()).data;
+                await saveToNeon(neonString, rawData);
+                console.log("Auto-saved to Neon DB.");
+            } catch (err) {
+                console.error("Failed to auto-save to Neon:", err);
+            }
         }
     }, 2000); 
 
@@ -943,7 +981,7 @@ const App: React.FC = () => {
         activeView={activeView}
         onViewChange={setActiveView}
         onOpenSettings={() => setIsSettingsOpen(true)}
-        isCloudSyncActive={!!fileHandle}
+        isCloudSyncActive={!!fileHandle || !!localStorage.getItem('neonConnectionString')}
       />
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         {renderContent()}

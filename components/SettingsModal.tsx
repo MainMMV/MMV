@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CloseIcon, FolderIcon, GoogleSheetsIcon, CheckCircleIcon, ExternalLinkIcon, PhotoIcon } from './Icons';
 
 interface SettingsModalProps {
@@ -61,7 +61,13 @@ const THEMES = [
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onConnectFile, isFileConnected, currentFont = 'Inter', setFont, currentTheme = 'emerald', setTheme }) => {
   const [activeTab, setActiveTab] = useState<'general' | 'appearance' | 'integrations'>('general');
+  const [neonConnectionString, setNeonConnectionString] = useState(localStorage.getItem('neonConnectionString') || '');
   
+  const handleSaveNeon = () => {
+      localStorage.setItem('neonConnectionString', neonConnectionString);
+      alert('Connection string saved! Please reload the app to sync with Neon.');
+  };
+
   // Integrations State
   const [integrations, setIntegrations] = useState<IntegrationItem[]>([
         {
@@ -167,14 +173,43 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onConnec
           
           {activeTab === 'general' && (
             <div className="space-y-8">
-              {/* Live File Sync */}
+              {/* Neon DB Connection */}
               <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                      <div className="p-2 bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-lg">
+                          {/* Database Icon SVG */}
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" /></svg>
+                      </div>
+                      <div>
+                          <h3 className="font-semibold text-gray-900 dark:text-white">Neon Database</h3>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Enter Postgres connection string.</p>
+                      </div>
+                  </div>
+                  <div className="space-y-2">
+                      <input 
+                          type="password" 
+                          placeholder="postgres://user:pass@host/db?sslmode=require"
+                          value={neonConnectionString}
+                          onChange={(e) => setNeonConnectionString(e.target.value)}
+                          className="w-full px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-900 dark:text-white"
+                      />
+                      <button 
+                          onClick={handleSaveNeon}
+                          className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
+                      >
+                          Save Connection
+                      </button>
+                  </div>
+              </div>
+
+              {/* Live File Sync */}
+              <div className="space-y-3 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400 rounded-lg">
                        <FolderIcon />
                     </div>
                     <div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white">Live File Sync</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-white">Local File Sync</h3>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Sync with Google Drive, Dropbox, etc.</p>
                     </div>
                 </div>
