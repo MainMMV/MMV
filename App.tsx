@@ -16,72 +16,228 @@ import AIDashboard from './components/AIDashboard.tsx';
 import MonthlyIncomeView from './components/MonthlyIncomeView.tsx';
 import { loadFromNeon, saveToNeon } from './services/neon.ts';
 
-// Initial sample data for the application
+// Initial sample data from user backup
 const initialData: MonthData[] = [
   {
-    id: 'september-2025',
-    name: 'September 2025',
-    date: '2025-09-30T12:00:00Z', // End of month for past
-    goals: [
-      { id: 'g1', name: 'within 5 minutes', progress: 40, endValue: 40, status: GoalStatus.COMPLETED },
-      { id: 'g2', name: 'within 10 minutes', progress: 16, endValue: 16, status: GoalStatus.COMPLETED },
-      { id: 'g3', name: 'within 20 minutes', progress: 7, endValue: 7, status: GoalStatus.COMPLETED },
-      { id: 'g4', name: 'who rejected', progress: 60, endValue: 60, status: GoalStatus.COMPLETED },
-      { id: 'g5', name: 'created by sellers', progress: 110, endValue: 110, status: GoalStatus.COMPLETED },
-    ],
-    salary65: 1820000,
-    salary35: 980000,
-    manualBonus: 1900800
+    "id": "september-2024",
+    "name": "September 2024",
+    "date": "2024-09-15T00:00:00Z",
+    "goals": [
+      { "id": "g1", "name": "within 5 minutes", "progress": 16, "endValue": 16, "status": GoalStatus.COMPLETED },
+      { "id": "g2", "name": "within 10 minutes", "progress": 13, "endValue": 13, "status": GoalStatus.COMPLETED },
+      { "id": "g3", "name": "within 20 minutes", "progress": 12, "endValue": 12, "status": GoalStatus.COMPLETED },
+      { "id": "g4", "name": "who rejected", "progress": 15, "endValue": 15, "status": GoalStatus.COMPLETED },
+      { "id": "g5", "name": "created by sellers", "progress": 0, "endValue": 0, "status": GoalStatus.COMPLETED }
+    ]
   },
   {
-    id: 'october-2025',
-    name: 'October 2025',
-    date: '2025-10-31T12:00:00Z', // End of month for past (relative to now in sample)
-    goals: [
-      { id: 'g1', name: 'within 5 minutes', progress: 26, endValue: 40, status: GoalStatus.COMPLETED },
-      { id: 'g2', name: 'within 10 minutes', progress: 16, endValue: 16, status: GoalStatus.COMPLETED },
-      { id: 'g3', name: 'within 20 minutes', progress: 6, endValue: 7, status: GoalStatus.COMPLETED },
-      { id: 'g4', name: 'who rejected', progress: 58, endValue: 60, status: GoalStatus.COMPLETED },
-      { id: 'g5', name: 'created by sellers', progress: 94, endValue: 110, status: GoalStatus.COMPLETED },
-    ],
-    salary65: 1820000,
-    salary35: 980000,
-    manualBonus: 1906320
+    "id": "october-2024",
+    "name": "October 2024",
+    "date": "2024-10-15T00:00:00Z",
+    "goals": [
+      { "id": "g1", "name": "within 5 minutes", "progress": 43, "endValue": 43, "status": GoalStatus.COMPLETED },
+      { "id": "g2", "name": "within 10 minutes", "progress": 22, "endValue": 22, "status": GoalStatus.COMPLETED },
+      { "id": "g3", "name": "within 20 minutes", "progress": 20, "endValue": 20, "status": GoalStatus.COMPLETED },
+      { "id": "g4", "name": "who rejected", "progress": 41, "endValue": 41, "status": GoalStatus.COMPLETED },
+      { "id": "g5", "name": "created by sellers", "progress": 0, "endValue": 0, "status": GoalStatus.COMPLETED }
+    ]
   },
+  {
+    "id": "november-2024",
+    "name": "November 2024",
+    "date": "2024-11-15T00:00:00Z",
+    "goals": [
+      { "id": "g1", "name": "within 5 minutes", "progress": 63, "endValue": 63, "status": GoalStatus.COMPLETED },
+      { "id": "g2", "name": "within 10 minutes", "progress": 23, "endValue": 23, "status": GoalStatus.COMPLETED },
+      { "id": "g3", "name": "within 20 minutes", "progress": 11, "endValue": 11, "status": GoalStatus.COMPLETED },
+      { "id": "g4", "name": "who rejected", "progress": 71, "endValue": 71, "status": GoalStatus.COMPLETED },
+      { "id": "g5", "name": "created by sellers", "progress": 0, "endValue": 0, "status": GoalStatus.COMPLETED }
+    ]
+  },
+  {
+    "id": "december-2024",
+    "name": "December 2024",
+    "date": "2024-12-15T00:00:00Z",
+    "goals": [
+      { "id": "g1", "name": "within 5 minutes", "progress": 77, "endValue": 77, "status": GoalStatus.COMPLETED },
+      { "id": "g2", "name": "within 10 minutes", "progress": 23, "endValue": 23, "status": GoalStatus.COMPLETED },
+      { "id": "g3", "name": "within 20 minutes", "progress": 25, "endValue": 25, "status": GoalStatus.COMPLETED },
+      { "id": "g4", "name": "who rejected", "progress": 59, "endValue": 59, "status": GoalStatus.COMPLETED },
+      { "id": "g5", "name": "created by sellers", "progress": 24, "endValue": 24, "status": GoalStatus.COMPLETED }
+    ]
+  },
+  {
+    "id": "january-2025",
+    "name": "January 2025",
+    "date": "2025-01-15T00:00:00Z",
+    "goals": [
+      { "id": "g1", "name": "within 5 minutes", "progress": 28, "endValue": 28, "status": GoalStatus.COMPLETED },
+      { "id": "g2", "name": "within 10 minutes", "progress": 15, "endValue": 15, "status": GoalStatus.COMPLETED },
+      { "id": "g3", "name": "within 20 minutes", "progress": 13, "endValue": 13, "status": GoalStatus.COMPLETED },
+      { "id": "g4", "name": "who rejected", "progress": 20, "endValue": 20, "status": GoalStatus.COMPLETED },
+      { "id": "g5", "name": "created by sellers", "progress": 118, "endValue": 118, "status": GoalStatus.COMPLETED }
+    ]
+  },
+  {
+    "id": "february-2025",
+    "name": "February 2025",
+    "date": "2025-02-15T00:00:00Z",
+    "goals": [
+      { "id": "g1", "name": "within 5 minutes", "progress": 27, "endValue": 27, "status": GoalStatus.COMPLETED },
+      { "id": "g2", "name": "within 10 minutes", "progress": 10, "endValue": 10, "status": GoalStatus.COMPLETED },
+      { "id": "g3", "name": "within 20 minutes", "progress": 8, "endValue": 8, "status": GoalStatus.COMPLETED },
+      { "id": "g4", "name": "who rejected", "progress": 11, "endValue": 11, "status": GoalStatus.COMPLETED },
+      { "id": "g5", "name": "created by sellers", "progress": 102, "endValue": 102, "status": GoalStatus.COMPLETED }
+    ]
+  },
+  {
+    "id": "march-2025",
+    "name": "March 2025",
+    "date": "2025-03-15T00:00:00Z",
+    "goals": [
+      { "id": "g1", "name": "within 5 minutes", "progress": 23, "endValue": 23, "status": GoalStatus.COMPLETED },
+      { "id": "g2", "name": "within 10 minutes", "progress": 11, "endValue": 11, "status": GoalStatus.COMPLETED },
+      { "id": "g3", "name": "within 20 minutes", "progress": 6, "endValue": 6, "status": GoalStatus.COMPLETED },
+      { "id": "g4", "name": "who rejected", "progress": 33, "endValue": 33, "status": GoalStatus.COMPLETED },
+      { "id": "g5", "name": "created by sellers", "progress": 77, "endValue": 77, "status": GoalStatus.COMPLETED }
+    ]
+  },
+  {
+    "id": "april-2025",
+    "name": "April 2025",
+    "date": "2025-04-15T00:00:00Z",
+    "goals": [
+      { "id": "g1", "name": "within 5 minutes", "progress": 33, "endValue": 33, "status": GoalStatus.COMPLETED },
+      { "id": "g2", "name": "within 10 minutes", "progress": 19, "endValue": 19, "status": GoalStatus.COMPLETED },
+      { "id": "g3", "name": "within 20 minutes", "progress": 19, "endValue": 19, "status": GoalStatus.COMPLETED },
+      { "id": "g4", "name": "who rejected", "progress": 41, "endValue": 41, "status": GoalStatus.COMPLETED },
+      { "id": "g5", "name": "created by sellers", "progress": 61, "endValue": 61, "status": GoalStatus.COMPLETED }
+    ]
+  },
+  {
+    "id": "may-2025",
+    "name": "May 2025",
+    "date": "2025-05-15T00:00:00Z",
+    "goals": [
+      { "id": "g1", "name": "within 5 minutes", "progress": 20, "endValue": 20, "status": GoalStatus.COMPLETED },
+      { "id": "g2", "name": "within 10 minutes", "progress": 6, "endValue": 6, "status": GoalStatus.COMPLETED },
+      { "id": "g3", "name": "within 20 minutes", "progress": 10, "endValue": 10, "status": GoalStatus.COMPLETED },
+      { "id": "g4", "name": "who rejected", "progress": 36, "endValue": 36, "status": GoalStatus.COMPLETED },
+      { "id": "g5", "name": "created by sellers", "progress": 76, "endValue": 76, "status": GoalStatus.COMPLETED }
+    ]
+  },
+  {
+    "id": "june-2025",
+    "name": "June 2025",
+    "date": "2025-06-15T00:00:00Z",
+    "goals": [
+      { "id": "g1", "name": "within 5 minutes", "progress": 32, "endValue": 32, "status": GoalStatus.COMPLETED },
+      { "id": "g2", "name": "within 10 minutes", "progress": 21, "endValue": 21, "status": GoalStatus.COMPLETED },
+      { "id": "g3", "name": "within 20 minutes", "progress": 11, "endValue": 11, "status": GoalStatus.COMPLETED },
+      { "id": "g4", "name": "who rejected", "progress": 64, "endValue": 64, "status": GoalStatus.COMPLETED },
+      { "id": "g5", "name": "created by sellers", "progress": 124, "endValue": 124, "status": GoalStatus.COMPLETED }
+    ]
+  },
+  {
+    "id": "august-2025",
+    "name": "August 2025",
+    "date": "2025-08-15T00:00:00Z",
+    "goals": [
+      { "id": "g1", "name": "within 5 minutes", "progress": 41, "endValue": 41, "status": GoalStatus.COMPLETED },
+      { "id": "g2", "name": "within 10 minutes", "progress": 14, "endValue": 14, "status": GoalStatus.COMPLETED },
+      { "id": "g3", "name": "within 20 minutes", "progress": 8, "endValue": 8, "status": GoalStatus.COMPLETED },
+      { "id": "g4", "name": "who rejected", "progress": 53, "endValue": 53, "status": GoalStatus.COMPLETED },
+      { "id": "g5", "name": "created by sellers", "progress": 153, "endValue": 153, "status": GoalStatus.COMPLETED }
+    ]
+  },
+  {
+    "id": "september-2025",
+    "name": "September 2025",
+    "date": "2025-09-15T00:00:00Z",
+    "goals": [
+      { "id": "g1", "name": "within 5 minutes", "progress": 40, "endValue": 40, "status": GoalStatus.COMPLETED },
+      { "id": "g2", "name": "within 10 minutes", "progress": 16, "endValue": 16, "status": GoalStatus.COMPLETED },
+      { "id": "g3", "name": "within 20 minutes", "progress": 7, "endValue": 7, "status": GoalStatus.COMPLETED },
+      { "id": "g4", "name": "who rejected", "progress": 60, "endValue": 60, "status": GoalStatus.COMPLETED },
+      { "id": "g5", "name": "created by sellers", "progress": 110, "endValue": 110, "status": GoalStatus.COMPLETED }
+    ],
+    "salary65": 1820000,
+    "salary35": 980000,
+    "manualBonus": 1900800
+  },
+  {
+    "id": "october-2025",
+    "name": "October 2025",
+    "date": "2025-10-15T00:00:00Z",
+    "goals": [
+      { "id": "g1", "name": "within 5 minutes", "progress": 26, "endValue": 26, "status": GoalStatus.COMPLETED },
+      { "id": "g2", "name": "within 10 minutes", "progress": 16, "endValue": 16, "status": GoalStatus.COMPLETED },
+      { "id": "g3", "name": "within 20 minutes", "progress": 6, "endValue": 6, "status": GoalStatus.COMPLETED },
+      { "id": "g4", "name": "who rejected", "progress": 58, "endValue": 58, "status": GoalStatus.COMPLETED },
+      { "id": "g5", "name": "created by sellers", "progress": 94, "endValue": 94, "status": GoalStatus.COMPLETED }
+    ],
+    "salary65": 1820000,
+    "salary35": 980000,
+    "manualBonus": 1906320
+  },
+  {
+    "id": "month-1763146800000",
+    "name": "November 2025",
+    "date": "2025-11-29T19:00:00.000Z",
+    "goals": [
+      { "id": "g1", "name": "within 5 minutes", "progress": 23, "endValue": 41, "status": GoalStatus.NOT_STARTED },
+      { "id": "g2", "name": "within 10 minutes", "progress": 3, "endValue": 21, "status": GoalStatus.NOT_STARTED },
+      { "id": "g3", "name": "within 20 minutes", "progress": 7, "endValue": 20, "status": GoalStatus.NOT_STARTED },
+      { "id": "g4", "name": "who rejected", "progress": 22, "endValue": 71, "status": GoalStatus.NOT_STARTED },
+      { "id": "g5", "name": "created by sellers", "progress": 129, "endValue": 153, "status": GoalStatus.NOT_STARTED }
+    ]
+  },
+  {
+    "id": "month-1765695600000",
+    "name": "December 2025",
+    "date": "2025-12-13T19:00:00.000Z",
+    "goals": [
+      { "id": "g1", "name": "within 5 minutes", "progress": 5, "endValue": 77, "status": GoalStatus.NOT_STARTED },
+      { "id": "g2", "name": "within 10 minutes", "progress": 1, "endValue": 23, "status": GoalStatus.NOT_STARTED },
+      { "id": "g3", "name": "within 20 minutes", "progress": 0, "endValue": 25, "status": GoalStatus.NOT_STARTED },
+      { "id": "g4", "name": "who rejected", "progress": 5, "endValue": 71, "status": GoalStatus.NOT_STARTED },
+      { "id": "g5", "name": "created by sellers", "progress": 37, "endValue": 153, "status": GoalStatus.NOT_STARTED }
+    ]
+  }
 ];
 
 const initialStorePlans: StorePlan[] = [
-  { id: 'sp1', name: 'Store Plan', plan100: 3100000000, actualSum: 397366143 },
-  { id: 'sp2', name: '1st Decade', plan100: 1033333333, actualSum: 397366143 },
-  { id: 'sp3', name: '2nd Decade', plan100: 1033333333, actualSum: 0 },
-  { id: 'sp4', name: '3rd Decade', plan100: 1033333333, actualSum: 0 },
+  { "id": "sp1", "name": "Store Plan", "plan100": 3100000000, "actualSum": 397366143 },
+  { "id": "sp2", "name": "1st Decade", "plan100": 1033333333, "actualSum": 397366143 },
+  { "id": "sp3", "name": "2nd Decade", "plan100": 1033333333, "actualSum": 0 },
+  { "id": "sp4", "name": "3rd Decade", "plan100": 1033333333, "actualSum": 0 }
 ];
 
 const initialSellers: Seller[] = [
-    {
-        id: 's1',
-        name: 'John Doe',
-        totalFact: 845572497,
-        totalPlan: 500000000,
-        totalCount: 221,
-        bonus: 4594566,
-        ceFact: 210345970,
-        cePlan: 300000000,
-        tcFact: 535093390,
-        tcPlan: 200000000
-    },
-    {
-        id: 's2',
-        name: 'Jane Smith',
-        totalFact: 800850752,
-        totalPlan: 500000000,
-        totalCount: 228,
-        bonus: 2915008,
-        ceFact: 330926135,
-        cePlan: 300000000,
-        tcFact: 441727026,
-        tcPlan: 200000000
-    }
+  {
+    "id": "s1",
+    "name": "John Doe",
+    "totalFact": 845572497,
+    "totalPlan": 500000000,
+    "totalCount": 221,
+    "bonus": 4594566,
+    "ceFact": 210345970,
+    "cePlan": 300000000,
+    "tcFact": 535093390,
+    "tcPlan": 200000000
+  },
+  {
+    "id": "s2",
+    "name": "Jane Smith",
+    "totalFact": 800850752,
+    "totalPlan": 500000000,
+    "totalCount": 228,
+    "bonus": 2915008,
+    "ceFact": 330926135,
+    "cePlan": 300000000,
+    "tcFact": 441727026,
+    "tcPlan": 200000000
+  }
 ];
 
 // Define Theme Palette Mappings
@@ -167,6 +323,7 @@ const App: React.FC = () => {
   // Theme & Appearance State
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const savedTheme = localStorage.getItem('theme');
+    // Default to the provided JSON preference or fallback to dark
     return (savedTheme === 'light' || savedTheme === 'dark') ? savedTheme : 'dark';
   });
   
@@ -190,7 +347,8 @@ const App: React.FC = () => {
                   if (cloudData.appThemeColor) setAppThemeColor(cloudData.appThemeColor);
                   console.log("Data loaded from Neon successfully!");
               } else {
-                  console.warn("Could not load from Neon:", result.error);
+                  console.warn("Could not load from Neon (or DB empty):", result.error);
+                  // If DB is empty/new, initialData (which now contains user backup) will be saved on next debounce
               }
           };
           loadData();
