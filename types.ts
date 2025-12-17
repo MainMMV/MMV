@@ -122,12 +122,22 @@ export interface Seller {
 }
 
 /**
- * Interface representing a Todo item.
+ * Priority Level type.
+ */
+export type PriorityLevel = 'low' | 'medium' | 'high' | 'critical';
+
+/**
+ * Interface representing a Todo/Purchase item.
  */
 export interface Todo {
   id: string;
   text: string;
   completed: boolean;
-  category: 'personal' | 'work' | 'urgent' | 'shopping';
+  category: 'personal' | 'work' | 'urgent' | 'shopping' | 'finance';
   createdAt: string;
+  // Financial & Productivity Fields
+  estimatedCost?: number;
+  priority?: PriorityLevel;
+  recurring?: boolean;
+  notes?: string;
 }

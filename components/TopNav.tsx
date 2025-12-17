@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { 
   SunIcon, MoonIcon, MenuIcon, ChartBarIcon, CogIcon, CheckCircleIcon,
   HomeIcon, Squares2X2Icon, BuildingStoreIcon, UserGroupIcon, PuzzlePieceIcon, PresentationChartLineIcon,
-  CalendarIcon, WalletIcon, ClipboardListIcon
+  CalendarIcon, WalletIcon, ClipboardListIcon, LogOutIcon
 } from './Icons';
 
 /**
@@ -16,12 +16,13 @@ interface TopNavProps {
   onViewChange: (view: 'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations' | 'income_detail' | 'todo') => void;
   onOpenSettings: () => void;
   isCloudSyncActive?: boolean;
+  onLock?: () => void;
 }
 
 /**
  * The top navigation bar for the application.
  */
-const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewChange, onOpenSettings, isCloudSyncActive }) => {
+const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewChange, onOpenSettings, isCloudSyncActive, onLock }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleViewClick = (view: 'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations' | 'income_detail' | 'todo') => {
@@ -82,6 +83,15 @@ const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewC
                   >
                       {theme === 'light' ? <MoonIcon /> : <SunIcon />}
                   </button>
+                  {onLock && (
+                      <button
+                          onClick={onLock}
+                          className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700/50 hover:text-rose-500 dark:hover:text-rose-400 transition-colors"
+                          aria-label="Lock / Sign Out"
+                      >
+                          <LogOutIcon />
+                      </button>
+                  )}
                </div>
             </div>
           </div>

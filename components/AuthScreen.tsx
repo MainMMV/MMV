@@ -12,6 +12,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated, savedPin }) =>
   const [confirmPin, setConfirmPin] = useState('');
   const [isSetupMode, setIsSetupMode] = useState(!savedPin);
   const [error, setError] = useState('');
+  const [shake, setShake] = useState(false);
 
   const handlePinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,15 +21,13 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated, savedPin }) =>
     if (isSetupMode) {
       if (confirmPin && pin !== confirmPin) {
         setError("PINs do not match");
+        setShake(true);
         return;
       }
       if (pin.length < 4) {
         setError("PIN must be at least 4 digits");
+        setShake(true);
         return;
-      }
-      if (!confirmPin) {
-          // Move to confirmation step if UI handled differently, but here we expect both filled
-          // actually let's simplify: simple state check
       }
       onAuthenticated(pin); // This will save the PIN in App.tsx
     } else {
@@ -37,81 +36,96 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated, savedPin }) =>
       } else {
         setError("Incorrect PIN");
         setPin('');
+        setShake(true);
       }
     }
   };
 
-  const handleNumClick = (num: string) => {
-      if (error) setError('');
-      if (isSetupMode && !confirmPin && pin.length >= 4 && !confirmPin) {
-          // If setup and first PIN done, maybe focus confirm? 
-          // For simplicity, just appending to current focused field logic logic is complex without refs.
-          // Let's just use the keypad for the 'active' concept conceptually or just simple inputs.
-          // We'll stick to a simple input field for now to avoid complexity.
+  useEffect(() => {
+      if (shake) {
+          const timer = setTimeout(() => setShake(false), 500);
+          return () => clearTimeout(timer);
       }
-      
-      // Basic keypad logic for the single active input (simplified for this demo)
-      if (isSetupMode && pin.length >= 4) {
-           setConfirmPin(prev => prev + num);
-      } else {
-           setPin(prev => prev + num);
-      }
-  };
+  }, [shake]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 font-sans">
-      <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-gray-700 flex flex-col items-center">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 font-sans transition-colors duration-300 relative overflow-hidden">
+      
+      {/* Decorative background blur blobs */}
+      <div className="absolute top-[-20%] left-[-20%] w-[50%] h-[50%] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse"></div>
+      <div className="absolute bottom-[-20%] right-[-20%] w-[50%] h-[50%] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse delay-700"></div>
+
+      <div className={`w-full max-w-md bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/50 dark:border-gray-700/50 flex flex-col items-center relative z-10 transition-transform duration-300 ${shake ? 'translate-x-[-5px] translate-x-[5px]' : ''}`} style={shake ? {animation: 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both'} : {}}>
         
-        <div className="mb-6 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-full">
-            {isSetupMode ? <ShieldIcon className="w-12 h-12 text-emerald-600 dark:text-emerald-400" /> : <LockIcon className="w-12 h-12 text-emerald-600 dark:text-emerald-400" />}
+        <style>{`
+            @keyframes shake {
+                10%, 90% { transform: translate3d(-1px, 0, 0); }
+                20%, 80% { transform: translate3d(2px, 0, 0); }
+                30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+                40%, 60% { transform: translate3d(4px, 0, 0); }
+            }
+        `}</style>
+
+        <div className="mb-6 p-5 bg-white dark:bg-gray-800 rounded-2xl shadow-inner border border-gray-100 dark:border-gray-700 z-10">
+            {isSetupMode ? <ShieldIcon className="w-10 h-10 text-emerald-500" /> : <LockIcon className="w-10 h-10 text-indigo-500" />}
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          {isSetupMode ? "Set App Lock" : "Welcome Back"}
+        <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-2 z-10 tracking-tight">
+          {isSetupMode ? "Secure Setup" : "Welcome Back"}
         </h1>
-        <p className="text-gray-500 dark:text-gray-400 text-center mb-8 text-sm">
+        <p className="text-gray-500 dark:text-gray-400 text-center mb-8 text-sm z-10 max-w-xs leading-relaxed">
           {isSetupMode 
-            ? "Create a secure PIN to protect your financial data." 
-            : "Enter your PIN to access your dashboard."}
+            ? "Create a secure PIN to encrypt your local financial data." 
+            : "Enter your PIN to decrypt and access your dashboard."}
         </p>
 
-        <form onSubmit={handlePinSubmit} className="w-full space-y-4">
-          <input
-            type="password"
-            value={pin}
-            onChange={(e) => { setError(''); setPin(e.target.value); }}
-            placeholder={isSetupMode ? "Enter new PIN" : "Enter PIN"}
-            className="w-full text-center text-2xl tracking-widest py-3 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-emerald-500 outline-none text-gray-900 dark:text-white transition-all"
-            inputMode="numeric"
-            autoFocus
-          />
+        <form onSubmit={handlePinSubmit} className="w-full space-y-5 z-10">
+          <div className="relative group">
+              <input
+                type="password"
+                value={pin}
+                onChange={(e) => { setError(''); setPin(e.target.value); }}
+                placeholder={isSetupMode ? "Create PIN" : "Enter PIN"}
+                className="w-full text-center text-3xl tracking-[0.5em] py-4 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-gray-900 dark:text-white transition-all placeholder:text-gray-300 dark:placeholder:text-gray-700 font-bold shadow-sm"
+                inputMode="numeric"
+                autoFocus
+                maxLength={8}
+              />
+          </div>
           
           {isSetupMode && (
-            <input
-              type="password"
-              value={confirmPin}
-              onChange={(e) => { setError(''); setConfirmPin(e.target.value); }}
-              placeholder="Confirm PIN"
-              className="w-full text-center text-2xl tracking-widest py-3 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-emerald-500 outline-none text-gray-900 dark:text-white transition-all animate-fade-in"
-              inputMode="numeric"
-            />
+            <div className="relative animate-fade-in">
+                <input
+                  type="password"
+                  value={confirmPin}
+                  onChange={(e) => { setError(''); setConfirmPin(e.target.value); }}
+                  placeholder="Confirm PIN"
+                  className="w-full text-center text-3xl tracking-[0.5em] py-4 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-gray-900 dark:text-white transition-all placeholder:text-gray-300 dark:placeholder:text-gray-700 font-bold shadow-sm"
+                  inputMode="numeric"
+                  maxLength={8}
+                />
+            </div>
           )}
 
           {error && (
-            <p className="text-rose-500 text-sm text-center font-medium animate-pulse">{error}</p>
+            <p className="text-rose-500 text-sm text-center font-bold bg-rose-50 dark:bg-rose-900/20 py-2 rounded-lg animate-pulse border border-rose-100 dark:border-rose-900/30">{error}</p>
           )}
 
           <button
             type="submit"
-            className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-emerald-500/30 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2"
+            className="w-full py-4 bg-gray-900 hover:bg-black dark:bg-white dark:hover:bg-gray-200 text-white dark:text-gray-900 rounded-2xl font-bold text-lg shadow-xl shadow-gray-200 dark:shadow-none transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 active:scale-95"
           >
-            {isSetupMode ? "Set PIN" : "Unlock"} <UnlockIcon className="w-5 h-5" />
+            {isSetupMode ? "Set PIN Code" : "Unlock Dashboard"} 
+            {isSetupMode ? <ShieldIcon className="w-5 h-5" /> : <UnlockIcon className="w-5 h-5" />}
           </button>
         </form>
         
         {!isSetupMode && (
-            <button onClick={() => { if(window.confirm("Resetting will clear local data. Continue?")) { localStorage.clear(); window.location.reload(); } }} className="mt-6 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 underline">
-                Forgot PIN? Reset App
+            <button 
+                onClick={() => { if(window.confirm("Resetting will clear ALL local data and keys. Continue?")) { localStorage.clear(); window.location.reload(); } }} 
+                className="mt-8 text-xs font-medium text-gray-400 hover:text-rose-500 transition-colors z-10"
+            >
+                Forgot PIN? Reset Application
             </button>
         )}
       </div>
