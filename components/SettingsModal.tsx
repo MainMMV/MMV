@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { CloseIcon, FolderIcon, GoogleSheetsIcon, CheckCircleIcon, ExternalLinkIcon, PhotoIcon } from './Icons';
+import QRCode from 'qrcode';
+import { CloseIcon, FolderIcon, GoogleSheetsIcon, CheckCircleIcon, ExternalLinkIcon, PhotoIcon, QrCodeIcon } from './Icons';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -62,11 +63,21 @@ const THEMES = [
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onConnectFile, isFileConnected, currentFont = 'Inter', setFont, currentTheme = 'emerald', setTheme }) => {
   const [activeTab, setActiveTab] = useState<'general' | 'appearance' | 'integrations'>('general');
   const [neonConnectionString, setNeonConnectionString] = useState(localStorage.getItem('neonConnectionString') || '');
+  const [showQr, setShowQr] = useState(false);
+  const [qrUrl, setQrUrl] = useState('');
   
   const handleSaveNeon = () => {
       localStorage.setItem('neonConnectionString', neonConnectionString);
       alert('Connection string saved! Please reload the app to sync with Neon.');
   };
+
+  useEffect(() => {
+      if (showQr && neonConnectionString) {
+          QRCode.toDataURL(neonConnectionString, { width: 200, margin: 1, color: { dark: '#000000', light: '#ffffff' } })
+            .then(url => setQrUrl(url))
+            .catch(err => console.error(err));
+      }
+  }, [showQr, neonConnectionString]);
 
   // Integrations State
   const [integrations, setIntegrations] = useState<IntegrationItem[]>([
@@ -175,16 +186,35 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onConnec
             <div className="space-y-8">
               {/* Neon DB Connection */}
               <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                      <div className="p-2 bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-lg">
-                          {/* Database Icon SVG */}
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" /></svg>
+                  <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                          <div className="p-2 bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-lg">
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" /></svg>
+                          </div>
+                          <div>
+                              <h3 className="font-semibold text-gray-900 dark:text-white">Neon Database</h3>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Cloud Sync.</p>
+                          </div>
                       </div>
-                      <div>
-                          <h3 className="font-semibold text-gray-900 dark:text-white">Neon Database</h3>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">Enter Postgres connection string.</p>
-                      </div>
+                      {neonConnectionString && (
+                          <button 
+                            onClick={() => setShowQr(!showQr)}
+                            className="text-xs flex items-center gap-1 text-emerald-600 dark:text-emerald-400 hover:underline"
+                          >
+                              <QrCodeIcon className="w-4 h-4" /> Share to Mobile
+                          </button>
+                      )}
                   </div>
+                  
+                  {showQr && neonConnectionString && qrUrl && (
+                      <div className="flex flex-col items-center p-4 bg-white rounded-xl border border-gray-200 shadow-sm animate-fade-in">
+                          <img src={qrUrl} alt="Connection String QR" className="w-48 h-48" />
+                          <p className="text-[10px] text-gray-500 mt-2 text-center max-w-xs">
+                              Scan with your mobile device to copy the connection string.
+                          </p>
+                      </div>
+                  )}
+
                   <div className="space-y-2">
                       <input 
                           type="password" 

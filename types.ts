@@ -120,3 +120,14 @@ export interface Seller {
   tcFact: number;
   tcPlan: number;
 }
+
+/**
+ * Interface representing a Todo item.
+ */
+export interface Todo {
+  id: string;
+  text: string;
+  completed: boolean;
+  category: 'personal' | 'work' | 'urgent' | 'shopping';
+  createdAt: string;
+}

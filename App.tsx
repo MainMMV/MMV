@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { MonthData, GoalStatus, Goal, StorePlan, Seller } from './types.ts';
+import { MonthData, GoalStatus, Goal, StorePlan, Seller, Todo } from './types.ts';
 import MonthCard from './components/MonthCard.tsx';
 import TopNav from './components/TopNav.tsx';
 import Dashboard from './components/Dashboard.tsx';
@@ -14,6 +14,8 @@ import IntegrationsPage from './components/IntegrationsPage.tsx';
 import SellerView from './components/SellerView.tsx';
 import AIDashboard from './components/AIDashboard.tsx';
 import MonthlyIncomeView from './components/MonthlyIncomeView.tsx';
+import TodoList from './components/TodoList.tsx';
+import AuthScreen from './components/AuthScreen.tsx';
 import { loadFromNeon, saveToNeon } from './services/neon.ts';
 
 // Initial sample data from user backup
@@ -307,7 +309,7 @@ const THEME_PALETTES: Record<string, any> = {
  * Manages the state for all month data and handles CRUD operations.
  */
 const App: React.FC = () => {
-  const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations' | 'income_detail'>('welcome');
+  const [activeView, setActiveView] = useState<'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations' | 'income_detail' | 'todo'>('welcome');
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNewMonthModalOpen, setIsNewMonthModalOpen] = useState(false);
@@ -319,6 +321,11 @@ const App: React.FC = () => {
   const [data, setData] = useState<MonthData[]>(initialData);
   const [storePlans, setStorePlans] = useState<StorePlan[]>(initialStorePlans);
   const [sellers, setSellers] = useState<Seller[]>(initialSellers);
+  const [todos, setTodos] = useState<Todo[]>([]); // New Todo State
+
+  // Authentication State
+  const [authPin, setAuthPin] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Theme & Appearance State
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -342,16 +349,22 @@ const App: React.FC = () => {
                   if (cloudData.salaryGoalTrackerData) setData(cloudData.salaryGoalTrackerData);
                   if (cloudData.storePlansData) setStorePlans(cloudData.storePlansData);
                   if (cloudData.sellersData) setSellers(cloudData.sellersData);
+                  if (cloudData.todosData) setTodos(cloudData.todosData); // Load Todos
+                  if (cloudData.authPin) setAuthPin(cloudData.authPin); // Load PIN
+                  
                   if (cloudData.theme) setTheme(cloudData.theme);
                   if (cloudData.appFont) setAppFont(cloudData.appFont);
                   if (cloudData.appThemeColor) setAppThemeColor(cloudData.appThemeColor);
                   console.log("Data loaded from Neon successfully!");
               } else {
                   console.warn("Could not load from Neon (or DB empty):", result.error);
-                  // If DB is empty/new, initialData (which now contains user backup) will be saved on next debounce
+                  // If DB is empty/new, initialData will be saved on next debounce
               }
           };
           loadData();
+      } else {
+          // If local PIN exists in a separate storage (fallback), use it, otherwise rely on cloud
+          // Here we assume cloud PIN is master. If no cloud PIN, authPin remains null (Setup Mode)
       }
   }, []);
 
@@ -453,12 +466,14 @@ const App: React.FC = () => {
             salaryGoalTrackerData: data,
             storePlansData: storePlans,
             sellersData: sellers,
+            todosData: todos,
+            authPin: authPin,
             theme: theme,
             appFont: appFont,
             appThemeColor: appThemeColor
         }
     }, null, 2);
-  }, [data, storePlans, sellers, theme, appFont, appThemeColor]);
+  }, [data, storePlans, sellers, todos, authPin, theme, appFont, appThemeColor]);
 
   // Auto-save to file handle if connected (Desktop only)
   useEffect(() => {
@@ -494,7 +509,7 @@ const App: React.FC = () => {
     return () => {
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
-  }, [data, storePlans, sellers, theme, fileHandle, generateBackupJSON]);
+  }, [data, storePlans, sellers, todos, authPin, theme, fileHandle, generateBackupJSON]);
 
   const loadDataFromText = (text: string) => {
       try {
@@ -510,6 +525,9 @@ const App: React.FC = () => {
                 if (backup.data.salaryGoalTrackerData) setData(backup.data.salaryGoalTrackerData);
                 if (backup.data.storePlansData) setStorePlans(backup.data.storePlansData);
                 if (backup.data.sellersData) setSellers(backup.data.sellersData);
+                if (backup.data.todosData) setTodos(backup.data.todosData);
+                if (backup.data.authPin) setAuthPin(backup.data.authPin);
+                
                 if (backup.data.theme) setTheme(backup.data.theme);
                 if (backup.data.appFont) setAppFont(backup.data.appFont);
                 if (backup.data.appThemeColor) setAppThemeColor(backup.data.appThemeColor);
@@ -587,6 +605,7 @@ const App: React.FC = () => {
     setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
   };
 
+  // --- Handlers for Goals ---
   const handleGoalUpdate = useCallback((monthId: string, goalId: string, updatedValues: Partial<Goal>) => {
     setData(currentData => {
         // 1. First pass: Apply the update to the specific month/goal
@@ -999,6 +1018,42 @@ const App: React.FC = () => {
       setSellers(updatedSellers);
   };
 
+  // --- Todo Handlers ---
+  const handleAddTodo = (text: string, category: Todo['category']) => {
+      const newTodo: Todo = {
+          id: `todo-${Date.now()}`,
+          text,
+          completed: false,
+          category,
+          createdAt: new Date().toISOString()
+      };
+      setTodos(prev => [...prev, newTodo]);
+  };
+
+  const handleToggleTodo = (id: string) => {
+      setTodos(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+  };
+
+  const handleDeleteTodo = (id: string) => {
+      setTodos(prev => prev.filter(t => t.id !== id));
+  };
+
+  // --- Auth Handler ---
+  const handleAuthenticated = (pin: string) => {
+      setAuthPin(pin);
+      setIsAuthenticated(true);
+  };
+
+  if (!isAuthenticated) {
+      return (
+        <div 
+            className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300"
+            style={{ fontFamily: `"${appFont}", sans-serif` }}
+        >
+            <AuthScreen onAuthenticated={handleAuthenticated} savedPin={authPin} />
+        </div>
+      );
+  }
 
   const renderContent = () => {
     switch (activeView) {
@@ -1015,8 +1070,8 @@ const App: React.FC = () => {
             monthData={currentMonthData}
             onNavigate={(view) => {
                 // Ensure the view is compatible with activeView type
-                if (view === 'mmv' || view === 'branch' || view === 'seller' || view === 'comparison' || view === 'integrations') {
-                    setActiveView(view);
+                if (['mmv', 'branch', 'seller', 'comparison', 'integrations', 'todo', 'income_detail'].includes(view)) {
+                    setActiveView(view as any);
                 }
             }}
           />
@@ -1039,6 +1094,15 @@ const App: React.FC = () => {
         return <AIDashboard allMonths={data} />;
       case 'income_detail':
         return <MonthlyIncomeView allMonths={data} onUpdateMonth={handleUpdateMonth} />;
+      case 'todo':
+        return (
+            <TodoList 
+                todos={todos} 
+                onAddTodo={handleAddTodo}
+                onToggleTodo={handleToggleTodo}
+                onDeleteTodo={handleDeleteTodo}
+            />
+        );
       case 'integrations':
         return <IntegrationsPage onConnectDrive={handleConnectFile} isConnected={!!fileHandle} />;
       case 'mmv':

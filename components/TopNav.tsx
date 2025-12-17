@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { 
   SunIcon, MoonIcon, MenuIcon, ChartBarIcon, CogIcon, CheckCircleIcon,
   HomeIcon, Squares2X2Icon, BuildingStoreIcon, UserGroupIcon, PuzzlePieceIcon, PresentationChartLineIcon,
-  CalendarIcon, WalletIcon
+  CalendarIcon, WalletIcon, ClipboardListIcon
 } from './Icons';
 
 /**
@@ -12,8 +12,8 @@ import {
 interface TopNavProps {
   theme: 'light' | 'dark';
   toggleTheme: () => void;
-  activeView: 'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations' | 'income_detail';
-  onViewChange: (view: 'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations' | 'income_detail') => void;
+  activeView: 'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations' | 'income_detail' | 'todo';
+  onViewChange: (view: 'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations' | 'income_detail' | 'todo') => void;
   onOpenSettings: () => void;
   isCloudSyncActive?: boolean;
 }
@@ -24,7 +24,7 @@ interface TopNavProps {
 const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewChange, onOpenSettings, isCloudSyncActive }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleViewClick = (view: 'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations' | 'income_detail') => {
+  const handleViewClick = (view: 'welcome' | 'mmv' | 'ai' | 'branch' | 'seller' | 'comparison' | 'integrations' | 'income_detail' | 'todo') => {
     onViewChange(view);
     setIsMenuOpen(false);
   };
@@ -147,6 +147,11 @@ const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewC
                 <UserGroupIcon className="w-5 h-5" /> Sellers Plan
               </button>
 
+              {/* 8. Todo List (New) */}
+              <button className={getButtonClass('todo')} onClick={() => handleViewClick('todo')}>
+                <ClipboardListIcon className="w-5 h-5" /> Todo List
+              </button>
+
               <div className="border-t border-gray-200 dark:border-gray-800 my-2"></div>
               
               <button className={getButtonClass('integrations')} onClick={() => handleViewClick('integrations')}>
@@ -156,7 +161,7 @@ const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme, activeView, onViewC
           </div>
           
           <div className="p-4 bg-gray-100 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-800">
-              <p className="text-xs text-center text-gray-400">Salary & Goal Tracker v9.6</p>
+              <p className="text-xs text-center text-gray-400">Salary & Goal Tracker v9.7</p>
           </div>
         </div>
       </div>
