@@ -1,5 +1,5 @@
 {
-  "name": "Salary & Goal Tracker",
+  "name": "salary-goal-tracker",
   "description": "A web application to visually track monthly salary breakdowns and progress towards personal or team goals, inspired by modern dashboard UIs.",
   "requestFramePermissions": []
 }

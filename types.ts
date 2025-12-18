@@ -1,5 +1,4 @@
 
-
 /**
  * Enum representing the possible statuses of a goal.
  */
@@ -72,6 +71,38 @@ export interface StorePlan {
 }
 
 /**
+ * Interface representing a favorite web page link.
+ */
+export interface FavouriteLink {
+  id: string;
+  title: string;
+  url: string;
+  description: string;
+  folderId: string | null;
+  instagramUrl?: string;
+}
+
+/**
+ * Interface representing a folder for favorite links.
+ */
+export interface FavouriteFolder {
+  id: string;
+  name: string;
+  color?: string; // e.g., 'rose-500', 'amber-500'
+}
+
+/**
+ * Interface representing a spending item.
+ */
+export interface SpendingItem {
+  id: string;
+  date: string; // ISO string
+  amount: number;
+  category: string;
+  note: string;
+}
+
+/**
  * Interface representing a Seller's performance data.
  */
 export interface Seller {
@@ -109,29 +140,4 @@ export interface Todo {
   priority?: PriorityLevel;
   recurring?: boolean;
   notes?: string;
-  payDay?: number; // Optional: 1-31
-  googleCalendarEventId?: string; // For syncing
-}
-
-/**
- * Interface representing a favourite link.
- */
-// Added FavouriteLink interface for WelcomePage
-export interface FavouriteLink {
-  id: string;
-  title: string;
-  url: string;
-  description?: string;
-  folderId?: string | null;
-  instagramUrl?: string;
-}
-
-/**
- * Interface representing a favourite folder for grouping links.
- */
-// Added FavouriteFolder interface for WelcomePage
-export interface FavouriteFolder {
-  id: string;
-  name: string;
-  color?: string;
 }
