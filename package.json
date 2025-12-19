@@ -14,7 +14,8 @@
     "qrcode": "latest",
     "jsbarcode": "latest",
     "@heroicons/react": "^2.2.0",
-    "@neondatabase/serverless": "latest"
+    "@neondatabase/serverless": "latest",
+    "vite": "^7.3.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

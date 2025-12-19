@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { MonthData, GoalStatus, Goal, StorePlan, Seller, Todo } from './types.ts';
 import MonthCard from './components/MonthCard.tsx';
@@ -17,8 +18,9 @@ import TodoList from './components/TodoList.tsx';
 import AuthScreen from './components/AuthScreen.tsx';
 import { loadFromNeon, saveToNeon } from './services/neon.ts';
 
-// Get configuration from Environment Variables
-const SYSTEM_PIN = process.env.AUTH_PIN || '0625';
+// These constants will now pull from the Render Dashboard environment variables
+// Vite will replace 'process.env.X' with the actual value during deployment.
+const SYSTEM_PIN = process.env.AUTH_PIN || '';
 const SYSTEM_NEON_URI = process.env.NEON_CONNECTION_STRING || '';
 
 const initialData: MonthData[] = [

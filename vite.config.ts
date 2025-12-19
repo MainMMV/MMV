@@ -1,23 +1,18 @@
-import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
-import react from '@vitejs/plugin-react';
 
-export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, '.', '');
-    return {
-      server: {
-        port: 3000,
-        host: '0.0.0.0',
-      },
-      plugins: [react()],
-      define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-      },
-      resolve: {
-        alias: {
-          '@': path.resolve(__dirname, '.'),
-        }
-      }
-    };
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  // Explicitly allow your Render host to prevent the "Blocked request" security error
+  server: {
+    allowedHosts: ["mmv9309.onrender.com"],
+  },
+  preview: {
+    allowedHosts: ["mmv9309.onrender.com"],
+  },
+  // This tells Vite to look for these variables in your Render Dashboard
+  // and make them available to the app code as process.env.VARIABLE_NAME
+  define: {
+    'process.env.AUTH_PIN': JSON.stringify(process.env.AUTH_PIN),
+    'process.env.NEON_CONNECTION_STRING': JSON.stringify(process.env.NEON_CONNECTION_STRING),
+  },
 });
