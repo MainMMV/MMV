@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GoogleSheetsIcon, PuzzlePieceIcon, CheckCircleIcon, ExternalLinkIcon } from './Icons';
+import { PuzzlePieceIcon, CheckCircleIcon, ExternalLinkIcon, FolderIcon } from './Icons';
 
 interface Integration {
     id: string;
@@ -18,14 +18,6 @@ interface IntegrationsPageProps {
 
 const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ onConnectDrive, isConnected }) => {
     const [integrations, setIntegrations] = useState<Integration[]>([
-        {
-            id: 'google-sheets',
-            name: 'Google Sheets',
-            description: 'Sync your goal data directly to spreadsheets for analysis.',
-            icon: <GoogleSheetsIcon />,
-            connected: true,
-            type: 'utility'
-        },
         {
             id: 'slack',
             name: 'Slack',
@@ -47,7 +39,7 @@ const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ onConnectDrive, isC
                      <path d="M7.784 14l4.22-7.304 2.11-3.653h7.22L12 14H7.784zM6.528 12L2.636 5.26 8.673 2h10.582l-2.166 3.75H9.342L6.528 12zm.844 1.5L2.118 22.5h-.005l6.526.001 10.552.003L13.01 13.5H7.372z"/>
                  </svg>
             ),
-            connected: false,
+            connected: isConnected,
             type: 'storage'
         }
     ]);
@@ -62,18 +54,21 @@ const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ onConnectDrive, isC
     }, [isConnected]);
 
     const handleDriveConnection = () => {
-        // If drive is not connected, we try to connect it via file system
         const driveIntegration = integrations.find(i => i.id === 'google-drive');
         if (driveIntegration && !driveIntegration.connected && onConnectDrive) {
-            // Trigger the file picker in App.tsx
             onConnectDrive();
-        } else {
-            // Disconnect logic if needed
-            toggleConnection('google-drive');
+        } else if (driveIntegration && driveIntegration.connected) {
+             // To "disconnect" from drive here, we usually just clear the handle in App.tsx
+             // but we'll stick to triggering the connection for now.
+             onConnectDrive && onConnectDrive();
         }
     };
 
     const toggleConnection = (id: string) => {
+        if (id === 'google-drive') {
+            handleDriveConnection();
+            return;
+        }
         setIntegrations(prev => prev.map(integration => {
             if (integration.id === id) {
                 return { ...integration, connected: !integration.connected };
@@ -115,14 +110,14 @@ const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ onConnectDrive, isC
                         
                         <div className="flex gap-3">
                             <button
-                                onClick={() => item.id === 'google-drive' ? handleDriveConnection() : toggleConnection(item.id)}
+                                onClick={() => toggleConnection(item.id)}
                                 className={`flex-grow py-2.5 rounded-lg font-medium transition-all duration-200 ${
                                     item.connected 
                                     ? 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600'
                                     : 'bg-violet-600 text-white hover:bg-violet-700 shadow-md shadow-violet-500/20'
                                 }`}
                             >
-                                {item.connected ? 'Disconnect' : 'Connect'}
+                                {item.connected ? (item.id === 'google-drive' ? 'Reconnect' : 'Disconnect') : 'Connect'}
                             </button>
                             
                             {item.connected && item.url && (
